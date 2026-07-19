@@ -30,12 +30,26 @@ export async function enablePush(): Promise<void> {
   }
   const { public_key } = await api.get<{ public_key: string }>('/api/notifications/public-key')
   const reg = await registration()
-  const sub =
-    (await reg.pushManager.getSubscription()) ??
-    (await reg.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(public_key),
-    }))
+  let sub = await reg.pushManager.getSubscription()
+  if (!sub) {
+    try {
+      sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(public_key),
+      })
+    } catch (err) {
+      // "push service error" = the BROWSER could not reach its own push
+      // network (Edge->WNS, Chrome->FCM), usually fixable by the user.
+      if (err instanceof Error && /push service/i.test(err.message)) {
+        throw new Error(
+          'Your browser could not reach its push service. Fully restart the browser and try ' +
+            'again; if it persists, check that Windows notifications are on, turn off VPN, ' +
+            'or try another browser such as Chrome.',
+        )
+      }
+      throw err
+    }
+  }
   await api.post('/api/notifications/subscribe', sub.toJSON())
 }
 
