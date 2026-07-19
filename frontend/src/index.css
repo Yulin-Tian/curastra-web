@@ -1,9 +1,31 @@
 @import "tailwindcss";
 
+/* Nordic design tokens — warm paper surfaces, deep pine identity, the teal
+   action color kept from the first iteration. Inspired by Scandinavian
+   public-sector clarity (ssb.no): whitespace, hairlines, flat surfaces. */
 @theme {
-  --font-sans: "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-sans: "Inter", "Segoe UI", system-ui, sans-serif;
+  --font-display: "Fraunces", Georgia, "Times New Roman", serif;
+
+  --color-paper: #f7f6f1;
+  --color-ink: #1f2d29;
+
+  --color-pine-950: #0f2622;
+  --color-pine-900: #16342d;
+  --color-pine-800: #1d443b;
+  --color-pine-100: #dce8e0;
+
+  --color-sage-50: #f1f4ee;
+  --color-sage-100: #e8efe7;
+  --color-sage-200: #d7e3d6;
 }
 
 body {
-  @apply bg-slate-50 text-slate-800 antialiased;
+  @apply bg-paper text-ink antialiased;
+  font-feature-settings: "cv02", "cv11";
+}
+
+/* Serif display headings get slightly tighter, calmer spacing */
+.font-display {
+  letter-spacing: -0.015em;
 }

@@ -90,14 +90,16 @@ export default function ChatPage() {
       </div>
       <ErrorBanner message={error} />
 
-      <div className="mt-2 flex-1 space-y-3 overflow-y-auto rounded-xl border border-slate-200 bg-white p-4">
+      <div className="mt-2 flex-1 space-y-3 overflow-y-auto rounded-2xl border border-stone-200/80 bg-white p-5">
         {messages === null ? (
           <Spinner label="Loading conversation…" />
         ) : messages.length === 0 ? (
           <div className="flex h-full flex-col items-center justify-center text-center">
-            <MessageCircle className="h-10 w-10 text-teal-200" />
-            <p className="mt-2 font-medium text-slate-600">Ask me anything about your care</p>
-            <p className="mt-1 max-w-xs text-sm text-slate-400">
+            <span className="rounded-2xl bg-sage-100 p-4">
+              <MessageCircle className="h-8 w-8 text-pine-800" strokeWidth={1.6} />
+            </span>
+            <p className="mt-4 font-display text-lg text-pine-900">Ask me anything about your care</p>
+            <p className="mt-1 max-w-xs text-sm text-stone-400">
               For example: “When should I take my medicines?” or “What does my care plan say about diet?”
             </p>
           </div>
@@ -114,8 +116,8 @@ export default function ChatPage() {
                 <div
                   className={`max-w-[85%] whitespace-pre-wrap rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
                     m.role === 'user'
-                      ? 'rounded-br-sm bg-teal-600 text-white'
-                      : 'rounded-bl-sm bg-slate-100 text-slate-800'
+                      ? 'rounded-br-sm bg-pine-900 text-white'
+                      : 'rounded-bl-sm bg-sage-100 text-ink'
                   }`}
                 >
                   {m.content}
@@ -130,7 +132,7 @@ export default function ChatPage() {
 
       <form onSubmit={onSend} className="mt-3 flex gap-2">
         <input
-          className="flex-1 rounded-xl border border-slate-300 px-4 py-2.5 text-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+          className="flex-1 rounded-xl border border-stone-300 bg-white px-4 py-2.5 text-sm placeholder:text-stone-400 focus:border-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-600/15"
           placeholder="Type your question…"
           value={input}
           onChange={(e) => setInput(e.target.value)}

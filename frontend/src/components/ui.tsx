@@ -4,7 +4,7 @@ import { AlertTriangle, Info, Loader2 } from 'lucide-react'
 /** Loading state for AI/OCR calls — these take a few seconds, the UI must never look frozen. */
 export function Spinner({ label = 'Working…' }: { label?: string }) {
   return (
-    <div className="flex items-center gap-2 text-slate-500 py-4" role="status">
+    <div className="flex items-center gap-2.5 py-4 text-stone-500" role="status">
       <Loader2 className="h-5 w-5 animate-spin text-teal-600" />
       <span className="text-sm">{label}</span>
     </div>
@@ -14,7 +14,7 @@ export function Spinner({ label = 'Working…' }: { label?: string }) {
 export function ErrorBanner({ message }: { message: string }) {
   if (!message) return null
   return (
-    <div className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+    <div className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
       <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
       <span>{message}</span>
     </div>
@@ -25,7 +25,7 @@ export function ErrorBanner({ message }: { message: string }) {
 export function Disclaimer({ text }: { text: string }) {
   if (!text) return null
   return (
-    <p className="mt-3 flex items-start gap-1.5 text-xs text-slate-500 border-t border-slate-100 pt-2">
+    <p className="mt-4 flex items-start gap-1.5 border-t border-stone-200/70 pt-3 text-xs leading-relaxed text-stone-500">
       <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
       {text}
     </p>
@@ -34,26 +34,41 @@ export function Disclaimer({ text }: { text: string }) {
 
 export function EmptyState({ title, hint }: { title: string; hint?: string }) {
   return (
-    <div className="rounded-xl border border-dashed border-slate-300 bg-white px-6 py-10 text-center">
-      <p className="font-medium text-slate-600">{title}</p>
-      {hint && <p className="mt-1 text-sm text-slate-400">{hint}</p>}
+    <div className="rounded-2xl border border-dashed border-sage-200 bg-sage-50/60 px-6 py-14 text-center">
+      <p className="font-display text-lg text-pine-900">{title}</p>
+      {hint && <p className="mx-auto mt-1.5 max-w-sm text-sm text-stone-500">{hint}</p>}
     </div>
   )
 }
 
 export function Card({ children, className = '' }: { children: ReactNode; className?: string }) {
   return (
-    <div className={`rounded-xl border border-slate-200 bg-white p-5 shadow-sm ${className}`}>
+    <div
+      className={`rounded-2xl border border-stone-200/80 bg-white p-6 shadow-[0_1px_2px_rgba(31,45,41,0.04)] ${className}`}
+    >
       {children}
     </div>
   )
 }
 
-export function PageTitle({ title, subtitle }: { title: string; subtitle?: string }) {
+export function PageTitle({
+  title,
+  subtitle,
+  eyebrow,
+}: {
+  title: string
+  subtitle?: string
+  eyebrow?: string
+}) {
   return (
-    <div className="mb-6">
-      <h1 className="text-2xl font-semibold text-slate-900">{title}</h1>
-      {subtitle && <p className="mt-1 text-sm text-slate-500">{subtitle}</p>}
+    <div className="mb-8">
+      {eyebrow && (
+        <div className="mb-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-teal-700">
+          {eyebrow}
+        </div>
+      )}
+      <h1 className="font-display text-[2rem] font-medium leading-tight text-pine-900">{title}</h1>
+      {subtitle && <p className="mt-2 max-w-xl text-[15px] leading-relaxed text-stone-500">{subtitle}</p>}
     </div>
   )
 }
@@ -62,7 +77,7 @@ const buttonStyles = {
   primary:
     'bg-teal-600 text-white hover:bg-teal-700 disabled:bg-teal-300 focus-visible:outline-teal-600',
   secondary:
-    'bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 disabled:text-slate-300',
+    'bg-white text-pine-900 border border-stone-300 hover:border-pine-800 hover:bg-sage-50 disabled:text-stone-300',
   danger: 'bg-white text-red-600 border border-red-200 hover:bg-red-50 disabled:text-red-300',
 }
 
@@ -73,11 +88,11 @@ export function Button({
 }: React.ButtonHTMLAttributes<HTMLButtonElement> & { variant?: keyof typeof buttonStyles }) {
   return (
     <button
-      className={`inline-flex items-center justify-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium transition-colors disabled:cursor-not-allowed ${buttonStyles[variant]} ${className}`}
+      className={`inline-flex items-center justify-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-medium transition-all disabled:cursor-not-allowed ${buttonStyles[variant]} ${className}`}
       {...props}
     />
   )
 }
 
 export const inputClass =
-  'w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500'
+  'w-full rounded-xl border border-stone-300 bg-white px-3.5 py-2.5 text-sm text-ink placeholder:text-stone-400 focus:border-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-600/15 transition-shadow'
