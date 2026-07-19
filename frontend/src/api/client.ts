@@ -66,6 +66,7 @@ export const api = {
   get: <T>(path: string) => request<T>(path),
   post: <T>(path: string, data?: unknown) => request<T>(path, jsonOptions('POST', data)),
   patch: <T>(path: string, data?: unknown) => request<T>(path, jsonOptions('PATCH', data)),
+  put: <T>(path: string, data?: unknown) => request<T>(path, jsonOptions('PUT', data)),
   delete: <T = void>(path: string) => request<T>(path, { method: 'DELETE' }),
   postForm: <T>(path: string, form: FormData) => request<T>(path, { method: 'POST', body: form }),
   /** URL for authenticated file fetches (used with fetch + blob for previews). */

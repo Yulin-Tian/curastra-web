@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { AlertTriangle, Info, Loader2 } from 'lucide-react'
+import { SproutSpot } from './illustrations'
 
 /** Loading state for AI/OCR calls — these take a few seconds, the UI must never look frozen. */
 export function Spinner({ label = 'Working…' }: { label?: string }) {
@@ -34,8 +35,9 @@ export function Disclaimer({ text }: { text: string }) {
 
 export function EmptyState({ title, hint }: { title: string; hint?: string }) {
   return (
-    <div className="rounded-2xl border border-dashed border-sage-200 bg-sage-50/60 px-6 py-14 text-center">
-      <p className="font-display text-lg text-pine-900">{title}</p>
+    <div className="rounded-2xl border border-dashed border-sage-200 bg-sage-50/60 px-6 py-12 text-center">
+      <SproutSpot className="mx-auto h-20 w-20" />
+      <p className="mt-3 font-display text-lg text-pine-900">{title}</p>
       {hint && <p className="mx-auto mt-1.5 max-w-sm text-sm text-stone-500">{hint}</p>}
     </div>
   )

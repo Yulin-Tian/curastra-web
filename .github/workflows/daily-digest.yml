@@ -1,0 +1,23 @@
+# Hourly trigger for the daily reminder digest. The backend itself decides
+# which users are due at the current UTC hour, so one hourly ping serves
+# every user's personally chosen reminder time.
+#
+# Requires one repository secret: CRON_SECRET (Settings -> Secrets and
+# variables -> Actions), matching the backend's CRON_SECRET env var.
+
+name: daily-digest
+
+on:
+  schedule:
+    - cron: "0 * * * *" # every hour, on the hour (UTC)
+  workflow_dispatch: {} # manual run button for testing
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping the dispatch endpoint
+        run: |
+          curl -sS -X POST "https://curastra-web-backend.onrender.com/api/notifications/dispatch" \
+            -H "X-Cron-Key: ${{ secrets.CRON_SECRET }}" \
+            --max-time 120 --retry 2 --retry-delay 20 --fail-with-body

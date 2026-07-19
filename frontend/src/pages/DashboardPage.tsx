@@ -5,6 +5,7 @@ import { api } from '../api/client'
 import type { CarePlan, HealthRecord, Medication, Vital } from '../api/types'
 import { useAuth } from '../auth/AuthContext'
 import { Card } from '../components/ui'
+import { SkylineScene } from '../components/illustrations'
 
 export default function DashboardPage() {
   const { user } = useAuth()
@@ -103,7 +104,10 @@ export default function DashboardPage() {
         </Card>
       )}
 
-      <p className="mt-12 text-center text-xs text-stone-400">
+      <div className="mt-14 overflow-hidden opacity-80">
+        <SkylineScene className="mx-auto w-full min-w-[720px]" />
+      </div>
+      <p className="mt-4 text-center text-xs text-stone-400">
         Curastra supports your everyday care. It never diagnoses or replaces medical advice.
       </p>
     </div>

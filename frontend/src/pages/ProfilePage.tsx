@@ -1,9 +1,140 @@
-import { useState } from 'react'
-import { BadgeCheck, Link2, UserRound } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { BadgeCheck, BellRing, Link2, UserRound } from 'lucide-react'
 import { api } from '../api/client'
+import { disablePush, enablePush, pushSupported } from '../api/push'
 import type { User } from '../api/types'
 import { useAuth } from '../auth/AuthContext'
-import { Button, Card, ErrorBanner, PageTitle, inputClass } from '../components/ui'
+import { Button, Card, ErrorBanner, PageTitle, Spinner, inputClass } from '../components/ui'
+
+interface NotificationSettings {
+  daily_digest: boolean
+  hour_local: number
+  tz_offset_minutes: number
+  subscribed_devices: number
+}
+
+function ReminderCard() {
+  const [settings, setSettings] = useState<NotificationSettings | null>(null)
+  const [error, setError] = useState('')
+  const [info, setInfo] = useState('')
+  const [busy, setBusy] = useState(false)
+  const supported = pushSupported()
+
+  useEffect(() => {
+    api
+      .get<NotificationSettings>('/api/notifications/settings')
+      .then(setSettings)
+      .catch(() => {})
+  }, [])
+
+  async function save(next: { daily_digest: boolean; hour_local: number }) {
+    const updated = await api.put<NotificationSettings>('/api/notifications/settings', {
+      ...next,
+      tz_offset_minutes: new Date().getTimezoneOffset(),
+    })
+    setSettings(updated)
+  }
+
+  async function onToggle() {
+    if (!settings) return
+    setError('')
+    setInfo('')
+    setBusy(true)
+    try {
+      if (!settings.daily_digest) {
+        await enablePush()
+        await save({ daily_digest: true, hour_local: settings.hour_local })
+        setInfo('Daily reminders are on for this browser.')
+      } else {
+        await disablePush()
+        await save({ daily_digest: false, hour_local: settings.hour_local })
+        setInfo('Daily reminders are off.')
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not update notifications.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function onHourChange(hour: number) {
+    if (!settings) return
+    setError('')
+    try {
+      await save({ daily_digest: settings.daily_digest, hour_local: hour })
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not save the time.')
+    }
+  }
+
+  async function onTest() {
+    setError('')
+    setInfo('')
+    setBusy(true)
+    try {
+      await api.post('/api/notifications/test')
+      setInfo('Test sent — it should appear in a few seconds.')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Test failed.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <Card className="mb-6">
+      <h2 className="flex items-center gap-2 font-semibold text-slate-800">
+        <BellRing className="h-4 w-4 text-teal-600" /> Daily care reminder
+      </h2>
+      <p className="mt-1 text-sm text-stone-500">
+        A short daily check-in with your medicines and care-plan tasks, sent to this browser even
+        when Curastra is closed.
+      </p>
+      {!supported ? (
+        <p className="mt-3 text-sm text-amber-700">
+          This browser does not support push notifications. On iPhone, add Curastra to your Home
+          Screen first.
+        </p>
+      ) : settings === null ? (
+        <Spinner label="Loading settings…" />
+      ) : (
+        <div className="mt-4 space-y-3">
+          {error && <ErrorBanner message={error} />}
+          {info && <p className="rounded-lg bg-teal-50 px-3 py-2 text-sm text-teal-700">{info}</p>}
+          <div className="flex flex-wrap items-center gap-3">
+            <Button onClick={onToggle} disabled={busy} variant={settings.daily_digest ? 'secondary' : 'primary'}>
+              {busy ? 'Working…' : settings.daily_digest ? 'Turn off reminders' : 'Turn on reminders'}
+            </Button>
+            <label className="flex items-center gap-2 text-sm text-slate-700">
+              Remind me around
+              <select
+                className={`${inputClass} !w-auto`}
+                value={settings.hour_local}
+                onChange={(e) => onHourChange(Number(e.target.value))}
+              >
+                {Array.from({ length: 24 }, (_, h) => (
+                  <option key={h} value={h}>
+                    {String(h).padStart(2, '0')}:00
+                  </option>
+                ))}
+              </select>
+            </label>
+            {settings.daily_digest && (
+              <Button variant="secondary" onClick={onTest} disabled={busy}>
+                Send a test now
+              </Button>
+            )}
+          </div>
+          <p className="text-xs text-stone-400">
+            {settings.subscribed_devices > 0
+              ? `${settings.subscribed_devices} browser(s) subscribed. Delivery is approximate to the hour you choose.`
+              : 'No browser subscribed yet — turning reminders on will ask for permission.'}
+          </p>
+        </div>
+      )}
+    </Card>
+  )
+}
 
 export default function ProfilePage() {
   const { user, refreshUser } = useAuth()
@@ -54,6 +185,8 @@ export default function ProfilePage() {
           </div>
         </div>
       </Card>
+
+      <ReminderCard />
 
       <Card>
         <h2 className="flex items-center gap-2 font-semibold text-slate-800">

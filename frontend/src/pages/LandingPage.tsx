@@ -15,6 +15,7 @@ import {
   Activity,
 } from 'lucide-react'
 import { useAuth } from '../auth/AuthContext'
+import { SkylineScene } from '../components/illustrations'
 
 const painPoints = [
   {
@@ -268,8 +269,13 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Illustrated scene */}
+      <div className="overflow-hidden">
+        <SkylineScene className="mx-auto -mb-1 mt-16 w-full min-w-[900px] max-w-7xl" />
+      </div>
+
       {/* Final CTA */}
-      <section className="mx-auto max-w-6xl px-5 py-24 text-center sm:px-8">
+      <section className="mx-auto max-w-6xl px-5 pb-24 pt-16 text-center sm:px-8">
         <h2 className="font-display text-3xl font-medium leading-tight text-pine-900 sm:text-4xl">
           Bring your last prescription.
           <br />

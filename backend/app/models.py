@@ -98,6 +98,33 @@ class Vital(Base):
     measured_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
 
 
+class PushSubscription(Base):
+    """One browser's Web Push endpoint. A user can have several (laptop,
+    phone); dead ones are pruned when the push service returns 404/410."""
+
+    __tablename__ = "push_subscriptions"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    endpoint: Mapped[str] = mapped_column(Text, unique=True)
+    p256dh: Mapped[str] = mapped_column(String(255))
+    auth: Mapped[str] = mapped_column(String(255))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
+
+
+class NotificationSetting(Base):
+    __tablename__ = "notification_settings"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), unique=True, index=True)
+    daily_digest: Mapped[bool] = mapped_column(Boolean, default=False)
+    # The user picks a local hour; we store the UTC hour the hourly dispatcher
+    # compares against, plus the local rendering info for the settings UI.
+    hour_local: Mapped[int] = mapped_column(default=8)
+    tz_offset_minutes: Mapped[int] = mapped_column(default=-330)  # IST default
+    hour_utc: Mapped[int] = mapped_column(default=2)
+
+
 class ChatMessage(Base):
     __tablename__ = "chat_history"
 

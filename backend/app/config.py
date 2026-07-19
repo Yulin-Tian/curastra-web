@@ -17,6 +17,14 @@ class Settings:
     ai_engine_url: str = os.getenv("AI_ENGINE_URL", "http://localhost:8000")
     internal_api_key: str = os.getenv("INTERNAL_API_KEY", "")
 
+    # Web Push (daily reminders). Keys are VAPID; the public one is shared
+    # with browsers, the private one signs each push. CRON_SECRET guards the
+    # /dispatch endpoint that the external scheduler calls hourly.
+    vapid_private_key: str = os.getenv("VAPID_PRIVATE_KEY", "")
+    vapid_public_key: str = os.getenv("VAPID_PUBLIC_KEY", "")
+    vapid_subject: str = os.getenv("VAPID_SUBJECT", "mailto:group110@curastra.example")
+    cron_secret: str = os.getenv("CRON_SECRET", "")
+
     cors_origins: tuple = tuple(
         o.strip()
         for o in os.getenv("CORS_ORIGINS", "http://localhost:5173").split(",")
