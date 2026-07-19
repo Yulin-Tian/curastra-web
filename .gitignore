@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+*.db
+
+# Secrets — never commit real keys
+.env
+.env.*
+!.env.example
+
+# Node / frontend
+node_modules/
+dist/
+
+# Editors / OS
+.vscode/
+.DS_Store
+Thumbs.db
