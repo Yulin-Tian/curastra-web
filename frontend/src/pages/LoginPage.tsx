@@ -24,7 +24,7 @@ export default function LoginPage() {
     setBusy(true)
     try {
       await login(email, password)
-      navigate('/')
+      navigate('/dashboard')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed.')
     } finally {
@@ -35,11 +35,12 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-screen">
       {/* Brand panel */}
-      <div className="hidden flex-col justify-between bg-pine-900 p-12 text-white lg:flex lg:w-[44%]">
-        <div className="flex items-center gap-2.5">
+      <div className="relative hidden flex-col justify-between overflow-hidden bg-pine-900 p-12 text-white lg:flex lg:w-[44%]">
+        <div className="anim-drift pointer-events-none absolute -right-24 top-1/4 h-96 w-96 rounded-full bg-teal-400/10 blur-3xl" />
+        <Link to="/" className="relative flex items-center gap-2.5">
           <HeartPulse className="h-8 w-8 text-teal-400" strokeWidth={1.8} />
           <span className="font-display text-2xl font-medium">Curastra</span>
-        </div>
+        </Link>
         <div>
           <h2 className="font-display text-4xl font-medium leading-[1.15]">
             Care shouldn't end
@@ -66,10 +67,10 @@ export default function LoginPage() {
       <div className="flex flex-1 items-center justify-center bg-paper px-6">
         <div className="w-full max-w-sm">
           <div className="mb-8 lg:hidden">
-            <div className="flex items-center gap-2">
+            <Link to="/" className="flex items-center gap-2">
               <HeartPulse className="h-8 w-8 text-teal-600" strokeWidth={1.8} />
               <span className="font-display text-2xl font-medium text-pine-900">Curastra</span>
-            </div>
+            </Link>
           </div>
           <h1 className="font-display text-3xl font-medium text-pine-900">Welcome back</h1>
           <p className="mt-1.5 text-sm text-stone-500">Sign in to continue your care.</p>
