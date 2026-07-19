@@ -1,0 +1,49 @@
+# Render Blueprint — deploys the web backend + frontend + database together.
+# The Active Care Engine deploys from its own repo (its own render.yaml).
+#
+# Dashboard: New -> Blueprint -> select this repo. Render will prompt for the
+# one secret it cannot generate: INTERNAL_API_KEY (must equal the engine's).
+
+databases:
+  - name: curastra-db
+    plan: free
+
+services:
+  - type: web
+    name: curastra-web-backend
+    runtime: python
+    plan: free
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.10
+      - key: DATABASE_URL
+        fromDatabase:
+          name: curastra-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: AI_ENGINE_URL
+        value: https://curastra-engine.onrender.com
+      - key: INTERNAL_API_KEY
+        sync: false
+      - key: CORS_ORIGINS
+        value: https://curastra-web.onrender.com
+
+  - type: web
+    name: curastra-web
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm ci && npm run build
+    staticPublishPath: dist
+    routes:
+      # SPA fallback — client-side routes like /care-plans/3 must serve the app.
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_URL
+        value: https://curastra-web-backend.onrender.com
