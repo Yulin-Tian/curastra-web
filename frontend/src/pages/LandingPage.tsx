@@ -298,7 +298,7 @@ export default function LandingPage() {
             <span className="font-display text-sm text-pine-900">Curastra</span>
             <span>· Everyday care, continued</span>
           </div>
-          <div>An academic capstone project (BITS Pilani, Group 110). Not a medical device.</div>
+          <div>An academic capstone project (BITS Pilani, Group 97). Not a medical device.</div>
         </div>
       </footer>
     </div>

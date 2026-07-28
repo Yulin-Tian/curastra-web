@@ -1,7 +1,7 @@
 # Curastra Web
 
 The web application for **Curastra** (AI-Augmented Personal Health Assistant,
-BITS Capstone Group 110): a React frontend and a FastAPI main backend that
+BITS Capstone Group 97): a React frontend and a FastAPI main backend that
 delegates all OCR/AI work to the separate, unchanged **Active Care Engine**.
 
 ```
