@@ -215,6 +215,11 @@ export default function RecordDetailPage() {
                 Confirmed text
                 <CheckCircle2 className="h-4 w-4 text-teal-600" />
               </h2>
+              {record.confirmed_at && (
+                <p className="mt-0.5 text-xs text-stone-400">
+                  Text confirmed by you on {new Date(record.confirmed_at).toLocaleString()}
+                </p>
+              )}
               <pre className="mt-2 max-h-64 overflow-auto whitespace-pre-wrap rounded-lg bg-slate-50 p-3 text-sm text-slate-700">
                 {record.extracted_text}
               </pre>

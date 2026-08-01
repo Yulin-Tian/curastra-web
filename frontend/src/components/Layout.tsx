@@ -1,4 +1,4 @@
-import { NavLink, Outlet } from 'react-router-dom'
+import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import {
   Activity,
   ClipboardList,
@@ -24,10 +24,11 @@ const navItems = [
 
 export default function Layout() {
   const { user, logout } = useAuth()
+  const location = useLocation()
 
   return (
     <div className="flex min-h-screen">
-      <aside className="hidden w-64 shrink-0 flex-col bg-pine-900 text-sage-100 sm:flex">
+      <aside className="hidden w-64 shrink-0 flex-col bg-pine-900 text-sage-100 print:hidden sm:flex">
         <div className="flex items-center gap-2.5 px-6 pb-8 pt-7">
           <HeartPulse className="h-7 w-7 text-teal-400" strokeWidth={1.8} />
           <div>
@@ -69,7 +70,7 @@ export default function Layout() {
 
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Mobile top bar */}
-        <header className="flex items-center justify-between bg-pine-900 px-4 py-3 text-white sm:hidden">
+        <header className="flex items-center justify-between bg-pine-900 px-4 py-3 text-white print:hidden sm:hidden">
           <div className="flex items-center gap-2">
             <HeartPulse className="h-6 w-6 text-teal-400" strokeWidth={1.8} />
             <span className="font-display text-lg font-medium">Curastra</span>
@@ -79,12 +80,14 @@ export default function Layout() {
           </button>
         </header>
 
-        <main className="mx-auto w-full max-w-5xl flex-1 px-5 py-10 sm:px-10">
-          <Outlet />
+        <main className="mx-auto w-full max-w-5xl flex-1 px-5 py-10 print:max-w-none print:px-0 print:py-0 sm:px-10">
+          <div key={location.pathname} className="anim-page">
+            <Outlet />
+          </div>
         </main>
 
         {/* Mobile bottom nav */}
-        <nav className="sticky bottom-0 flex justify-around border-t border-pine-800 bg-pine-900 py-1.5 sm:hidden">
+        <nav className="sticky bottom-0 flex justify-around border-t border-pine-800 bg-pine-900 py-1.5 print:hidden sm:hidden">
           {navItems.slice(0, 5).map(({ to, label, icon: Icon, end }) => (
             <NavLink
               key={to}

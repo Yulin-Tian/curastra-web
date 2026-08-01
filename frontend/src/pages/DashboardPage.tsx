@@ -1,11 +1,17 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Activity, ArrowRight, ClipboardList, FileText, MessageCircle, Pill, Upload } from 'lucide-react'
+import { Activity, ArrowRight, CheckCircle2, Circle, ClipboardList, FileText, MessageCircle, Pill, Upload } from 'lucide-react'
 import { api } from '../api/client'
 import type { CarePlan, HealthRecord, Medication, Vital } from '../api/types'
 import { useAuth } from '../auth/AuthContext'
 import { Card } from '../components/ui'
 import { SkylineScene } from '../components/illustrations'
+
+interface BasicsProbe {
+  allergies: string | null
+  date_of_birth: string | null
+  height_cm: string | null
+}
 
 export default function DashboardPage() {
   const { user } = useAuth()
@@ -13,14 +19,30 @@ export default function DashboardPage() {
   const [plans, setPlans] = useState<CarePlan[]>([])
   const [meds, setMeds] = useState<Medication[]>([])
   const [vitals, setVitals] = useState<Vital[]>([])
+  const [hasBasics, setHasBasics] = useState<boolean | null>(null)
+  const [loadedCore, setLoadedCore] = useState(false)
 
   useEffect(() => {
     // Best-effort loads; the dashboard should render even if one call fails.
-    api.get<HealthRecord[]>('/api/records').then(setRecords).catch(() => {})
-    api.get<CarePlan[]>('/api/care-plans').then(setPlans).catch(() => {})
+    Promise.allSettled([
+      api.get<HealthRecord[]>('/api/records').then(setRecords),
+      api.get<CarePlan[]>('/api/care-plans').then(setPlans),
+    ]).then(() => setLoadedCore(true))
     api.get<Medication[]>('/api/medications').then(setMeds).catch(() => {})
     api.get<Vital[]>('/api/vitals?limit=1').then(setVitals).catch(() => {})
+    api
+      .get<BasicsProbe>('/api/profile/health')
+      .then((b) => setHasBasics(Boolean(b.allergies || b.date_of_birth || b.height_cm)))
+      .catch(() => setHasBasics(null))
   }, [])
+
+  const steps = [
+    { done: hasBasics === true, label: 'Add your health basics', hint: 'Allergies and conditions tailor your care plans.', to: '/profile' },
+    { done: records.length > 0, label: 'Upload a prescription', hint: 'A photo is enough. You review every extracted word.', to: '/records' },
+    { done: plans.length > 0, label: 'Generate your first care plan', hint: 'Confirm the text and the plan builds itself.', to: records.length > 0 ? `/records/${records[0].id}` : '/records' },
+    { done: false, label: 'Ask the assistant anything', hint: 'It knows your plan, medicines, and readings.', to: '/assistant' },
+  ]
+  const showChecklist = loadedCore && !(hasBasics && records.length > 0 && plans.length > 0)
 
   const latestVital = vitals[0]
   const latestPlan = plans[0]
@@ -45,6 +67,38 @@ export default function DashboardPage() {
         </h1>
         <p className="mt-2 text-[15px] text-stone-500">Here is where your care stands today.</p>
       </div>
+
+      {showChecklist && (
+        <Card className="mb-6 !border-teal-600/25">
+          <h2 className="font-display text-lg font-medium text-pine-900">Getting started</h2>
+          <p className="mt-0.5 text-sm text-stone-500">Three small steps and Curastra starts working for you.</p>
+          <ul className="mt-4 space-y-1">
+            {steps.map(({ done, label, hint, to }) => (
+              <li key={label}>
+                <Link
+                  to={to}
+                  className={`flex items-start gap-3 rounded-xl px-3 py-2.5 transition-colors ${
+                    done ? 'opacity-60' : 'hover:bg-sage-50'
+                  }`}
+                >
+                  {done ? (
+                    <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-teal-600" />
+                  ) : (
+                    <Circle className="mt-0.5 h-5 w-5 shrink-0 text-stone-300" />
+                  )}
+                  <span className="min-w-0">
+                    <span className={`block text-sm font-medium ${done ? 'text-stone-500 line-through decoration-teal-600/40' : 'text-pine-900'}`}>
+                      {label}
+                    </span>
+                    {!done && <span className="block text-xs text-stone-400">{hint}</span>}
+                  </span>
+                  {!done && <ArrowRight className="ml-auto mt-1 h-4 w-4 shrink-0 text-stone-300" />}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      )}
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         {stats.map(({ label, value, icon: Icon, to }) => (

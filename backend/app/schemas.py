@@ -54,6 +54,7 @@ class RecordOut(BaseModel):
 
 class RecordDetailOut(RecordOut):
     extracted_text: Optional[str] = None
+    confirmed_at: Optional[datetime] = None
 
 
 class ConfirmTextRequest(BaseModel):

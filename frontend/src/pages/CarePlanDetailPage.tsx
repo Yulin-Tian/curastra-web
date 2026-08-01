@@ -1,10 +1,16 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { AlertOctagon, ArrowLeft, HelpCircle, Pill, Plus, Trash2 } from 'lucide-react'
+import { AlertOctagon, ArrowLeft, Check, HelpCircle, Pill, Plus, Printer, Trash2 } from 'lucide-react'
 import { api } from '../api/client'
-import type { CarePlan, Medication } from '../api/types'
+import type { AdherenceState, CarePlan, Medication } from '../api/types'
 import { Button, Card, Disclaimer, ErrorBanner, PageTitle, Spinner } from '../components/ui'
+import { ProgressRing } from '../components/ProgressRing'
 import { SimplifyButton } from '../components/SimplifyButton'
+
+function localDay(): string {
+  const d = new Date()
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
 
 const categoryLabels: Record<string, string> = {
   medication: 'Medication',
@@ -22,13 +28,31 @@ export default function CarePlanDetailPage() {
   const [error, setError] = useState('')
   const [importing, setImporting] = useState(false)
   const [imported, setImported] = useState<Medication[] | null>(null)
+  const [adherence, setAdherence] = useState<AdherenceState | null>(null)
+  const [justChecked, setJustChecked] = useState<number | null>(null)
 
   useEffect(() => {
     api
       .get<CarePlan>(`/api/care-plans/${id}`)
       .then(setPlan)
       .catch((err) => setError(err instanceof Error ? err.message : 'Failed to load the plan.'))
+    api
+      .get<AdherenceState>(`/api/care-plans/${id}/adherence?day=${localDay()}`)
+      .then(setAdherence)
+      .catch(() => {})
   }, [id])
+
+  async function onToggleTask(index: number) {
+    try {
+      const next = await api.post<AdherenceState>(`/api/care-plans/${id}/tasks/${index}/toggle`, {
+        day: localDay(),
+      })
+      if (next.completed.includes(index)) setJustChecked(index)
+      setAdherence(next)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not update the task.')
+    }
+  }
 
   async function onImportMeds() {
     setImporting(true)
@@ -62,7 +86,7 @@ export default function CarePlanDetailPage() {
     <div>
       <button
         onClick={() => navigate('/care-plans')}
-        className="mb-4 flex items-center gap-1 text-sm text-slate-500 hover:text-slate-800"
+        className="mb-4 flex items-center gap-1 text-sm text-slate-500 hover:text-slate-800 print:hidden"
       >
         <ArrowLeft className="h-4 w-4" /> Back to care plans
       </button>
@@ -145,21 +169,48 @@ export default function CarePlanDetailPage() {
         </Card>
 
         <Card>
-          <h2 className="mb-3 font-semibold text-slate-800">Tasks & follow-ups</h2>
+          <div className="mb-3 flex items-start justify-between gap-3">
+            <h2 className="font-semibold text-slate-800">Tasks & follow-ups</h2>
+          </div>
+          {adherence && tasks.length > 0 && (
+            <div className="mb-4 rounded-xl bg-sage-50/70 p-3 print:hidden">
+              <ProgressRing done={adherence.completed.length} total={adherence.total_tasks} />
+            </div>
+          )}
           {tasks.length === 0 ? (
             <p className="text-sm text-slate-500">No tasks were identified.</p>
           ) : (
             <ul className="space-y-3">
-              {tasks.map((task, i) => (
-                <li key={i} className="rounded-lg bg-slate-50 p-3">
-                  <span className="mr-2 rounded-full bg-white px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-slate-500">
-                    {categoryLabels[task.category] ?? task.category}
-                  </span>
-                  <p className="mt-1 text-sm text-slate-700">{task.instruction}</p>
-                  {task.schedule && <p className="mt-0.5 text-xs text-slate-400">{task.schedule}</p>}
-                  <SimplifyButton text={task.instruction} />
-                </li>
-              ))}
+              {tasks.map((task, i) => {
+                const done = adherence?.completed.includes(i) ?? false
+                return (
+                  <li key={i} className={`flex gap-3 rounded-lg p-3 transition-colors ${done ? 'bg-teal-50/70' : 'bg-slate-50'}`}>
+                    <button
+                      onClick={() => onToggleTask(i)}
+                      title={done ? 'Mark as not done today' : 'Mark as done today'}
+                      className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 transition-colors print:hidden ${
+                        done
+                          ? 'border-teal-600 bg-teal-600 text-white'
+                          : 'border-stone-300 bg-white text-transparent hover:border-teal-500'
+                      }`}
+                    >
+                      <Check className={`h-3.5 w-3.5 ${done && justChecked === i ? 'anim-pop' : ''}`} strokeWidth={3} />
+                    </button>
+                    <div className="min-w-0 flex-1">
+                      <span className="mr-2 rounded-full bg-white px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-slate-500">
+                        {categoryLabels[task.category] ?? task.category}
+                      </span>
+                      <p className={`mt-1 text-sm ${done ? 'text-slate-500 line-through decoration-teal-600/40' : 'text-slate-700'}`}>
+                        {task.instruction}
+                      </p>
+                      {task.schedule && <p className="mt-0.5 text-xs text-slate-400">{task.schedule}</p>}
+                      <span className="print:hidden">
+                        <SimplifyButton text={task.instruction} />
+                      </span>
+                    </div>
+                  </li>
+                )
+              })}
             </ul>
           )}
         </Card>
@@ -167,7 +218,10 @@ export default function CarePlanDetailPage() {
 
       <Card className="mt-6">
         <Disclaimer text={safety_disclaimer} />
-        <div className="mt-3">
+        <div className="mt-3 flex flex-wrap gap-2 print:hidden">
+          <Button variant="secondary" onClick={() => window.print()}>
+            <Printer className="h-4 w-4" /> Print / save as PDF
+          </Button>
           <Button variant="danger" onClick={onDelete}>
             <Trash2 className="h-4 w-4" /> Delete this plan
           </Button>

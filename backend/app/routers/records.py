@@ -1,3 +1,5 @@
+from datetime import datetime, timezone
+
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Response, UploadFile
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -75,7 +77,9 @@ def list_records(user: User = Depends(get_current_user), db: Session = Depends(g
 def get_record(record_id: int, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     record = _get_owned_record(record_id, user, db)
     out = _to_out(record)
-    return RecordDetailOut(**out.model_dump(), extracted_text=record.extracted_text)
+    return RecordDetailOut(
+        **out.model_dump(), extracted_text=record.extracted_text, confirmed_at=record.confirmed_at
+    )
 
 
 @router.get("/{record_id}/file")
@@ -117,7 +121,10 @@ def confirm_text(
     downstream AI feature (care plan, lab analysis) works from."""
     record = _get_owned_record(record_id, user, db)
     record.extracted_text = payload.verified_text.strip()
+    record.confirmed_at = datetime.now(timezone.utc)
     db.commit()
     db.refresh(record)
     out = _to_out(record)
-    return RecordDetailOut(**out.model_dump(), extracted_text=record.extracted_text)
+    return RecordDetailOut(
+        **out.model_dump(), extracted_text=record.extracted_text, confirmed_at=record.confirmed_at
+    )

@@ -77,9 +77,39 @@ check("records list", r.status_code == 200 and len(r.json()) == 1, r.text)
 r = client.get(f"/api/records/{rec_id}/file", headers=headers)
 check("record file roundtrip", r.status_code == 200 and r.content == fake_png, str(r.status_code))
 
-# Confirm text (human-in-the-loop persistence)
+# Confirm text (human-in-the-loop persistence) + audit timestamp
 r = client.post(f"/api/records/{rec_id}/confirm-text", json={"verified_text": "Tab Pan 40 OD"}, headers=headers)
 check("confirm text", r.status_code == 200 and r.json()["extracted_text"] == "Tab Pan 40 OD", r.text)
+check("confirm sets confirmed_at", r.json().get("confirmed_at") is not None, r.text)
+
+# Adherence: create a plan directly in the DB (engine is down in this suite)
+from app.database import SessionLocal  # noqa: E402
+from app.models import CarePlan  # noqa: E402
+
+me_id = client.get("/api/auth/me", headers=headers).json()["id"]
+s = SessionLocal()
+plan_row = CarePlan(
+    user_id=me_id,
+    record_id=None,
+    source_text="test",
+    plan={"tasks": [{"category": "medication", "instruction": "a"}, {"category": "other", "instruction": "b"}],
+          "medications": [], "red_flags": [], "clarification_questions": [], "safety_disclaimer": "x"},
+)
+s.add(plan_row)
+s.commit()
+plan_id = plan_row.id
+s.close()
+
+r = client.get(f"/api/care-plans/{plan_id}/adherence?day=2026-08-01", headers=headers)
+check("adherence empty", r.status_code == 200 and r.json()["completed"] == [] and r.json()["total_tasks"] == 2, r.text)
+r = client.post(f"/api/care-plans/{plan_id}/tasks/0/toggle", json={"day": "2026-08-01"}, headers=headers)
+check("adherence toggle on", r.status_code == 200 and r.json()["completed"] == [0], r.text)
+r = client.post(f"/api/care-plans/{plan_id}/tasks/0/toggle", json={"day": "2026-08-01"}, headers=headers)
+check("adherence toggle off", r.status_code == 200 and r.json()["completed"] == [], r.text)
+r = client.post(f"/api/care-plans/{plan_id}/tasks/9/toggle", json={"day": "2026-08-01"}, headers=headers)
+check("adherence bad index -> 400", r.status_code == 400, r.text)
+r = client.post(f"/api/care-plans/{plan_id}/tasks/1/toggle", json={"day": "bad-date"}, headers=headers)
+check("adherence bad day -> 400", r.status_code == 400, r.text)
 
 # Medications CRUD
 r = client.post("/api/medications", json={"name": "Pan 40", "dosage": "40 mg", "frequency": "OD"}, headers=headers)

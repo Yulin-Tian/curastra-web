@@ -44,9 +44,7 @@ export default function ChatPage() {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, sending])
 
-  async function onSend(e: React.FormEvent) {
-    e.preventDefault()
-    const message = input.trim()
+  async function sendText(message: string) {
     if (!message || sending) return
     setInput('')
     setError('')
@@ -66,6 +64,11 @@ export default function ChatPage() {
     } finally {
       setSending(false)
     }
+  }
+
+  function onSend(e: React.FormEvent) {
+    e.preventDefault()
+    sendText(input.trim())
   }
 
   async function onClear() {
@@ -99,9 +102,22 @@ export default function ChatPage() {
               <MessageCircle className="h-8 w-8 text-pine-800" strokeWidth={1.6} />
             </span>
             <p className="mt-4 font-display text-lg text-pine-900">Ask me anything about your care</p>
-            <p className="mt-1 max-w-xs text-sm text-stone-400">
-              For example: “When should I take my medicines?” or “What does my care plan say about diet?”
-            </p>
+            <div className="mt-4 flex max-w-md flex-wrap justify-center gap-2">
+              {[
+                'When should I take my medicines?',
+                'What does my care plan say?',
+                'What do my recent readings look like?',
+                'What should I watch out for?',
+              ].map((q) => (
+                <button
+                  key={q}
+                  onClick={() => sendText(q)}
+                  className="rounded-full border border-teal-600/30 bg-white px-3.5 py-1.5 text-[13px] text-teal-700 transition-all hover:-translate-y-0.5 hover:border-teal-600 hover:bg-teal-50 active:scale-[0.97]"
+                >
+                  {q}
+                </button>
+              ))}
+            </div>
           </div>
         ) : (
           messages.map((m) => (

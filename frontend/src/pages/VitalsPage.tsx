@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react'
-import { Activity, Lightbulb, Plus, Trash2 } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
+import { Activity, Lightbulb, Plus, TrendingUp, Trash2 } from 'lucide-react'
 import { api } from '../api/client'
 import type { Insight, InsightsResult, Vital } from '../api/types'
 import { Button, Card, Disclaimer, EmptyState, ErrorBanner, PageTitle, Spinner, inputClass } from '../components/ui'
+import { VitalsChart } from '../components/VitalsChart'
 
 const vitalTypes = [
   { value: 'blood_pressure', label: 'Blood pressure', unit: 'mmHg', placeholder: '120/80' },
@@ -28,6 +29,18 @@ export default function VitalsPage() {
   const [adding, setAdding] = useState(false)
   const [insights, setInsights] = useState<InsightsResult | null>(null)
   const [loadingInsights, setLoadingInsights] = useState(false)
+  const [chartType, setChartType] = useState<string | null>(null)
+
+  // Chart the most-logged type by default; user can switch.
+  const chartable = useMemo(() => {
+    const counts = new Map<string, Vital[]>()
+    for (const v of vitals ?? []) {
+      counts.set(v.type, [...(counts.get(v.type) ?? []), v])
+    }
+    return [...counts.entries()].filter(([, list]) => list.length >= 2).sort((a, b) => b[1].length - a[1].length)
+  }, [vitals])
+  const activeChart = chartType ?? chartable[0]?.[0] ?? null
+  const chartVitals = chartable.find(([t]) => t === activeChart)?.[1] ?? []
 
   async function load() {
     try {
@@ -117,6 +130,31 @@ export default function VitalsPage() {
         <EmptyState title="No readings yet" hint="Log your first blood pressure, glucose, or weight reading above." />
       ) : (
         <>
+          {activeChart && chartVitals.length >= 2 && (
+            <Card className="mb-6">
+              <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                <h2 className="flex items-center gap-2 font-semibold text-slate-800">
+                  <TrendingUp className="h-4 w-4 text-teal-600" /> Trend
+                </h2>
+                {chartable.length > 1 && (
+                  <div className="flex flex-wrap gap-1.5">
+                    {chartable.map(([t]) => (
+                      <button
+                        key={t}
+                        onClick={() => setChartType(t)}
+                        className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                          t === activeChart ? 'bg-pine-900 text-white' : 'bg-sage-100 text-pine-900 hover:bg-sage-200'
+                        }`}
+                      >
+                        {typeLabel(t)}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <VitalsChart vitals={chartVitals} unit={chartVitals[0]?.unit ?? ''} />
+            </Card>
+          )}
           <Card>
             <div className="mb-3 flex items-center justify-between">
               <h2 className="flex items-center gap-2 font-semibold text-slate-800">

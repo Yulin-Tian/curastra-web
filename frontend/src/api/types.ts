@@ -25,6 +25,14 @@ export interface HealthRecord {
   has_extracted_text: boolean
   uploaded_at: string
   extracted_text?: string | null
+  confirmed_at?: string | null
+}
+
+export interface AdherenceState {
+  day: string
+  completed: number[]
+  total_tasks: number
+  has_history: boolean
 }
 
 export interface ExtractResult {

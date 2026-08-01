@@ -25,3 +25,24 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+# Columns added to EXISTING tables after first deploy. create_all() creates
+# missing tables but never missing columns, so each (table, column, pg_type,
+# generic_type) here is applied idempotently at startup.
+_COLUMN_MIGRATIONS = [
+    ("records", "confirmed_at", "TIMESTAMPTZ", "TIMESTAMP"),
+]
+
+
+def apply_column_migrations():
+    from sqlalchemy import text
+
+    is_pg = engine.dialect.name == "postgresql"
+    for table, column, pg_type, generic_type in _COLUMN_MIGRATIONS:
+        col_type = pg_type if is_pg else generic_type
+        try:
+            with engine.begin() as conn:
+                conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {column} {col_type}"))
+        except Exception:
+            pass  # already exists

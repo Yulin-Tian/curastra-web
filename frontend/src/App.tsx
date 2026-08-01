@@ -1,6 +1,7 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { AuthProvider, useAuth } from './auth/AuthContext'
 import Layout from './components/Layout'
+import { ColdStartNotice } from './components/ColdStartNotice'
 import { Spinner } from './components/ui'
 import LandingPage from './pages/LandingPage'
 import LoginPage from './pages/LoginPage'
@@ -32,6 +33,7 @@ export default function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
+        <ColdStartNotice />
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<LoginPage />} />

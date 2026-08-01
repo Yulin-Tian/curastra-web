@@ -28,11 +28,21 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const token = getToken()
   if (token) headers.set('Authorization', `Bearer ${token}`)
 
+  // Free-tier services sleep when idle; if a call runs long, tell the UI so
+  // it can show an honest "waking the server" notice instead of a dead spinner.
+  const slowTimer = window.setTimeout(
+    () => window.dispatchEvent(new CustomEvent('curastra:slow-request')),
+    4000,
+  )
+
   let response: Response
   try {
     response = await fetch(`${BASE}${path}`, { ...options, headers })
   } catch {
     throw new ApiError(0, 'Cannot reach the server. Check your connection and try again.')
+  } finally {
+    window.clearTimeout(slowTimer)
+    window.dispatchEvent(new CustomEvent('curastra:request-settled'))
   }
 
   if (response.status === 204) return undefined as T

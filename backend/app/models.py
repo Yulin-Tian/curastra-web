@@ -8,6 +8,7 @@ from sqlalchemy import (
     LargeBinary,
     String,
     Text,
+    UniqueConstraint,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -75,6 +76,10 @@ class Record(Base):
     # OCR text as confirmed by the user in the review step (human-in-the-loop).
     extracted_text: Mapped[str | None] = mapped_column(Text, nullable=True)
     uploaded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
+    # When the user last verified the extracted text. uploaded_at is immutable
+    # provenance; this is the audit stamp of the human-in-the-loop step.
+    # (Added post-launch: created by the startup column migration in database.py.)
+    confirmed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     user: Mapped["User"] = relationship(back_populates="records")
 
@@ -144,6 +149,20 @@ class NotificationSetting(Base):
     hour_local: Mapped[int] = mapped_column(default=8)
     tz_offset_minutes: Mapped[int] = mapped_column(default=-330)  # IST default
     hour_utc: Mapped[int] = mapped_column(default=2)
+
+
+class TaskCompletion(Base):
+    """One checked-off care-plan task on one day (adherence tracking)."""
+
+    __tablename__ = "task_completions"
+    __table_args__ = (UniqueConstraint("plan_id", "task_index", "day"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    plan_id: Mapped[int] = mapped_column(ForeignKey("care_plans.id"), index=True)
+    task_index: Mapped[int] = mapped_column()
+    day: Mapped[str] = mapped_column(String(10))  # user's local date, YYYY-MM-DD
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
 
 
 class ChatMessage(Base):

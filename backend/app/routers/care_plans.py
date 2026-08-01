@@ -1,10 +1,15 @@
+import re
+from datetime import datetime, timezone
+from typing import Optional
+
 from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from ..auth import get_current_user
 from ..database import get_db
-from ..models import CarePlan, Medication, Record, User
+from ..models import CarePlan, Medication, Record, TaskCompletion, User
 from ..schemas import CarePlanCreateRequest, CarePlanOut, MedicationOut
 from ..services import engine_client
 from .health_profile import profile_context
@@ -80,6 +85,82 @@ def delete_care_plan(plan_id: int, user: User = Depends(get_current_user), db: S
     plan = _get_owned_plan(plan_id, user, db)
     db.delete(plan)
     db.commit()
+
+
+# --------------------------------------------------------------------------- #
+# Adherence tracking: care-plan tasks are checkable per local day, so users
+# (and later caregivers) can follow progress over the plan's duration.
+# --------------------------------------------------------------------------- #
+_DAY_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+
+
+class ToggleTaskRequest(BaseModel):
+    day: Optional[str] = Field(None, description="User's local date, YYYY-MM-DD")
+
+
+def _validated_day(day: Optional[str]) -> str:
+    if day is None:
+        return datetime.now(timezone.utc).date().isoformat()
+    if not _DAY_RE.match(day):
+        raise HTTPException(status_code=400, detail="day must be YYYY-MM-DD.")
+    return day
+
+
+def _adherence_state(plan: CarePlan, day: str, db: Session) -> dict:
+    completed = db.scalars(
+        select(TaskCompletion.task_index).where(
+            TaskCompletion.plan_id == plan.id, TaskCompletion.day == day
+        )
+    ).all()
+    any_ever = db.scalar(
+        select(TaskCompletion.id).where(TaskCompletion.plan_id == plan.id).limit(1)
+    )
+    return {
+        "day": day,
+        "completed": sorted(completed),
+        "total_tasks": len(plan.plan.get("tasks", [])),
+        "has_history": any_ever is not None,
+    }
+
+
+@router.get("/{plan_id}/adherence")
+def get_adherence(
+    plan_id: int,
+    day: str | None = None,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    plan = _get_owned_plan(plan_id, user, db)
+    return _adherence_state(plan, _validated_day(day), db)
+
+
+@router.post("/{plan_id}/tasks/{task_index}/toggle")
+def toggle_task(
+    plan_id: int,
+    task_index: int,
+    payload: ToggleTaskRequest,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    plan = _get_owned_plan(plan_id, user, db)
+    tasks = plan.plan.get("tasks", [])
+    if not (0 <= task_index < len(tasks)):
+        raise HTTPException(status_code=400, detail="Unknown task index.")
+    day = _validated_day(payload.day)
+
+    existing = db.scalar(
+        select(TaskCompletion).where(
+            TaskCompletion.plan_id == plan.id,
+            TaskCompletion.task_index == task_index,
+            TaskCompletion.day == day,
+        )
+    )
+    if existing:
+        db.delete(existing)
+    else:
+        db.add(TaskCompletion(user_id=user.id, plan_id=plan.id, task_index=task_index, day=day))
+    db.commit()
+    return _adherence_state(plan, day, db)
 
 
 @router.post("/{plan_id}/import-medications", response_model=list[MedicationOut])

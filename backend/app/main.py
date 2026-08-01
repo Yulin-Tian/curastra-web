@@ -14,7 +14,7 @@ from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from .config import settings
-from .database import Base, engine
+from .database import Base, apply_column_migrations, engine
 from .routers import (
     abha,
     ai,
@@ -31,8 +31,9 @@ from .routers import (
 app = FastAPI(title="Curastra Backend", version="1.0")
 
 # Dev-friendly table creation; on Render's fresh Postgres this bootstraps the
-# schema on first boot.
+# schema on first boot. Column additions to existing tables run separately.
 Base.metadata.create_all(bind=engine)
+apply_column_migrations()
 
 app.add_middleware(
     CORSMiddleware,
