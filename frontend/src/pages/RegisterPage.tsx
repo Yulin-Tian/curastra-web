@@ -23,7 +23,7 @@ export default function RegisterPage() {
     setBusy(true)
     try {
       await register(name, email, password)
-      navigate('/dashboard')
+      navigate('/profile?welcome=1')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Registration failed.')
     } finally {
@@ -47,7 +47,7 @@ export default function RegisterPage() {
             clearly organised.
           </h2>
           <p className="mt-6 max-w-sm text-[15px] leading-relaxed text-sage-100/85">
-            Prescriptions, care plans, medicines, and readings — kept in one calm place, with an
+            Prescriptions, care plans, medicines, and readings in one calm place, with an
             assistant that understands them.
           </p>
         </div>

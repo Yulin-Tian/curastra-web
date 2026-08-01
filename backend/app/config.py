@@ -2,7 +2,9 @@ from dataclasses import dataclass
 import os
 from dotenv import load_dotenv
 
-load_dotenv(override=True)
+# override=False: real environment variables win over .env. Render sets real
+# env vars (no .env file there), and tests set DATABASE_URL before importing.
+load_dotenv(override=False)
 
 
 @dataclass(frozen=True)

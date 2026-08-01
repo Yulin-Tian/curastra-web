@@ -72,7 +72,7 @@ export default function DashboardPage() {
             to: '/assistant',
             icon: MessageCircle,
             title: 'Ask the AI assistant',
-            text: 'Questions about your medicines, plan, or readings — answered in context.',
+            text: 'Questions about your medicines, plan, or readings, answered in context.',
           },
         ].map(({ to, icon: Icon, title, text }) => (
           <Link key={to} to={to}>
@@ -92,7 +92,7 @@ export default function DashboardPage() {
 
       {latestPlan && latestPlan.plan.red_flags.length > 0 && (
         <Card className="mt-8 !border-red-200 !bg-red-50">
-          <div className="font-semibold text-red-700">From your latest care plan — warning signs</div>
+          <div className="font-semibold text-red-700">Warning signs from your latest care plan</div>
           <ul className="mt-2 list-inside list-disc space-y-1 text-sm text-red-700">
             {latestPlan.plan.red_flags.map((flag) => (
               <li key={flag}>{flag}</li>

@@ -96,6 +96,21 @@ check("vital add", r.status_code == 200 or r.status_code == 201, r.text)
 r = client.get("/api/vitals", headers=headers)
 check("vitals list", r.status_code == 200 and len(r.json()) == 1, r.text)
 
+# Health profile roundtrip
+r = client.get("/api/profile/health", headers=headers)
+check("health profile default", r.status_code == 200 and r.json()["blood_type"] is None, r.text)
+r = client.put(
+    "/api/profile/health",
+    json={"date_of_birth": "1999-08-19", "height_cm": "175", "weight_kg": "70",
+          "blood_type": "O+", "allergies": "penicillin"},
+    headers=headers,
+)
+check("health profile save", r.status_code == 200 and r.json()["allergies"] == "penicillin", r.text)
+r = client.put("/api/profile/health", json={"blood_type": "not-a-type"}, headers=headers)
+check("health profile bad blood type -> unknown", r.status_code == 200 and r.json()["blood_type"] == "unknown", r.text)
+r = client.put("/api/profile/health", json={"date_of_birth": "19/08/1999"}, headers=headers)
+check("health profile bad dob -> 422", r.status_code == 422, r.text)
+
 # Engine-dependent endpoint with engine DOWN -> friendly 503 fallback
 r = client.post(f"/api/records/{rec_id}/extract", headers=headers)
 check("extract with engine down -> 503 {error}", r.status_code == 503 and "error" in r.json(), r.text)

@@ -7,6 +7,7 @@ from ..database import get_db
 from ..models import CarePlan, Medication, Record, User
 from ..schemas import CarePlanCreateRequest, CarePlanOut, MedicationOut
 from ..services import engine_client
+from .health_profile import profile_context
 
 router = APIRouter(prefix="/api/care-plans", tags=["care-plans"])
 
@@ -33,7 +34,21 @@ def create_care_plan(
             raise HTTPException(status_code=404, detail="Record not found.")
         file_name = record.file_name
 
-    result = engine_client.generate_care_plan(file_name, payload.verified_text, payload.user_notes)
+    # Patient basics (allergies, conditions, age data) travel as user notes so
+    # the engine can tailor tasks and red flags without a contract change.
+    notes_parts = []
+    basics = profile_context(user, db)
+    if basics:
+        notes_parts.append(
+            "Patient basics (from profile): "
+            + "; ".join(f"{k.replace('_', ' ')}: {v}" for k, v in basics.items())
+        )
+    if payload.user_notes:
+        notes_parts.append(payload.user_notes)
+
+    result = engine_client.generate_care_plan(
+        file_name, payload.verified_text, "\n".join(notes_parts) or None
+    )
 
     plan = CarePlan(
         user_id=user.id,

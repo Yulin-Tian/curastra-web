@@ -21,7 +21,7 @@ export function LabResultView({ result }: { result: LabAnalyzeResult }) {
               className={`rounded-lg border px-3 py-2 text-sm ${statusStyles[flag.status]}`}
             >
               <span className="font-medium">{flag.name}</span>
-              {flag.value && <span> — {flag.value}</span>}
+              {flag.value && <span>: {flag.value}</span>}
               <span className="ml-2 rounded-full bg-white/60 px-2 py-0.5 text-xs uppercase tracking-wide">
                 {flag.status}
               </span>

@@ -31,7 +31,7 @@ const painPoints = [
   {
     icon: MessagesSquare,
     title: 'No one to ask at 9 pm',
-    text: 'Small worries either get ignored or turn into anxious internet searches — neither is care.',
+    text: 'Small worries either get ignored or turn into anxious internet searches. Neither is care.',
   },
 ]
 
@@ -39,7 +39,7 @@ const features = [
   {
     icon: ScanText,
     title: 'Scan any prescription',
-    text: 'Photos, PDFs, or documents — the text is extracted for you in seconds.',
+    text: 'Photos, PDFs, or documents. The text is extracted for you in seconds.',
   },
   {
     icon: ShieldCheck,
@@ -49,7 +49,7 @@ const features = [
   {
     icon: ClipboardList,
     title: 'Clear after-care plans',
-    text: 'Medications, daily tasks, and warning signs — structured, plain, and traceable.',
+    text: 'Medications, daily tasks, and warning signs in a plan that stays traceable to your prescription.',
   },
   {
     icon: Pill,
@@ -64,7 +64,7 @@ const features = [
   {
     icon: MessageCircle,
     title: 'An assistant that knows you',
-    text: 'Ask anything about your medicines, plan, or readings — it escalates real emergencies to a doctor.',
+    text: 'Ask anything about your medicines, plan, or readings. Real emergencies are escalated to a doctor.',
   },
 ]
 
@@ -73,7 +73,7 @@ const steps = [
   {
     n: '2',
     title: 'Review & confirm',
-    text: 'Check the extracted text yourself — nothing proceeds without your confirmation.',
+    text: 'Check the extracted text yourself. Nothing proceeds without your confirmation.',
   },
   { n: '3', title: 'Live your plan', text: 'A clear care plan, safety checks, and an assistant for the days after.' },
 ]
@@ -188,7 +188,7 @@ export default function LandingPage() {
               <div className="text-xs text-sage-200/70">You asked</div>
               <div className="mt-1 text-sm text-white">&ldquo;Can I take it with food?&rdquo;</div>
               <div className="mt-3 rounded-xl bg-white/10 p-3 text-[13px] leading-relaxed text-sage-100">
-                Pantoprazole works best about 30 minutes <em>before</em> breakfast — that&rsquo;s why your
+                Pantoprazole works best about 30 minutes <em>before</em> breakfast, which is why your
                 plan says before food.
               </div>
             </div>
@@ -286,7 +286,7 @@ export default function LandingPage() {
             to={user ? '/dashboard' : '/register'}
             className="inline-flex items-center gap-2 rounded-xl bg-teal-600 px-7 py-3.5 text-[15px] font-medium text-white shadow-[0_8px_24px_rgba(13,148,136,0.25)] transition-all hover:-translate-y-0.5 hover:bg-teal-700"
           >
-            Get started — it&rsquo;s free <ArrowRight className="h-4 w-4" />
+            Get started for free <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
       </section>

@@ -75,7 +75,7 @@ export default function CarePlanDetailPage() {
       {red_flags.length > 0 && (
         <div className="mb-6 rounded-xl border border-red-200 bg-red-50 p-4">
           <div className="flex items-center gap-2 font-semibold text-red-700">
-            <AlertOctagon className="h-5 w-5" /> Warning signs — seek medical help if these occur
+            <AlertOctagon className="h-5 w-5" /> Warning signs: seek medical help if these occur
           </div>
           <ul className="mt-2 list-inside list-disc space-y-1 text-sm text-red-700">
             {red_flags.map((flag) => (
@@ -128,7 +128,7 @@ export default function CarePlanDetailPage() {
                     <span className="font-medium text-slate-800">{med.name ?? 'Unnamed'}</span>
                     {med.confidence && med.confidence !== 'high' && (
                       <span className="text-[10px] uppercase tracking-wide text-amber-600">
-                        {med.confidence} confidence — verify
+                        {med.confidence} confidence, please verify
                       </span>
                     )}
                   </div>

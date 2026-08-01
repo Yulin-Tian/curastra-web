@@ -35,6 +35,27 @@ class User(Base):
     records: Mapped[list["Record"]] = relationship(back_populates="user", cascade="all, delete-orphan")
 
 
+class HealthProfile(Base):
+    """Basic health context collected at onboarding (Anurag's improvement #2).
+
+    Separate table rather than columns on users: the schema bootstrap
+    (create_all) adds missing tables on deploy but not missing columns, so
+    this ships safely against the live database.
+    """
+
+    __tablename__ = "health_profiles"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), unique=True, index=True)
+    date_of_birth: Mapped[str | None] = mapped_column(String(10), nullable=True)  # YYYY-MM-DD
+    height_cm: Mapped[str | None] = mapped_column(String(10), nullable=True)
+    weight_kg: Mapped[str | None] = mapped_column(String(10), nullable=True)
+    blood_type: Mapped[str | None] = mapped_column(String(8), nullable=True)  # A+, O-, unknown...
+    allergies: Mapped[str | None] = mapped_column(Text, nullable=True)
+    conditions: Mapped[str | None] = mapped_column(Text, nullable=True)  # ongoing conditions, free text
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now, onupdate=_now)
+
+
 class Record(Base):
     """An uploaded health document (prescription, lab report, ...).
 

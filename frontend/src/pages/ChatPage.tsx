@@ -12,7 +12,7 @@ interface DisplayMessage {
 }
 
 const DISCLAIMER =
-  'The assistant gives general guidance only — it does not diagnose or replace your doctor.'
+  'The assistant gives general guidance only. It does not diagnose or replace your doctor.'
 
 /** The headline feature: a context-aware assistant grounded in the user's own
  * medications, vitals, and care plan. An "advised_see_doctor" safety flag from
@@ -109,7 +109,7 @@ export default function ChatPage() {
               {m.safety_flag === 'advised_see_doctor' && (
                 <div className="mb-1 flex items-center gap-2 rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700">
                   <AlertTriangle className="h-4 w-4 shrink-0" />
-                  Please seek medical help — contact a doctor or emergency services.
+                  Please seek medical help. Contact a doctor or emergency services.
                 </div>
               )}
               <div className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>

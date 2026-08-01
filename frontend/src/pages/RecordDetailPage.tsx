@@ -74,7 +74,7 @@ export default function RecordDetailPage() {
 
   async function onConfirm() {
     if (!draftText?.trim()) {
-      setError('The text is empty — extract again or type the content manually.')
+      setError('The text is empty. Extract again or type the content manually.')
       return
     }
     setError('')
@@ -162,7 +162,7 @@ export default function RecordDetailPage() {
             <img src={previewUrl} alt={record.file_name} className="max-h-96 w-full rounded-lg object-contain" />
           ) : (
             <p className="text-sm text-slate-500">
-              {record.mime_type.startsWith('image/') ? 'Loading preview…' : `${record.mime_type} — no inline preview.`}
+              {record.mime_type.startsWith('image/') ? 'Loading preview…' : `${record.mime_type} (no inline preview)`}
             </p>
           )}
           <div className="mt-4 flex gap-2">
@@ -185,7 +185,7 @@ export default function RecordDetailPage() {
               <h2 className="font-semibold text-slate-800">Review the extracted text</h2>
               <p className="mt-1 mb-3 text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
                 Please read carefully and fix any mistakes. The AI only ever works from the text
-                <strong> you confirm</strong> — not from the raw scan.
+                <strong> you confirm</strong>, never from the raw scan.
               </p>
               {warnings.length > 0 && (
                 <ul className="mb-2 list-inside list-disc text-xs text-amber-600">
@@ -202,7 +202,7 @@ export default function RecordDetailPage() {
               <div className="mt-3 flex gap-2">
                 <Button onClick={onConfirm} disabled={confirming}>
                   <CheckCircle2 className="h-4 w-4" />
-                  {confirming ? 'Saving…' : 'Confirm — this looks correct'}
+                  {confirming ? 'Saving…' : 'This looks correct'}
                 </Button>
                 <Button variant="secondary" onClick={() => setDraftText(null)}>
                   Cancel

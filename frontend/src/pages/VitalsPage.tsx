@@ -152,7 +152,7 @@ export default function VitalsPage() {
                 <Lightbulb className="h-4 w-4 text-amber-500" /> Health insights
               </h2>
               {insights.insights.length === 0 ? (
-                <p className="text-sm text-slate-500">Nothing notable — keep logging regularly.</p>
+                <p className="text-sm text-slate-500">Nothing notable yet. Keep logging regularly.</p>
               ) : (
                 <ul className="space-y-3">
                   {insights.insights.map((ins, i) => (

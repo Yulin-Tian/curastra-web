@@ -7,6 +7,7 @@ from ..database import get_db
 from ..models import CarePlan, ChatMessage, Medication, User, Vital
 from ..schemas import ChatMessageOut, ChatSendRequest
 from ..services import engine_client
+from .health_profile import profile_context
 
 router = APIRouter(prefix="/api/chat", tags=["chat"])
 
@@ -27,6 +28,9 @@ def _build_context(user: User, db: Session) -> dict:
     )
 
     context: dict = {}
+    basics = profile_context(user, db)
+    if basics:
+        context["patient_basics"] = basics
     if meds:
         context["medications"] = [
             {"name": m.name, "dosage": m.dosage, "frequency": m.frequency, "timing": m.timing}

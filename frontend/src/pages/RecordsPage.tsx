@@ -60,7 +60,7 @@ export default function RecordsPage() {
     <div>
       <PageTitle
         title="Health Records"
-        subtitle="Upload prescriptions and lab reports — photos, PDFs, or documents."
+        subtitle="Upload prescriptions and lab reports as photos, PDFs, or documents."
       />
       <ErrorBanner message={error} />
 

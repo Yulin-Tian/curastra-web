@@ -15,7 +15,18 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from .config import settings
 from .database import Base, engine
-from .routers import abha, ai, auth_routes, care_plans, chat, medications, notifications, records, vitals
+from .routers import (
+    abha,
+    ai,
+    auth_routes,
+    care_plans,
+    chat,
+    health_profile,
+    medications,
+    notifications,
+    records,
+    vitals,
+)
 
 app = FastAPI(title="Curastra Backend", version="1.0")
 
@@ -68,3 +79,4 @@ app.include_router(vitals.router)
 app.include_router(chat.router)
 app.include_router(ai.router)
 app.include_router(notifications.router)
+app.include_router(health_profile.router)
