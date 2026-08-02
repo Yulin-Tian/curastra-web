@@ -7,11 +7,11 @@ import { VitalsChart } from '../components/VitalsChart'
 import { useLang } from '../i18n/LanguageContext'
 
 const vitalTypes = [
-  { value: 'blood_pressure', label: 'Blood pressure', unit: 'mmHg', placeholder: '120/80' },
-  { value: 'glucose', label: 'Blood glucose', unit: 'mg/dL', placeholder: '95' },
-  { value: 'weight', label: 'Weight', unit: 'kg', placeholder: '70' },
-  { value: 'heart_rate', label: 'Heart rate', unit: 'bpm', placeholder: '72' },
-  { value: 'temperature', label: 'Temperature', unit: '°C', placeholder: '36.8' },
+  { value: 'blood_pressure', labelKey: 'vitals.bp', unit: 'mmHg', placeholder: '120/80' },
+  { value: 'glucose', labelKey: 'vitals.glucose', unit: 'mg/dL', placeholder: '95' },
+  { value: 'weight', labelKey: 'vitals.weight', unit: 'kg', placeholder: '70' },
+  { value: 'heart_rate', labelKey: 'vitals.hr', unit: 'bpm', placeholder: '72' },
+  { value: 'temperature', labelKey: 'vitals.temp', unit: '°C', placeholder: '36.8' },
 ]
 
 const categoryColors: Record<Insight['category'], string> = {
@@ -93,7 +93,10 @@ export default function VitalsPage() {
     }
   }
 
-  const typeLabel = (t: string) => vitalTypes.find((v) => v.value === t)?.label ?? t
+  const typeLabel = (code: string) => {
+    const k = vitalTypes.find((v) => v.value === code)?.labelKey
+    return k ? t(k) : code
+  }
 
   return (
     <div>
@@ -103,7 +106,7 @@ export default function VitalsPage() {
       <Card className="mb-6">
         <form onSubmit={onAdd} className="flex flex-col gap-3 sm:flex-row sm:items-end">
           <div>
-            <label className="mb-1 block text-sm font-medium text-slate-700">Type</label>
+            <label className="mb-1 block text-sm font-medium text-slate-700">{t('common.type')}</label>
             <select
               className={inputClass}
               value={type.value}
@@ -111,17 +114,17 @@ export default function VitalsPage() {
             >
               {vitalTypes.map((v) => (
                 <option key={v.value} value={v.value}>
-                  {v.label}
+                  {t(v.labelKey)}
                 </option>
               ))}
             </select>
           </div>
           <div className="flex-1">
-            <label className="mb-1 block text-sm font-medium text-slate-700">Reading ({type.unit})</label>
+            <label className="mb-1 block text-sm font-medium text-slate-700">{t('vitals.reading')} ({type.unit})</label>
             <input required className={inputClass} value={value} placeholder={type.placeholder} onChange={(e) => setValue(e.target.value)} />
           </div>
           <Button type="submit" disabled={adding}>
-            <Plus className="h-4 w-4" /> {adding ? 'Logging…' : 'Log reading'}
+            <Plus className="h-4 w-4" /> {adding ? t('vitals.logging') : t('vitals.logReading')}
           </Button>
         </form>
       </Card>
@@ -129,14 +132,14 @@ export default function VitalsPage() {
       {vitals === null ? (
         <Spinner label="Loading vitals…" />
       ) : vitals.length === 0 ? (
-        <EmptyState title="No readings yet" hint="Log your first blood pressure, glucose, or weight reading above." />
+        <EmptyState title={t('vitals.empty')} hint={t('vitals.emptyHint')} />
       ) : (
         <>
           {activeChart && chartVitals.length >= 2 && (
             <Card className="mb-6">
               <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
                 <h2 className="flex items-center gap-2 font-semibold text-slate-800">
-                  <TrendingUp className="h-4 w-4 text-teal-600" /> Trend
+                  <TrendingUp className="h-4 w-4 text-teal-600" /> {t('vitals.trend')}
                 </h2>
                 {chartable.length > 1 && (
                   <div className="flex flex-wrap gap-1.5">
@@ -160,14 +163,14 @@ export default function VitalsPage() {
           <Card>
             <div className="mb-3 flex items-center justify-between">
               <h2 className="flex items-center gap-2 font-semibold text-slate-800">
-                <Activity className="h-4 w-4 text-teal-600" /> History
+                <Activity className="h-4 w-4 text-teal-600" /> {t('vitals.history')}
               </h2>
               <Button variant="secondary" onClick={onInsights} disabled={loadingInsights} className="!px-3 !py-1.5 text-xs">
                 <Lightbulb className="h-3.5 w-3.5" />
-                {loadingInsights ? 'Thinking…' : 'Get insights'}
+                {loadingInsights ? t('common.thinking') : t('vitals.getInsights')}
               </Button>
             </div>
-            {loadingInsights && <Spinner label="Looking for patterns in your readings…" />}
+            {loadingInsights && <Spinner label={t('vitals.insightsSpinner')} />}
             <ul className="divide-y divide-slate-100">
               {vitals.map((v) => (
                 <li key={v.id} className="flex items-center gap-3 py-2.5">
@@ -189,10 +192,10 @@ export default function VitalsPage() {
           {insights && (
             <Card className="mt-6">
               <h2 className="mb-3 flex items-center gap-2 font-semibold text-slate-800">
-                <Lightbulb className="h-4 w-4 text-amber-500" /> Health insights
+                <Lightbulb className="h-4 w-4 text-amber-500" /> {t('vitals.insightsTitle')}
               </h2>
               {insights.insights.length === 0 ? (
-                <p className="text-sm text-slate-500">Nothing notable yet. Keep logging regularly.</p>
+                <p className="text-sm text-slate-500">{t('vitals.nothingNotable')}</p>
               ) : (
                 <ul className="space-y-3">
                   {insights.insights.map((ins, i) => (

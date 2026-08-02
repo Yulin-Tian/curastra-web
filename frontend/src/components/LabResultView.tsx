@@ -1,4 +1,5 @@
 import type { LabAnalyzeResult, LabFlag } from '../api/types'
+import { useLang } from '../i18n/LanguageContext'
 
 const statusStyles: Record<LabFlag['status'], string> = {
   normal: 'bg-emerald-50 text-emerald-700 border-emerald-200',
@@ -9,9 +10,10 @@ const statusStyles: Record<LabFlag['status'], string> = {
 }
 
 export function LabResultView({ result }: { result: LabAnalyzeResult }) {
+  const { t } = useLang()
   return (
     <div>
-      <h2 className="font-semibold text-slate-800">Lab report, explained</h2>
+      <h2 className="font-semibold text-slate-800">{t('lab.title')}</h2>
       <p className="mt-2 text-sm leading-relaxed text-slate-700">{result.summary}</p>
       {result.flags.length > 0 && (
         <ul className="mt-4 space-y-2">
@@ -23,7 +25,7 @@ export function LabResultView({ result }: { result: LabAnalyzeResult }) {
               <span className="font-medium">{flag.name}</span>
               {flag.value && <span>: {flag.value}</span>}
               <span className="ml-2 rounded-full bg-white/60 px-2 py-0.5 text-xs uppercase tracking-wide">
-                {flag.status}
+                {t('lab.' + flag.status)}
               </span>
               {flag.note && <p className="mt-1 text-xs opacity-80">{flag.note}</p>}
             </li>

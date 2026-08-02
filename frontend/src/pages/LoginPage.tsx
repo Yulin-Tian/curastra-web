@@ -6,11 +6,8 @@ import { useLang } from '../i18n/LanguageContext'
 import { LanguageSwitcher } from '../components/LanguageSwitcher'
 import { Button, ErrorBanner, inputClass } from '../components/ui'
 
-const features = [
-  { icon: ScanText, text: 'Scan a prescription and turn it into a clear care plan.' },
-  { icon: ShieldCheck, text: 'You review and confirm every extracted word before AI touches it.' },
-  { icon: MessageCircle, text: 'An assistant that knows your medicines, plan, and readings.' },
-]
+const featureIcons = [ScanText, ShieldCheck, MessageCircle]
+const featureKeys = ['landing.selfB1', 'landing.f2Text', 'landing.selfB3']
 
 export default function LoginPage() {
   const { login } = useAuth()
@@ -54,23 +51,26 @@ export default function LoginPage() {
         </Link>
         <div>
           <h2 className="font-display text-4xl font-medium leading-[1.15]">
-            Care shouldn't end
+            {t('landing.heroTitle1')}
             <br />
-            when the visit does.
+            {t('landing.heroTitle2')}
           </h2>
           <ul className="mt-10 space-y-5">
-            {features.map(({ icon: Icon, text }) => (
-              <li key={text} className="flex items-start gap-3.5 text-[15px] leading-relaxed text-sage-100/85">
-                <span className="mt-0.5 rounded-lg bg-white/10 p-1.5">
-                  <Icon className="h-4 w-4 text-teal-300" strokeWidth={1.8} />
-                </span>
-                {text}
-              </li>
-            ))}
+            {featureKeys.map((key, i) => {
+              const Icon = featureIcons[i]
+              return (
+                <li key={key} className="flex items-start gap-3.5 text-[15px] leading-relaxed text-sage-100/85">
+                  <span className="mt-0.5 rounded-lg bg-white/10 p-1.5">
+                    <Icon className="h-4 w-4 text-teal-300" strokeWidth={1.8} />
+                  </span>
+                  {t(key)}
+                </li>
+              )
+            })}
           </ul>
         </div>
         <p className="text-xs text-sage-200/50">
-          Curastra supports everyday care. It never diagnoses or replaces medical advice.
+          {t('dash.footer')}
         </p>
       </div>
 

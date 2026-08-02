@@ -6,22 +6,17 @@ import type { AdherenceState, CarePlan, Medication } from '../api/types'
 import { Button, Card, Disclaimer, ErrorBanner, PageTitle, Spinner } from '../components/ui'
 import { ProgressRing } from '../components/ProgressRing'
 import { SimplifyButton } from '../components/SimplifyButton'
+import { useLang } from '../i18n/LanguageContext'
 
 function localDay(): string {
   const d = new Date()
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 
-const categoryLabels: Record<string, string> = {
-  medication: 'Medication',
-  follow_up: 'Follow-up',
-  monitoring: 'Monitoring',
-  lifestyle: 'Lifestyle',
-  safety: 'Safety',
-  other: 'Other',
-}
+
 
 export default function CarePlanDetailPage() {
+  const { t } = useLang()
   const { id } = useParams()
   const navigate = useNavigate()
   const [plan, setPlan] = useState<CarePlan | null>(null)
@@ -67,7 +62,7 @@ export default function CarePlanDetailPage() {
   }
 
   async function onDelete() {
-    if (!window.confirm('Delete this care plan?')) return
+    if (!window.confirm(t('plans.deleteConfirm'))) return
     try {
       await api.delete(`/api/care-plans/${id}`)
       navigate('/care-plans')
@@ -88,18 +83,18 @@ export default function CarePlanDetailPage() {
         onClick={() => navigate('/care-plans')}
         className="mb-4 flex items-center gap-1 text-sm text-slate-500 hover:text-slate-800 print:hidden"
       >
-        <ArrowLeft className="h-4 w-4" /> Back to care plans
+        <ArrowLeft className="h-4 w-4" /> {t('plans.backToPlans')}
       </button>
       <PageTitle
-        title="Your Care Plan"
-        subtitle={`Generated ${new Date(plan.created_at).toLocaleString()} from your confirmed text`}
+        title={t('plans.yourPlan')}
+        subtitle={t('plans.generatedOn', { date: new Date(plan.created_at).toLocaleString() })}
       />
       <ErrorBanner message={error} />
 
       {red_flags.length > 0 && (
         <div className="mb-6 rounded-xl border border-red-200 bg-red-50 p-4">
           <div className="flex items-center gap-2 font-semibold text-red-700">
-            <AlertOctagon className="h-5 w-5" /> Warning signs: seek medical help if these occur
+            <AlertOctagon className="h-5 w-5" /> {t('plans.warningTitle')}
           </div>
           <ul className="mt-2 list-inside list-disc space-y-1 text-sm text-red-700">
             {red_flags.map((flag) => (
@@ -112,7 +107,7 @@ export default function CarePlanDetailPage() {
       {clarification_questions.length > 0 && (
         <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 p-4">
           <div className="flex items-center gap-2 font-semibold text-amber-800">
-            <HelpCircle className="h-5 w-5" /> Please clarify with your doctor or pharmacist
+            <HelpCircle className="h-5 w-5" /> {t('plans.clarifyTitle')}
           </div>
           <ul className="mt-2 list-inside list-disc space-y-1 text-sm text-amber-800">
             {clarification_questions.map((q) => (
@@ -126,24 +121,24 @@ export default function CarePlanDetailPage() {
         <Card>
           <div className="mb-3 flex items-center justify-between">
             <h2 className="flex items-center gap-2 font-semibold text-slate-800">
-              <Pill className="h-4 w-4 text-teal-600" /> Medications
+              <Pill className="h-4 w-4 text-teal-600" /> {t('plans.medications')}
             </h2>
             {medications.length > 0 && (
               <Button variant="secondary" onClick={onImportMeds} disabled={importing} className="!px-2.5 !py-1 text-xs">
                 <Plus className="h-3.5 w-3.5" />
-                {importing ? 'Adding…' : 'Add to my medications'}
+                {importing ? t('common.adding') : t('plans.addToMeds')}
               </Button>
             )}
           </div>
           {imported && (
             <p className="mb-2 rounded-lg bg-teal-50 px-3 py-2 text-xs text-teal-700">
               {imported.length === 0
-                ? 'All of these are already in your medication list.'
-                : `Added ${imported.length} medication(s) to your list.`}
+                ? t('plans.allImported')
+                : t('plans.importedN', { n: String(imported.length) })}
             </p>
           )}
           {medications.length === 0 ? (
-            <p className="text-sm text-slate-500">No medications were identified.</p>
+            <p className="text-sm text-slate-500">{t('plans.noMeds')}</p>
           ) : (
             <ul className="divide-y divide-slate-100">
               {medications.map((med, i) => (
@@ -152,7 +147,7 @@ export default function CarePlanDetailPage() {
                     <span className="font-medium text-slate-800">{med.name ?? 'Unnamed'}</span>
                     {med.confidence && med.confidence !== 'high' && (
                       <span className="text-[10px] uppercase tracking-wide text-amber-600">
-                        {med.confidence} confidence, please verify
+                        {med.confidence} {t('plans.confidence')}
                       </span>
                     )}
                   </div>
@@ -170,7 +165,7 @@ export default function CarePlanDetailPage() {
 
         <Card>
           <div className="mb-3 flex items-start justify-between gap-3">
-            <h2 className="font-semibold text-slate-800">Tasks & follow-ups</h2>
+            <h2 className="font-semibold text-slate-800">{t('plans.tasksTitle')}</h2>
           </div>
           {adherence && tasks.length > 0 && (
             <div className="mb-4 rounded-xl bg-sage-50/70 p-3 print:hidden">
@@ -178,7 +173,7 @@ export default function CarePlanDetailPage() {
             </div>
           )}
           {tasks.length === 0 ? (
-            <p className="text-sm text-slate-500">No tasks were identified.</p>
+            <p className="text-sm text-slate-500">{t('plans.noTasks')}</p>
           ) : (
             <ul className="space-y-3">
               {tasks.map((task, i) => {
@@ -198,7 +193,7 @@ export default function CarePlanDetailPage() {
                     </button>
                     <div className="min-w-0 flex-1">
                       <span className="mr-2 rounded-full bg-white px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-slate-500">
-                        {categoryLabels[task.category] ?? task.category}
+                        {t('cat.' + task.category)}
                       </span>
                       <p className={`mt-1 text-sm ${done ? 'text-slate-500 line-through decoration-teal-600/40' : 'text-slate-700'}`}>
                         {task.instruction}
@@ -220,10 +215,10 @@ export default function CarePlanDetailPage() {
         <Disclaimer text={safety_disclaimer} />
         <div className="mt-3 flex flex-wrap gap-2 print:hidden">
           <Button variant="secondary" onClick={() => window.print()}>
-            <Printer className="h-4 w-4" /> Print / save as PDF
+            <Printer className="h-4 w-4" /> {t('plans.print')}
           </Button>
           <Button variant="danger" onClick={onDelete}>
-            <Trash2 className="h-4 w-4" /> Delete this plan
+            <Trash2 className="h-4 w-4" /> {t('plans.deletePlan')}
           </Button>
         </div>
       </Card>

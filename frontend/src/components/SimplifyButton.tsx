@@ -3,12 +3,14 @@ import { Loader2, Sparkles, Volume2 } from 'lucide-react'
 import { api } from '../api/client'
 import type { SimplifyResult } from '../api/types'
 import { Disclaimer } from './ui'
+import { useLang } from '../i18n/LanguageContext'
 
 /**
  * "Explain in simple words" for any medical instruction, with a read-aloud
  * option (browser speech synthesis speaking the engine's tts_text).
  */
 export function SimplifyButton({ text }: { text: string }) {
+  const { t } = useLang()
   const [result, setResult] = useState<SimplifyResult | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
@@ -57,7 +59,7 @@ export function SimplifyButton({ text }: { text: string }) {
         className="inline-flex items-center gap-1 text-xs font-medium text-teal-600 hover:underline disabled:text-slate-400"
       >
         {busy ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
-        {busy ? 'Simplifying…' : 'Explain in simple words'}
+        {busy ? t('plans.simplifying') : t('plans.simplify')}
       </button>
       {error && <span className="ml-2 text-xs text-red-600">{error}</span>}
     </div>

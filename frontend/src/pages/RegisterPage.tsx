@@ -2,10 +2,13 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { HeartPulse } from 'lucide-react'
 import { useAuth } from '../auth/AuthContext'
+import { useLang } from '../i18n/LanguageContext'
+import { LanguageSwitcher } from '../components/LanguageSwitcher'
 import { Button, ErrorBanner, inputClass } from '../components/ui'
 
 export default function RegisterPage() {
   const { register } = useAuth()
+  const { t } = useLang()
   const navigate = useNavigate()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
@@ -42,17 +45,16 @@ export default function RegisterPage() {
         </Link>
         <div>
           <h2 className="font-display text-4xl font-medium leading-[1.15]">
-            Your care,
+            {t('reg.panelTitle1')}
             <br />
-            clearly organised.
+            {t('reg.panelTitle2')}
           </h2>
           <p className="mt-6 max-w-sm text-[15px] leading-relaxed text-sage-100/85">
-            Prescriptions, care plans, medicines, and readings in one calm place, with an
-            assistant that understands them.
+            {t('reg.panelText')}
           </p>
         </div>
         <p className="text-xs text-sage-200/50">
-          Curastra supports everyday care. It never diagnoses or replaces medical advice.
+          {t('dash.footer')}
         </p>
       </div>
 
@@ -65,17 +67,18 @@ export default function RegisterPage() {
               <span className="font-display text-2xl font-medium text-pine-900">Curastra</span>
             </Link>
           </div>
-          <h1 className="font-display text-3xl font-medium text-pine-900">Create your account</h1>
-          <p className="mt-1.5 text-sm text-stone-500">Keep your care on track after every visit.</p>
+          <div className="mb-4 flex justify-end"><LanguageSwitcher /></div>
+          <h1 className="font-display text-3xl font-medium text-pine-900">{t('reg.title')}</h1>
+          <p className="mt-1.5 text-sm text-stone-500">{t('reg.sub')}</p>
 
           <form onSubmit={onSubmit} className="mt-8 space-y-4">
             <ErrorBanner message={error} />
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-pine-900">Full name</label>
+              <label className="mb-1.5 block text-sm font-medium text-pine-900">{t('reg.fullName')}</label>
               <input required className={inputClass} value={name} onChange={(e) => setName(e.target.value)} />
             </div>
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-pine-900">Email</label>
+              <label className="mb-1.5 block text-sm font-medium text-pine-900">{t('auth.email')}</label>
               <input
                 type="email"
                 required
@@ -86,7 +89,7 @@ export default function RegisterPage() {
               />
             </div>
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-pine-900">Password</label>
+              <label className="mb-1.5 block text-sm font-medium text-pine-900">{t('auth.password')}</label>
               <input
                 type="password"
                 required
@@ -96,15 +99,15 @@ export default function RegisterPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 autoComplete="new-password"
               />
-              <p className="mt-1.5 text-xs text-stone-400">At least 8 characters.</p>
+              <p className="mt-1.5 text-xs text-stone-400">{t('reg.minChars')}</p>
             </div>
             <Button type="submit" disabled={busy} className="w-full !py-3">
-              {busy ? 'Creating account…' : 'Create account'}
+              {busy ? t('reg.creating') : t('reg.createBtn')}
             </Button>
             <p className="pt-1 text-center text-sm text-stone-500">
-              Already have an account?{' '}
+              {t('reg.haveAccount')}{' '}
               <Link to="/login" className="font-medium text-teal-700 hover:underline">
-                Sign in
+                {t('nav.signin')}
               </Link>
             </p>
           </form>

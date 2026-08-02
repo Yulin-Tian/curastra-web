@@ -87,19 +87,19 @@ export default function MedicationsPage() {
       <Card className="mb-6">
         <form onSubmit={onAdd} className="flex flex-col gap-3 sm:flex-row sm:items-end">
           <div className="flex-1">
-            <label className="mb-1 block text-sm font-medium text-slate-700">Name</label>
+            <label className="mb-1 block text-sm font-medium text-slate-700">{t('common.name')}</label>
             <input required className={inputClass} value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Pan 40" />
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-slate-700">Dosage</label>
+            <label className="mb-1 block text-sm font-medium text-slate-700">{t('meds.dosage')}</label>
             <input className={inputClass} value={dosage} onChange={(e) => setDosage(e.target.value)} placeholder="40 mg" />
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-slate-700">Frequency</label>
+            <label className="mb-1 block text-sm font-medium text-slate-700">{t('meds.frequency')}</label>
             <input className={inputClass} value={frequency} onChange={(e) => setFrequency(e.target.value)} placeholder="Once daily" />
           </div>
           <Button type="submit" disabled={adding}>
-            <Plus className="h-4 w-4" /> {adding ? 'Adding…' : 'Add'}
+            <Plus className="h-4 w-4" /> {adding ? t('common.adding') : t('common.add')}
           </Button>
         </form>
       </Card>
@@ -107,10 +107,7 @@ export default function MedicationsPage() {
       {meds === null ? (
         <Spinner label="Loading medications…" />
       ) : meds.length === 0 ? (
-        <EmptyState
-          title="No medications yet"
-          hint="Add them manually above, or import them from a generated care plan."
-        />
+        <EmptyState title={t('meds.empty')} hint={t('meds.emptyHint')} />
       ) : (
         <>
           <Card>
@@ -121,7 +118,7 @@ export default function MedicationsPage() {
                   <div className="min-w-0 flex-1">
                     <div className="font-medium text-slate-800">{m.name}</div>
                     <div className="text-xs text-slate-500">
-                      {[m.dosage, m.frequency, m.timing, m.duration].filter(Boolean).join(' · ') || 'No details'}
+                      {[m.dosage, m.frequency, m.timing, m.duration].filter(Boolean).join(' · ') || t('meds.noDetails')}
                     </div>
                   </div>
                   <button onClick={() => onRemove(m.id)} title="Remove" className="rounded p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600">
@@ -133,18 +130,18 @@ export default function MedicationsPage() {
             <div className="mt-4 border-t border-slate-100 pt-4">
               <Button onClick={onCheckSafety} disabled={checking}>
                 <ShieldCheck className="h-4 w-4" />
-                {checking ? 'Checking…' : 'Run safety check'}
+                {checking ? t('meds.checking') : t('meds.runCheck')}
               </Button>
-              {checking && <Spinner label="Checking for duplicates and interactions…" />}
+              {checking && <Spinner label={t('meds.checkingLong')} />}
             </div>
           </Card>
 
           {safety && (
             <Card className="mt-6">
-              <h2 className="mb-3 font-semibold text-slate-800">Safety check results</h2>
+              <h2 className="mb-3 font-semibold text-slate-800">{t('meds.resultsTitle')}</h2>
               {safety.alerts.length === 0 ? (
                 <p className="flex items-center gap-2 text-sm text-emerald-700">
-                  <ShieldCheck className="h-4 w-4" /> No duplicates or interactions were flagged.
+                  <ShieldCheck className="h-4 w-4" /> {t('meds.noAlerts')}
                 </p>
               ) : (
                 <ul className="space-y-2">

@@ -25,10 +25,7 @@ export default function CarePlansPage() {
       {plans === null ? (
         <Spinner label="Loading care plans…" />
       ) : plans.length === 0 ? (
-        <EmptyState
-          title="No care plans yet"
-          hint="Open a record, extract and confirm its text, then generate a plan."
-        />
+        <EmptyState title={t('plans.empty')} hint={t('plans.emptyHint')} />
       ) : (
         <ul className="space-y-2">
           {plans.map((p) => (
@@ -40,13 +37,12 @@ export default function CarePlansPage() {
                 <ClipboardList className="h-5 w-5 shrink-0 text-teal-600" />
                 <div className="min-w-0 flex-1">
                   <div className="font-medium text-slate-800">
-                    Care plan · {new Date(p.created_at).toLocaleDateString()}
+                    {t('plans.itemTitle')} · {new Date(p.created_at).toLocaleDateString()}
                   </div>
                   <div className="truncate text-xs text-slate-400">
-                    {p.plan.medications.length} medication{p.plan.medications.length === 1 ? '' : 's'} ·{' '}
-                    {p.plan.tasks.length} task{p.plan.tasks.length === 1 ? '' : 's'}
+                    {p.plan.medications.length} {t('plans.medsCount')} · {p.plan.tasks.length} {t('plans.tasksCount')}
                     {p.plan.red_flags.length > 0 && (
-                      <span className="ml-1 text-red-500">· {p.plan.red_flags.length} red flag(s)</span>
+                      <span className="ml-1 text-red-500">· {p.plan.red_flags.length} {t('plans.redFlagsCount')}</span>
                     )}
                   </div>
                 </div>

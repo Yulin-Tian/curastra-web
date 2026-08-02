@@ -71,7 +71,7 @@ export default function ChatPage() {
   }
 
   async function onClear() {
-    if (!window.confirm('Clear the whole conversation?')) return
+    if (!window.confirm(t('chat.clearConfirm'))) return
     try {
       await api.delete('/api/chat/history')
       setMessages([])
@@ -94,7 +94,7 @@ export default function ChatPage() {
 
       <div className="mt-2 flex-1 space-y-3 overflow-y-auto rounded-2xl border border-stone-200/80 bg-white p-5">
         {messages === null ? (
-          <Spinner label="Loading conversation…" />
+          <Spinner label={t('common.loading')} />
         ) : messages.length === 0 ? (
           <div className="flex h-full flex-col items-center justify-center text-center">
             <span className="rounded-2xl bg-sage-100 p-4">
@@ -136,7 +136,7 @@ export default function ChatPage() {
             </div>
           ))
         )}
-        {sending && <Spinner label="Thinking…" />}
+        {sending && <Spinner label={t('common.thinking')} />}
         <div ref={bottomRef} />
       </div>
 
