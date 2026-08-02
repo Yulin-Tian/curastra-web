@@ -3,7 +3,6 @@ import { BadgeCheck, BellRing, HeartPulse, Link2, UserRound } from 'lucide-react
 import { useSearchParams } from 'react-router-dom'
 import { api } from '../api/client'
 import { disablePush, enablePush, pushSupported } from '../api/push'
-import type { User } from '../api/types'
 import { useAuth } from '../auth/AuthContext'
 import { Button, Card, ErrorBanner, PageTitle, Spinner, inputClass } from '../components/ui'
 
@@ -285,8 +284,7 @@ export default function ProfilePage() {
   const { user, refreshUser } = useAuth()
   const [searchParams] = useSearchParams()
   const isWelcome = searchParams.get('welcome') === '1'
-  const [abhaNumber, setAbhaNumber] = useState('')
-  const [abhaAddress, setAbhaAddress] = useState('')
+  const [aadhaar, setAadhaar] = useState('')
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
 
@@ -297,10 +295,11 @@ export default function ProfilePage() {
     setError('')
     setBusy(true)
     try {
-      await api.post<User>('/api/abha/link', { abha_number: abhaNumber, abha_address: abhaAddress })
+      await api.post('/api/abha/enroll/initiate', { aadhaarNumber: aadhaar })
+      setAadhaar('')
       await refreshUser()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Linking failed.')
+      setError(err instanceof Error ? err.message : 'Enrollment failed.')
     } finally {
       setBusy(false)
     }
@@ -349,8 +348,9 @@ export default function ProfilePage() {
           <Link2 className="h-4 w-4 text-teal-600" /> ABHA Health ID
         </h2>
         <p className="mt-1 text-sm text-slate-500">
-          Link your Ayushman Bharat Health Account to carry your records across providers.
-          (Demonstration flow; production would verify through the ABDM sandbox.)
+          Enroll with your Aadhaar number to create and link an Ayushman Bharat Health Account.
+          (Demonstration enrollment via the project's mock ABHA service; the official ABDM
+          sandbox only accepts India-hosted servers.)
         </p>
 
         {user.abha_linked ? (
@@ -371,27 +371,23 @@ export default function ProfilePage() {
         ) : (
           <form onSubmit={onLink} className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-end">
             <div className="flex-1">
-              <label className="mb-1 block text-sm font-medium text-slate-700">ABHA number</label>
+              <label className="mb-1 block text-sm font-medium text-slate-700">Aadhaar number</label>
               <input
                 required
+                inputMode="numeric"
+                pattern="\d{12}"
+                maxLength={12}
                 className={inputClass}
-                placeholder="14-digit number"
-                value={abhaNumber}
-                onChange={(e) => setAbhaNumber(e.target.value)}
+                placeholder="12-digit Aadhaar number"
+                value={aadhaar}
+                onChange={(e) => setAadhaar(e.target.value.replace(/\D/g, ''))}
               />
+              <p className="mt-1.5 text-xs text-stone-400">
+                Your ABHA number and address are generated on enrollment.
+              </p>
             </div>
-            <div className="flex-1">
-              <label className="mb-1 block text-sm font-medium text-slate-700">ABHA address</label>
-              <input
-                required
-                className={inputClass}
-                placeholder="yourname@abdm"
-                value={abhaAddress}
-                onChange={(e) => setAbhaAddress(e.target.value)}
-              />
-            </div>
-            <Button type="submit" disabled={busy}>
-              {busy ? 'Linking…' : 'Link ABHA'}
+            <Button type="submit" disabled={busy || aadhaar.length !== 12} className="sm:mb-6">
+              {busy ? 'Enrolling…' : 'Enroll & link ABHA'}
             </Button>
           </form>
         )}

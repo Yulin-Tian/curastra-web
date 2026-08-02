@@ -54,11 +54,19 @@ check("me", r.status_code == 200 and r.json()["email"] == "smoke@test.com", r.te
 r = client.get("/api/auth/me")
 check("me without token -> 401", r.status_code == 401, r.text)
 
-# ABHA mock link
-r = client.post("/api/abha/link", json={"abha_number": "12-3456-7890-1234", "abha_address": "smoke@abdm"}, headers=headers)
-check("abha link", r.status_code == 200 and r.json()["abha_linked"] is True, r.text)
-r = client.post("/api/abha/link", json={"abha_number": "not-a-number-14", "abha_address": "smoke@abdm"}, headers=headers)
-check("abha bad number -> 400", r.status_code == 400, r.text)
+# ABHA mock enrollment (contract per the mock ABHA service spec)
+r = client.post("/api/abha/enroll/initiate", json={"aadhaarNumber": "12345"}, headers=headers)
+check("abha enroll bad aadhaar -> 400 envelope", r.status_code == 400 and r.json().get("success") is False, r.text)
+r = client.post("/api/abha/enroll/initiate", json={"aadhaarNumber": "123456789012"}, headers=headers)
+ok = r.status_code == 200 and r.json()["success"] and r.json()["data"]["abhaNumber"].startswith("91-") \
+    and r.json()["data"]["abhaAddress"].endswith("@sbx")
+check("abha enroll generates credentials", ok, r.text)
+r = client.post("/api/abha/enroll/initiate", json={"aadhaarNumber": "123456789012"}, headers=headers)
+check("abha enroll already linked -> 409", r.status_code == 409 and r.json().get("success") is False, r.text)
+r = client.post("/api/abha/unlink", headers=headers)
+check("abha unlink", r.status_code == 200 and r.json()["abha_linked"] is False, r.text)
+r = client.post("/api/abha/enroll/initiate", json={"aadhaarNumber": "123456789012"}, headers=headers)
+check("abha re-enroll after unlink", r.status_code == 200, r.text)
 
 # Record upload + list + detail + file roundtrip
 fake_png = b"\x89PNG\r\n\x1a\n" + b"fakebytes" * 10

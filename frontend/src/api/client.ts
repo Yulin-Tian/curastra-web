@@ -55,10 +55,12 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   }
 
   if (!response.ok) {
+    // App-wide errors use {error}; the mock-ABHA contract uses {success, message}.
+    const obj = body && typeof body === 'object' ? (body as Record<string, unknown>) : null
     const message =
-      body && typeof body === 'object' && 'error' in body
-        ? String((body as { error: string }).error)
-        : `Request failed (${response.status}).`
+      (obj && typeof obj.error === 'string' && obj.error) ||
+      (obj && typeof obj.message === 'string' && obj.message) ||
+      `Request failed (${response.status}).`
     throw new ApiError(response.status, message)
   }
   return body as T
