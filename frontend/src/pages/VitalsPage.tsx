@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Activity, Lightbulb, Plus, TrendingUp, Trash2 } from 'lucide-react'
 import { api } from '../api/client'
 import type { Insight, InsightsResult, Vital } from '../api/types'
-import { Button, Card, Disclaimer, EmptyState, ErrorBanner, PageTitle, Spinner, inputClass } from '../components/ui'
+import { Button, Card, Disclaimer, EmptyState, ErrorBanner, PageTitle, Segmented, Spinner, inputClass } from '../components/ui'
 import { VitalsChart } from '../components/VitalsChart'
 import { useLang } from '../i18n/LanguageContext'
 
@@ -107,17 +107,11 @@ export default function VitalsPage() {
         <form onSubmit={onAdd} className="flex flex-col gap-3 sm:flex-row sm:items-end">
           <div>
             <label className="mb-1 block text-sm font-medium text-slate-700">{t('common.type')}</label>
-            <select
-              className={inputClass}
+            <Segmented
               value={type.value}
-              onChange={(e) => setType(vitalTypes.find((v) => v.value === e.target.value) ?? vitalTypes[0])}
-            >
-              {vitalTypes.map((v) => (
-                <option key={v.value} value={v.value}>
-                  {t(v.labelKey)}
-                </option>
-              ))}
-            </select>
+              onChange={(v) => setType(vitalTypes.find((x) => x.value === v) ?? vitalTypes[0])}
+              options={vitalTypes.map((v) => ({ value: v.value, label: t(v.labelKey) }))}
+            />
           </div>
           <div className="flex-1">
             <label className="mb-1 block text-sm font-medium text-slate-700">{t('vitals.reading')} ({type.unit})</label>

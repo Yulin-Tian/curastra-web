@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { FileText, Upload } from 'lucide-react'
 import { api } from '../api/client'
 import type { HealthRecord, RecordType } from '../api/types'
-import { Button, Card, EmptyState, ErrorBanner, PageTitle, Spinner, inputClass } from '../components/ui'
+import { Button, Card, EmptyState, ErrorBanner, PageTitle, Segmented, Spinner, inputClass } from '../components/ui'
 import { useLang } from '../i18n/LanguageContext'
 
 const typeLabelKeys: Record<RecordType, string> = {
@@ -76,11 +76,15 @@ export default function RecordsPage() {
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium text-slate-700">{t('common.type')}</label>
-            <select className={inputClass} value={type} onChange={(e) => setType(e.target.value as RecordType)}>
-              <option value="prescription">{t('common.prescription')}</option>
-              <option value="lab_report">{t('common.labReport')}</option>
-              <option value="other">{t('common.other')}</option>
-            </select>
+            <Segmented
+              value={type}
+              onChange={(v) => setType(v as RecordType)}
+              options={[
+                { value: 'prescription', label: t('common.prescription') },
+                { value: 'lab_report', label: t('common.labReport') },
+                { value: 'other', label: t('common.other') },
+              ]}
+            />
           </div>
           <div className="flex-1">
             <label className="mb-1 block text-sm font-medium text-slate-700">{t('common.notes')}</label>

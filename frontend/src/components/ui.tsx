@@ -1,6 +1,58 @@
 import type { ReactNode } from 'react'
-import { AlertTriangle, Info, Loader2 } from 'lucide-react'
+import { AlertTriangle, ChevronDown, Info, Loader2 } from 'lucide-react'
 import { SproutSpot } from './illustrations'
+
+/**
+ * Segmented pill control — replaces native <select> for short option lists.
+ * All choices visible, one tap, no OS-styled dropdown.
+ */
+export function Segmented({
+  options,
+  value,
+  onChange,
+}: {
+  options: { value: string; label: string }[]
+  value: string
+  onChange: (v: string) => void
+}) {
+  return (
+    <div className="inline-flex flex-wrap gap-1 rounded-xl bg-sage-100 p-1" role="radiogroup">
+      {options.map((o) => {
+        const active = o.value === value
+        return (
+          <button
+            key={o.value}
+            type="button"
+            role="radio"
+            aria-checked={active}
+            onClick={() => onChange(o.value)}
+            className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-all active:scale-[0.97] ${
+              active
+                ? 'bg-white text-pine-900 shadow-sm ring-1 ring-stone-200'
+                : 'text-stone-500 hover:text-pine-900'
+            }`}
+          >
+            {o.label}
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
+/** Native select with a styled trigger (for long option lists). */
+export function StyledSelect(props: React.SelectHTMLAttributes<HTMLSelectElement>) {
+  const { className = '', ...rest } = props
+  return (
+    <div className="relative">
+      <select
+        {...rest}
+        className={`${inputClass} appearance-none pr-9 ${className}`}
+      />
+      <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-400" />
+    </div>
+  )
+}
 
 /** Loading state for AI/OCR calls — these take a few seconds, the UI must never look frozen. */
 export function Spinner({ label = 'Working…' }: { label?: string }) {

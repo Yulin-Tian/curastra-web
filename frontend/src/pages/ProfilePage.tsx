@@ -6,7 +6,7 @@ import { api, getActiveProfileId, getToken, switchProfile } from '../api/client'
 import { disablePush, enablePush, pushSupported } from '../api/push'
 import type { ProfileInfo } from '../api/types'
 import { useAuth } from '../auth/AuthContext'
-import { Button, Card, ErrorBanner, PageTitle, Spinner, inputClass } from '../components/ui'
+import { Button, Card, ErrorBanner, PageTitle, Segmented, Spinner, StyledSelect, inputClass } from '../components/ui'
 import { useLang } from '../i18n/LanguageContext'
 
 function AccountCard() {
@@ -327,11 +327,15 @@ function FamilyCard({
         </div>
         <div>
           <label className="mb-1 block text-sm font-medium text-slate-700">{t('fam.theyAreMy')}</label>
-          <select className={inputClass} value={relationship} onChange={(e) => setRelationship(e.target.value)}>
-            <option value="child">{t('chrome.child')}</option>
-            <option value="parent">{t('chrome.parent')}</option>
-            <option value="other">{t('chrome.other')}</option>
-          </select>
+          <Segmented
+            value={relationship}
+            onChange={setRelationship}
+            options={[
+              { value: 'child', label: t('chrome.child') },
+              { value: 'parent', label: t('chrome.parent') },
+              { value: 'other', label: t('chrome.other') },
+            ]}
+          />
         </div>
         <Button type="submit" disabled={busy}>
           {busy ? t('common.adding') : t('fam.addMember')}
@@ -441,8 +445,7 @@ function HealthBasicsCard({ highlight }: { highlight: boolean }) {
             </div>
             <div>
               <label className="mb-1 block text-sm font-medium text-slate-700">{t('basics.blood')}</label>
-              <select
-                className={inputClass}
+              <StyledSelect
                 value={form.blood_type ?? 'unknown'}
                 onChange={(e) => set('blood_type', e.target.value)}
               >
@@ -451,7 +454,7 @@ function HealthBasicsCard({ highlight }: { highlight: boolean }) {
                     {bt === 'unknown' ? t('basics.dontKnow') : bt}
                   </option>
                 ))}
-              </select>
+              </StyledSelect>
             </div>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
@@ -586,8 +589,8 @@ function ReminderCard() {
             </Button>
             <label className="flex items-center gap-2 text-sm text-slate-700">
               {t('rem.remindAt')}
-              <select
-                className={`${inputClass} !w-auto`}
+              <StyledSelect
+                className="!w-auto"
                 value={settings.hour_local}
                 onChange={(e) => onHourChange(Number(e.target.value))}
               >
@@ -596,7 +599,7 @@ function ReminderCard() {
                     {String(h).padStart(2, '0')}:00
                   </option>
                 ))}
-              </select>
+              </StyledSelect>
             </label>
             {settings.daily_digest && (
               <Button variant="secondary" onClick={onTest} disabled={busy}>
