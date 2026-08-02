@@ -38,6 +38,11 @@ _COLUMN_MIGRATIONS = [
     ("medications", "profile_id", "INTEGER", "INTEGER"),
     ("vitals", "profile_id", "INTEGER", "INTEGER"),
     ("chat_history", "profile_id", "INTEGER", "INTEGER"),
+    # Account security & personalisation
+    ("users", "avatar", "BYTEA", "BLOB"),
+    ("users", "avatar_mime", "VARCHAR(120)", "VARCHAR(120)"),
+    ("users", "totp_secret", "VARCHAR(64)", "VARCHAR(64)"),
+    ("users", "totp_enabled", "BOOLEAN DEFAULT FALSE", "BOOLEAN DEFAULT 0"),
 ]
 
 

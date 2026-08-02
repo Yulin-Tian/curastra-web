@@ -31,6 +31,11 @@ class User(Base):
     abha_number: Mapped[str | None] = mapped_column(String(20), nullable=True)
     abha_address: Mapped[str | None] = mapped_column(String(120), nullable=True)
     abha_linked: Mapped[bool] = mapped_column(Boolean, default=False)
+    # Account personalisation & security (columns via startup migration)
+    avatar: Mapped[bytes | None] = mapped_column(LargeBinary, nullable=True)
+    avatar_mime: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    totp_secret: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    totp_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
 
     records: Mapped[list["Record"]] = relationship(back_populates="user", cascade="all, delete-orphan")

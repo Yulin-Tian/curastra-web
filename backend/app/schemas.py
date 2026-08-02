@@ -16,6 +16,7 @@ class RegisterRequest(BaseModel):
 class LoginRequest(BaseModel):
     email: EmailStr
     password: str
+    totp_code: Optional[str] = None
 
 
 class UserOut(BaseModel):
@@ -25,6 +26,7 @@ class UserOut(BaseModel):
     abha_number: Optional[str] = None
     abha_address: Optional[str] = None
     abha_linked: bool = False
+    totp_enabled: bool = False
 
     model_config = {"from_attributes": True}
 

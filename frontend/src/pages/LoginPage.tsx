@@ -15,6 +15,8 @@ export default function LoginPage() {
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [totpCode, setTotpCode] = useState('')
+  const [needsTotp, setNeedsTotp] = useState(false)
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
 
@@ -23,10 +25,16 @@ export default function LoginPage() {
     setError('')
     setBusy(true)
     try {
-      await login(email, password)
+      await login(email, password, totpCode || undefined)
       navigate('/dashboard')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login failed.')
+      const message = err instanceof Error ? err.message : 'Login failed.'
+      if (message === 'totp_required') {
+        setNeedsTotp(true)
+        setError('')
+      } else {
+        setError(message)
+      }
     } finally {
       setBusy(false)
     }
@@ -99,6 +107,27 @@ export default function LoginPage() {
                 autoComplete="current-password"
               />
             </div>
+            {needsTotp && (
+              <div className="anim-fade-up">
+                <label className="mb-1.5 block text-sm font-medium text-pine-900">
+                  Authenticator code
+                </label>
+                <input
+                  inputMode="numeric"
+                  maxLength={6}
+                  required
+                  autoFocus
+                  className={`${inputClass} text-center tracking-[0.3em]`}
+                  placeholder="000000"
+                  value={totpCode}
+                  onChange={(e) => setTotpCode(e.target.value.replace(/\D/g, ''))}
+                />
+                <p className="mt-1.5 text-xs text-stone-400">
+                  Two-factor authentication is on for this account. Enter the 6-digit code from
+                  your authenticator app.
+                </p>
+              </div>
+            )}
             <Button type="submit" disabled={busy} className="w-full !py-3">
               {busy ? 'Signing in…' : 'Sign in'}
             </Button>

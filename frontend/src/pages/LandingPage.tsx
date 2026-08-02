@@ -229,7 +229,7 @@ export default function LandingPage() {
             One home for everyone&rsquo;s care
           </h2>
           <p className="mt-3 text-[15px] leading-relaxed text-stone-500">
-            Care rarely stops at yourself. Add the people who depend on you — each keeps their own
+            Care rarely stops at yourself. Add the people who depend on you. Each keeps their own
             records, plans, medicines, and ABHA, and the whole app changes its colors to match who
             you are caring for.
           </p>
@@ -284,7 +284,7 @@ export default function LandingPage() {
                 <p className="mt-3 text-[15px] leading-relaxed" style={{ color: '#4a5578' }}>
                   A fever at midnight, a crumpled prescription from the paediatrician, and a dose
                   you&rsquo;d rather not get wrong. Your child&rsquo;s own profile keeps their
-                  medicines separate from yours — and explains them in words tired parents follow.
+                  medicines separate from yours, explained in words tired parents can follow.
                 </p>
                 <ul className="mt-5 space-y-2.5">
                   {[
@@ -314,7 +314,7 @@ export default function LandingPage() {
                 <p className="mt-3 text-[15px] leading-relaxed" style={{ color: '#6b5560' }}>
                   Three medicines, two doctors, and a blood-pressure diary nobody keeps. Give your
                   parents a profile of their own and watch the trends instead of worrying in the
-                  dark — with warnings that name the medicine, not vague alarm.
+                  dark, with warnings that name the medicine rather than vague alarm.
                 </p>
                 <ul className="mt-5 space-y-2.5">
                   {[

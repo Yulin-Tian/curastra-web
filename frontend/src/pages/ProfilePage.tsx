@@ -1,11 +1,223 @@
-import { useCallback, useEffect, useState } from 'react'
-import { BadgeCheck, BellRing, HeartPulse, Link2, Trash2, UserRound, Users } from 'lucide-react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import QRCode from 'qrcode'
+import { BadgeCheck, BellRing, Camera, HeartPulse, KeyRound, Link2, ShieldCheck, Trash2, UserRound, Users } from 'lucide-react'
 import { useSearchParams } from 'react-router-dom'
-import { api, getActiveProfileId, switchProfile } from '../api/client'
+import { api, getActiveProfileId, getToken, switchProfile } from '../api/client'
 import { disablePush, enablePush, pushSupported } from '../api/push'
 import type { ProfileInfo } from '../api/types'
 import { useAuth } from '../auth/AuthContext'
 import { Button, Card, ErrorBanner, PageTitle, Spinner, inputClass } from '../components/ui'
+
+function AccountCard() {
+  const { user, refreshUser } = useAuth()
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
+  const [info, setInfo] = useState('')
+  const [error, setError] = useState('')
+  const [busy, setBusy] = useState(false)
+  const fileRef = useRef<HTMLInputElement>(null)
+
+  // Password change
+  const [showPw, setShowPw] = useState(false)
+  const [curPw, setCurPw] = useState('')
+  const [newPw, setNewPw] = useState('')
+
+  // 2FA
+  const [qr, setQr] = useState<string | null>(null)
+  const [totpCode, setTotpCode] = useState('')
+  const [disablePw, setDisablePw] = useState('')
+  const [showDisable, setShowDisable] = useState(false)
+
+  const loadAvatar = useCallback(() => {
+    fetch(api.fileUrl('/api/auth/avatar'), { headers: { Authorization: `Bearer ${getToken()}` } })
+      .then((r) => (r.ok ? r.blob() : null))
+      .then((b) => setAvatarUrl((old) => {
+        if (old) URL.revokeObjectURL(old)
+        return b ? URL.createObjectURL(b) : null
+      }))
+      .catch(() => {})
+  }, [])
+
+  useEffect(() => {
+    loadAvatar()
+  }, [loadAvatar])
+
+  async function onAvatarPick(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setError('')
+    setBusy(true)
+    try {
+      const form = new FormData()
+      form.append('file', file)
+      await api.postForm('/api/auth/avatar', form)
+      loadAvatar()
+      setInfo('Profile photo updated.')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Upload failed.')
+    } finally {
+      setBusy(false)
+      if (fileRef.current) fileRef.current.value = ''
+    }
+  }
+
+  async function onChangePassword(e: React.FormEvent) {
+    e.preventDefault()
+    setError('')
+    setInfo('')
+    setBusy(true)
+    try {
+      await api.post('/api/auth/change-password', { current_password: curPw, new_password: newPw })
+      setCurPw('')
+      setNewPw('')
+      setShowPw(false)
+      setInfo('Password changed.')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not change the password.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function onStartTotp() {
+    setError('')
+    setInfo('')
+    try {
+      const res = await api.post<{ otpauth_uri: string }>('/api/auth/totp/setup')
+      setQr(await QRCode.toDataURL(res.otpauth_uri, { width: 180, margin: 1 }))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '2FA setup failed.')
+    }
+  }
+
+  async function onEnableTotp(e: React.FormEvent) {
+    e.preventDefault()
+    setError('')
+    setBusy(true)
+    try {
+      await api.post('/api/auth/totp/enable', { code: totpCode })
+      setQr(null)
+      setTotpCode('')
+      await refreshUser()
+      setInfo('Two-factor authentication is on. You will need your authenticator app to sign in.')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not enable 2FA.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function onDisableTotp(e: React.FormEvent) {
+    e.preventDefault()
+    setError('')
+    setBusy(true)
+    try {
+      await api.post('/api/auth/totp/disable', { password: disablePw })
+      setDisablePw('')
+      setShowDisable(false)
+      await refreshUser()
+      setInfo('Two-factor authentication is off.')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not disable 2FA.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  if (!user) return null
+  return (
+    <Card className="mb-6">
+      <div className="flex items-center gap-4">
+        <button
+          onClick={() => fileRef.current?.click()}
+          title="Change profile photo"
+          className="group relative h-16 w-16 shrink-0 overflow-hidden rounded-full bg-teal-50"
+        >
+          {avatarUrl ? (
+            <img src={avatarUrl} alt="" className="h-full w-full object-cover" />
+          ) : (
+            <UserRound className="m-auto mt-4 h-8 w-8 text-teal-600" />
+          )}
+          <span className="absolute inset-0 flex items-center justify-center bg-pine-950/50 opacity-0 transition-opacity group-hover:opacity-100">
+            <Camera className="h-5 w-5 text-white" />
+          </span>
+        </button>
+        <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={onAvatarPick} />
+        <div className="min-w-0 flex-1">
+          <div className="text-lg font-semibold text-slate-900">{user.name}</div>
+          <div className="text-sm text-slate-500">{user.email}</div>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="secondary" className="!px-3 !py-1.5 text-xs" onClick={() => setShowPw((v) => !v)}>
+            <KeyRound className="h-3.5 w-3.5" /> Change password
+          </Button>
+          {user.totp_enabled ? (
+            <Button variant="secondary" className="!px-3 !py-1.5 text-xs" onClick={() => setShowDisable((v) => !v)}>
+              <ShieldCheck className="h-3.5 w-3.5 text-teal-600" /> 2FA on
+            </Button>
+          ) : (
+            <Button variant="secondary" className="!px-3 !py-1.5 text-xs" onClick={onStartTotp}>
+              <ShieldCheck className="h-3.5 w-3.5" /> Set up 2FA
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {(info || error) && (
+        <div className="mt-3">
+          {error ? <ErrorBanner message={error} /> : <p className="rounded-lg bg-teal-50 px-3 py-2 text-sm text-teal-700">{info}</p>}
+        </div>
+      )}
+
+      {showPw && (
+        <form onSubmit={onChangePassword} className="mt-4 flex flex-col gap-3 border-t border-slate-100 pt-4 sm:flex-row sm:items-end">
+          <div className="flex-1">
+            <label className="mb-1 block text-sm font-medium text-slate-700">Current password</label>
+            <input type="password" required className={inputClass} value={curPw} onChange={(e) => setCurPw(e.target.value)} autoComplete="current-password" />
+          </div>
+          <div className="flex-1">
+            <label className="mb-1 block text-sm font-medium text-slate-700">New password</label>
+            <input type="password" required minLength={8} className={inputClass} value={newPw} onChange={(e) => setNewPw(e.target.value)} autoComplete="new-password" />
+          </div>
+          <Button type="submit" disabled={busy}>{busy ? 'Saving…' : 'Update password'}</Button>
+        </form>
+      )}
+
+      {qr && (
+        <form onSubmit={onEnableTotp} className="mt-4 flex flex-col items-start gap-4 border-t border-slate-100 pt-4 sm:flex-row">
+          <img src={qr} alt="Authenticator QR code" className="rounded-lg border border-slate-200" />
+          <div className="flex-1">
+            <p className="text-sm text-slate-600">
+              Scan this with Google Authenticator, Microsoft Authenticator, or any TOTP app, then
+              enter the 6-digit code it shows to switch on two-factor sign-in.
+            </p>
+            <div className="mt-3 flex gap-2">
+              <input
+                inputMode="numeric"
+                maxLength={6}
+                required
+                className={`${inputClass} !w-32 text-center tracking-[0.3em]`}
+                placeholder="000000"
+                value={totpCode}
+                onChange={(e) => setTotpCode(e.target.value.replace(/\D/g, ''))}
+              />
+              <Button type="submit" disabled={busy || totpCode.length !== 6}>Turn on 2FA</Button>
+            </div>
+          </div>
+        </form>
+      )}
+
+      {showDisable && (
+        <form onSubmit={onDisableTotp} className="mt-4 flex flex-col gap-3 border-t border-slate-100 pt-4 sm:flex-row sm:items-end">
+          <div className="flex-1">
+            <label className="mb-1 block text-sm font-medium text-slate-700">Confirm your password to turn 2FA off</label>
+            <input type="password" required className={inputClass} value={disablePw} onChange={(e) => setDisablePw(e.target.value)} />
+          </div>
+          <Button variant="danger" type="submit" disabled={busy}>Turn off 2FA</Button>
+        </form>
+      )}
+    </Card>
+  )
+}
 
 function FamilyCard({
   profiles,
@@ -467,17 +679,7 @@ export default function ProfilePage() {
       />
       <ErrorBanner message={error} />
 
-      <Card className="mb-6">
-        <div className="flex items-center gap-4">
-          <div className="rounded-full bg-teal-50 p-3">
-            <UserRound className="h-7 w-7 text-teal-600" />
-          </div>
-          <div>
-            <div className="text-lg font-semibold text-slate-900">{user.name}</div>
-            <div className="text-sm text-slate-500">{user.email}</div>
-          </div>
-        </div>
-      </Card>
+      <AccountCard />
 
       <FamilyCard profiles={profiles} refresh={refreshProfiles} />
 

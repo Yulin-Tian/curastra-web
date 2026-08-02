@@ -7,6 +7,7 @@ export interface User {
   abha_number: string | null
   abha_address: string | null
   abha_linked: boolean
+  totp_enabled: boolean
 }
 
 export interface TokenResponse {

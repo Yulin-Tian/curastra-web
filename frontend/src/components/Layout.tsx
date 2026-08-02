@@ -34,7 +34,7 @@ const navItems = [
 ]
 
 export default function Layout() {
-  const { user, logout } = useAuth()
+  const { logout } = useAuth()
   const location = useLocation()
   const [profiles, setProfiles] = useState<ProfileInfo[]>([])
 
@@ -47,25 +47,47 @@ export default function Layout() {
     profiles.find((p) => String(p.id) === activeId) ?? profiles.find((p) => p.is_primary) ?? null
   const caringForOther = active !== null && !active.is_primary
 
+  const chipColors: Record<string, string> = {
+    self: 'bg-teal-500 text-white',
+    child: 'bg-[#6d8fe8] text-white',
+    parent: 'bg-[#c98a6b] text-white',
+    other: 'bg-sage-200 text-pine-900',
+  }
+
   const switcher = profiles.length > 1 && (
-    <div className="mx-3 mb-3 rounded-xl bg-white/5 px-3 py-2.5">
-      <label className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.14em] text-sage-200/50">
+    <div className="mx-3 mb-3 rounded-2xl bg-white/5 p-2">
+      <div className="mb-1.5 px-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-sage-200/50">
         Caring for
-      </label>
-      <select
-        value={active ? String(active.id) : ''}
-        onChange={(e) => {
-          const p = profiles.find((x) => String(x.id) === e.target.value)
-          if (p) switchProfile(p.id, p.relationship, p.is_primary)
-        }}
-        className="w-full rounded-lg border-0 bg-white/10 px-2 py-1.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-teal-400/40 [&>option]:text-ink"
-      >
-        {profiles.map((p) => (
-          <option key={p.id} value={String(p.id)}>
-            {p.is_primary ? `${p.name} (me)` : `${p.name} (${relationshipLabels[p.relationship] ?? p.relationship})`}
-          </option>
-        ))}
-      </select>
+      </div>
+      <div className="space-y-1">
+        {profiles.map((p) => {
+          const isActive = active?.id === p.id
+          return (
+            <button
+              key={p.id}
+              onClick={() => !isActive && switchProfile(p.id, p.relationship, p.is_primary)}
+              className={`flex w-full items-center gap-2.5 rounded-xl px-2 py-1.5 text-left transition-all ${
+                isActive ? 'bg-white/15 ring-1 ring-teal-300/40' : 'hover:bg-white/10 active:scale-[0.98]'
+              }`}
+            >
+              <span
+                className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-bold shadow-sm ${
+                  chipColors[p.relationship] ?? chipColors.other
+                }`}
+              >
+                {p.name.charAt(0).toUpperCase()}
+              </span>
+              <span className="min-w-0">
+                <span className="block truncate text-[13px] font-medium text-white">{p.name}</span>
+                <span className="block text-[11px] text-sage-200/60">
+                  {p.is_primary ? 'Me' : relationshipLabels[p.relationship] ?? p.relationship}
+                </span>
+              </span>
+              {isActive && <span className="ml-auto h-2 w-2 shrink-0 rounded-full bg-teal-300" />}
+            </button>
+          )
+        })}
+      </div>
     </div>
   )
 
@@ -100,16 +122,14 @@ export default function Layout() {
               {label}
             </NavLink>
           ))}
-        </nav>
-        <div className="mx-3 mb-4 rounded-xl bg-white/5 p-4">
-          <div className="mb-1.5 truncate text-sm font-medium text-white">{user?.name}</div>
           <button
             onClick={logout}
-            className="flex items-center gap-2 text-[13px] text-sage-200/60 transition-colors hover:text-white"
+            className="flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-[13.5px] font-medium text-sage-200/70 transition-colors hover:bg-white/5 hover:text-white"
           >
-            <LogOut className="h-3.5 w-3.5" /> Sign out
+            <LogOut className="h-[18px] w-[18px]" strokeWidth={1.8} />
+            Sign out
           </button>
-        </div>
+        </nav>
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">

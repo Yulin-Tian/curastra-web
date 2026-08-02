@@ -153,6 +153,37 @@ check("health profile bad dob -> 422", r.status_code == 422, r.text)
 r = client.post(f"/api/records/{rec_id}/extract", headers=headers)
 check("extract with engine down -> 503 {error}", r.status_code == 503 and "error" in r.json(), r.text)
 
+# Account security: change password, TOTP 2FA, avatar
+r = client.post("/api/auth/change-password", json={"current_password": "wrong", "new_password": "password456"}, headers=headers)
+check("change password wrong current -> 400", r.status_code == 400, r.text)
+r = client.post("/api/auth/change-password", json={"current_password": "password123", "new_password": "password456"}, headers=headers)
+check("change password", r.status_code == 200, r.text)
+r = client.post("/api/auth/login", json={"email": "smoke@test.com", "password": "password456"})
+check("login with new password", r.status_code == 200, r.text)
+
+import pyotp  # noqa: E402
+
+r = client.post("/api/auth/totp/setup", headers=headers)
+check("totp setup", r.status_code == 200 and "otpauth" in r.json()["otpauth_uri"], r.text)
+secret = r.json()["secret"]
+r = client.post("/api/auth/totp/enable", json={"code": "000000"}, headers=headers)
+check("totp enable bad code -> 400", r.status_code == 400, r.text)
+r = client.post("/api/auth/totp/enable", json={"code": pyotp.TOTP(secret).now()}, headers=headers)
+check("totp enable", r.status_code == 200, r.text)
+r = client.post("/api/auth/login", json={"email": "smoke@test.com", "password": "password456"})
+check("login without totp -> totp_required", r.status_code == 401 and r.json()["error"] == "totp_required", r.text)
+r = client.post("/api/auth/login", json={"email": "smoke@test.com", "password": "password456", "totp_code": pyotp.TOTP(secret).now()})
+check("login with totp code", r.status_code == 200, r.text)
+r = client.post("/api/auth/totp/disable", json={"password": "password456"}, headers=headers)
+check("totp disable", r.status_code == 200, r.text)
+
+r = client.post("/api/auth/avatar", files={"file": ("me.png", fake_png, "image/png")}, headers=headers)
+check("avatar upload", r.status_code == 201, r.text)
+r = client.get("/api/auth/avatar", headers=headers)
+check("avatar roundtrip", r.status_code == 200 and r.content == fake_png, str(r.status_code))
+r = client.post("/api/auth/avatar", files={"file": ("x.txt", b"hi", "text/plain")}, headers=headers)
+check("avatar non-image -> 400", r.status_code == 400, r.text)
+
 # Multi-profile: creation, scoping, per-profile ABHA
 r = client.get("/api/profiles", headers=headers)
 check("profiles auto-primary", r.status_code == 200 and r.json()[0]["is_primary"] is True, r.text)
