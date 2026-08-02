@@ -21,8 +21,12 @@
 }
 
 body {
-  @apply bg-paper text-ink antialiased;
+  /* No `antialiased` here: grayscale smoothing disables Windows subpixel
+     rendering (ClearType) and makes text look soft. Default smoothing is
+     crisper on every platform we target. */
+  @apply bg-paper text-ink;
   font-feature-settings: "cv02", "cv11";
+  text-rendering: optimizeLegibility;
 }
 
 /* ---- Family-profile themes. Self keeps the pine identity; caring for a

@@ -261,6 +261,50 @@ export function FamilyFigure({
   )
 }
 
+/**
+ * The handover: a clinician passes the prescription to a patient — the
+ * moment the visit ends and Curastra's job begins. Hero illustration.
+ */
+export function HandoverScene({ className = '' }: { className?: string }) {
+  const c = palettes.self
+  const limb = { strokeLinecap: 'round' as const, fill: 'none' as const }
+  return (
+    <svg viewBox="0 0 340 230" className={className} aria-hidden="true" role="presentation">
+      <ellipse cx="170" cy="216" rx="120" ry="7" fill={c.sage} opacity="0.7" />
+      {/* clinician (left), white coat */}
+      <path d="M96 134 L86 178 L80 208" stroke={c.pine} strokeWidth="11" {...limb} />
+      <path d="M106 134 L114 176 L120 206" stroke={c.pine} strokeWidth="11" {...limb} />
+      <rect x="78" y="62" width="48" height="80" rx="23" fill={c.white} stroke={c.sage} strokeWidth="2" />
+      <rect x="96" y="66" width="12" height="46" fill={c.tealLight} opacity="0.5" />
+      {/* extended arm with the prescription */}
+      <path d="M118 86 L158 104" stroke={c.white} strokeWidth="10" {...limb} />
+      <path d="M118 88 L157 105" stroke={c.sage} strokeWidth="1.5" fill="none" />
+      <path d="M90 88 L74 124" stroke={c.white} strokeWidth="10" {...limb} />
+      <circle cx="101" cy="40" r="17" fill="#caa27e" />
+      <path d="M84 36 a17 17 0 0 1 34 -2 l-4 -12 h-26 Z" fill={c.pineSoft} />
+      {/* the prescription, mid-pass */}
+      <rect x="152" y="92" width="30" height="40" rx="3" fill={c.white} stroke={c.pine} strokeWidth="2.5" transform="rotate(8 167 112)" />
+      <line x1="160" y1="103" x2="176" y2="105" stroke={c.teal} strokeWidth="3" strokeLinecap="round" />
+      <line x1="159" y1="111" x2="175" y2="113" stroke={c.sage} strokeWidth="3" strokeLinecap="round" />
+      <line x1="158" y1="119" x2="170" y2="121" stroke={c.sage} strokeWidth="3" strokeLinecap="round" />
+      {/* patient (right), reaching for it */}
+      <path d="M232 136 L244 178 L252 206" stroke={c.pine} strokeWidth="11" {...limb} />
+      <path d="M224 136 L214 178 L208 208" stroke={c.pine} strokeWidth="11" {...limb} />
+      <rect x="204" y="66" width="48" height="78" rx="23" fill={c.teal} />
+      <path d="M208 90 L180 108" stroke={c.teal} strokeWidth="10" {...limb} />
+      <path d="M244 90 L262 126" stroke={c.teal} strokeWidth="10" {...limb} />
+      <circle cx="226" cy="44" r="17" fill="#eeb98f" />
+      <path d="M243 40 a17 17 0 0 0 -34 -2 l4 -12 h26 Z" fill={c.pine} />
+      {/* a small heart drifting up from the exchange */}
+      <path
+        d="M170 66 c -3 -6 -12 -5 -12 2 c 0 5 7 9 12 12 c 5 -3 12 -7 12 -12 c 0 -7 -9 -8 -12 -2 Z"
+        fill={c.coral}
+        opacity="0.9"
+      />
+    </svg>
+  )
+}
+
 /** Small sprout-in-pot spot illustration for empty states. */
 export function SproutSpot({ className = '' }: { className?: string }) {
   const c = palettes.self

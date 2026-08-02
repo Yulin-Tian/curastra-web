@@ -15,7 +15,7 @@ import {
   Activity,
 } from 'lucide-react'
 import { useAuth } from '../auth/AuthContext'
-import { FamilyFigure, SkylineScene } from '../components/illustrations'
+import { FamilyFigure, HandoverScene, SkylineScene } from '../components/illustrations'
 
 const painPoints = [
   {
@@ -87,8 +87,8 @@ export default function LandingPage() {
       <header className="sticky top-0 z-20 border-b border-stone-200/60 bg-paper/85 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-3.5 sm:px-8">
           <Link to="/" className="flex items-center gap-2">
-            <HeartPulse className="h-7 w-7 text-teal-600" strokeWidth={1.8} />
-            <span className="font-display text-xl font-medium text-pine-900">Curastra</span>
+            <HeartPulse className="h-7 w-7 text-teal-600" strokeWidth={2} />
+            <span className="font-display text-[22px] font-semibold text-pine-900">Curastra</span>
           </Link>
           <nav className="flex items-center gap-2.5">
             {user ? (
@@ -191,6 +191,12 @@ export default function LandingPage() {
                 Pantoprazole works best about 30 minutes <em>before</em> breakfast, which is why your
                 plan says before food.
               </div>
+            </div>
+            <div className="mt-24 flex flex-col items-center">
+              <HandoverScene className="anim-fade-up anim-delay-4 h-48 w-auto" />
+              <p className="font-display text-sm italic text-pine-800/70">
+                The visit ends. Curastra carries it on.
+              </p>
             </div>
           </div>
         </div>
