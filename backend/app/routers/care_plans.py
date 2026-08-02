@@ -9,7 +9,8 @@ from sqlalchemy.orm import Session
 
 from ..auth import get_current_user
 from ..database import get_db
-from ..models import CarePlan, Medication, Record, TaskCompletion, User
+from ..models import CarePlan, Medication, Profile, Record, TaskCompletion, User
+from ..profile_scope import get_active_profile, scoped, stamp
 from ..schemas import CarePlanCreateRequest, CarePlanOut, MedicationOut
 from ..services import engine_client
 from .health_profile import profile_context
@@ -29,6 +30,7 @@ def create_care_plan(
     payload: CarePlanCreateRequest,
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
+    active: Profile | None = Depends(get_active_profile),
 ):
     """Generate a care plan from user-confirmed text (the human-in-the-loop
     contract: the text must have been reviewed on the confirm screen first)."""
@@ -42,7 +44,9 @@ def create_care_plan(
     # Patient basics (allergies, conditions, age data) travel as user notes so
     # the engine can tailor tasks and red flags without a contract change.
     notes_parts = []
-    basics = profile_context(user, db)
+    if active is not None:
+        notes_parts.append(f"This care plan is for the patient's {active.relationship}: {active.name}.")
+    basics = profile_context(user, db) if active is None else {}
     if basics:
         notes_parts.append(
             "Patient basics (from profile): "
@@ -57,6 +61,7 @@ def create_care_plan(
 
     plan = CarePlan(
         user_id=user.id,
+        profile_id=stamp(active),
         record_id=payload.record_id,
         source_text=payload.verified_text,
         plan=result,
@@ -68,9 +73,15 @@ def create_care_plan(
 
 
 @router.get("", response_model=list[CarePlanOut])
-def list_care_plans(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+def list_care_plans(
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+    active: Profile | None = Depends(get_active_profile),
+):
     plans = db.scalars(
-        select(CarePlan).where(CarePlan.user_id == user.id).order_by(CarePlan.created_at.desc())
+        select(CarePlan)
+        .where(CarePlan.user_id == user.id, scoped(CarePlan.profile_id, active))
+        .order_by(CarePlan.created_at.desc())
     ).all()
     return [CarePlanOut.model_validate(p) for p in plans]
 
@@ -183,6 +194,7 @@ def import_medications(plan_id: int, user: User = Depends(get_current_user), db:
             continue
         entry = Medication(
             user_id=user.id,
+            profile_id=plan.profile_id,
             name=name,
             dosage=med.get("dosage") or med.get("strength"),
             frequency=med.get("frequency"),

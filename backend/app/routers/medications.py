@@ -4,7 +4,8 @@ from sqlalchemy.orm import Session
 
 from ..auth import get_current_user
 from ..database import get_db
-from ..models import Medication, User
+from ..models import Medication, Profile, User
+from ..profile_scope import get_active_profile, scoped, stamp
 from ..schemas import MedicationCreate, MedicationOut, MedicationUpdate
 from ..services import engine_client
 
@@ -19,8 +20,13 @@ def _get_owned_med(med_id: int, user: User, db: Session) -> Medication:
 
 
 @router.post("", response_model=MedicationOut, status_code=201)
-def add_medication(payload: MedicationCreate, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
-    med = Medication(user_id=user.id, **payload.model_dump())
+def add_medication(
+    payload: MedicationCreate,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+    active: Profile | None = Depends(get_active_profile),
+):
+    med = Medication(user_id=user.id, profile_id=stamp(active), **payload.model_dump())
     db.add(med)
     db.commit()
     db.refresh(med)
@@ -32,8 +38,9 @@ def list_medications(
     include_inactive: bool = False,
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
+    active: Profile | None = Depends(get_active_profile),
 ):
-    query = select(Medication).where(Medication.user_id == user.id)
+    query = select(Medication).where(Medication.user_id == user.id, scoped(Medication.profile_id, active))
     if not include_inactive:
         query = query.where(Medication.active)
     meds = db.scalars(query.order_by(Medication.created_at.desc())).all()
@@ -63,11 +70,17 @@ def delete_medication(med_id: int, user: User = Depends(get_current_user), db: S
 
 
 @router.post("/safety-check")
-def safety_check(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
-    """Run the user's current (active) medication list through the engine's
+def safety_check(
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+    active: Profile | None = Depends(get_active_profile),
+):
+    """Run the active profile's current medication list through the engine's
     cross-medication safety analysis: duplicates, interactions, dosage flags."""
     meds = db.scalars(
-        select(Medication).where(Medication.user_id == user.id, Medication.active)
+        select(Medication).where(
+            Medication.user_id == user.id, Medication.active, scoped(Medication.profile_id, active)
+        )
     ).all()
     if len(meds) < 1:
         raise HTTPException(status_code=400, detail="Add at least one medication first.")

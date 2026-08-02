@@ -36,6 +36,26 @@ class User(Base):
     records: Mapped[list["Record"]] = relationship(back_populates="user", cascade="all, delete-orphan")
 
 
+class Profile(Base):
+    """A family member whose care is managed under this account (self, child,
+    parent, ...). Schema aligned with A. Pawar's mock-ABHA service so each
+    profile can hold its own ABHA credentials. The primary ('self') profile's
+    data lives in rows with profile_id NULL, which keeps all pre-feature data
+    valid without a rewrite."""
+
+    __tablename__ = "profiles"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    name: Mapped[str] = mapped_column(String(120))
+    relationship: Mapped[str] = mapped_column(String(20), default="self")  # self|child|parent|other
+    is_primary: Mapped[bool] = mapped_column(Boolean, default=False)
+    abha_number: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    abha_address: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    abha_linked: Mapped[bool] = mapped_column(Boolean, default=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
+
+
 class HealthProfile(Base):
     """Basic health context collected at onboarding (Anurag's improvement #2).
 
@@ -69,6 +89,7 @@ class Record(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
     type: Mapped[str] = mapped_column(String(40), default="prescription")  # prescription | lab_report | other
+    profile_id: Mapped[int | None] = mapped_column(nullable=True)  # NULL = primary/self profile
     file_name: Mapped[str] = mapped_column(String(255))
     mime_type: Mapped[str] = mapped_column(String(120))
     file_data: Mapped[bytes] = mapped_column(LargeBinary)
@@ -90,6 +111,7 @@ class CarePlan(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
     record_id: Mapped[int | None] = mapped_column(ForeignKey("records.id"), nullable=True)
+    profile_id: Mapped[int | None] = mapped_column(nullable=True)  # NULL = primary/self profile
     # The user-confirmed text the plan was generated from (traceability).
     source_text: Mapped[str] = mapped_column(Text)
     # Full CarePlanOutput JSON from the engine, stored verbatim.
@@ -103,6 +125,7 @@ class Medication(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
     name: Mapped[str] = mapped_column(String(160))
+    profile_id: Mapped[int | None] = mapped_column(nullable=True)  # NULL = primary/self profile
     dosage: Mapped[str | None] = mapped_column(String(120), nullable=True)
     frequency: Mapped[str | None] = mapped_column(String(120), nullable=True)
     timing: Mapped[str | None] = mapped_column(String(120), nullable=True)
@@ -118,6 +141,7 @@ class Vital(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
     type: Mapped[str] = mapped_column(String(40))  # blood_pressure | glucose | weight | heart_rate | temperature
+    profile_id: Mapped[int | None] = mapped_column(nullable=True)  # NULL = primary/self profile
     value: Mapped[str] = mapped_column(String(40))  # string so "120/80" works
     unit: Mapped[str | None] = mapped_column(String(20), nullable=True)
     note: Mapped[str | None] = mapped_column(Text, nullable=True)
@@ -171,6 +195,7 @@ class ChatMessage(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
     role: Mapped[str] = mapped_column(String(12))  # user | assistant
+    profile_id: Mapped[int | None] = mapped_column(nullable=True)  # NULL = primary/self profile
     content: Mapped[str] = mapped_column(Text)
     safety_flag: Mapped[str | None] = mapped_column(String(32), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)

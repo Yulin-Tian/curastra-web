@@ -219,27 +219,139 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* What Curastra offers */}
+      {/* One home for the whole family's care — the three-story centerpiece */}
       <section className="mx-auto max-w-6xl px-5 py-20 sm:px-8">
         <div className="max-w-2xl">
-          <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-teal-700">What you get</div>
+          <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-teal-700">
+            For the whole family
+          </div>
           <h2 className="mt-2 font-display text-3xl font-medium leading-tight text-pine-900 sm:text-4xl">
-            Everything the days after a visit need
+            One home for everyone&rsquo;s care
           </h2>
+          <p className="mt-3 text-[15px] leading-relaxed text-stone-500">
+            Care rarely stops at yourself. Add the people who depend on you — each keeps their own
+            records, plans, medicines, and ABHA, and the whole app changes its colors to match who
+            you are caring for.
+          </p>
         </div>
-        <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {features.map(({ icon: Icon, title, text }) => (
-            <div
-              key={title}
-              className="group rounded-2xl border border-stone-200/80 bg-white p-6 transition-all hover:-translate-y-0.5 hover:border-teal-600/40"
-            >
-              <span className="inline-flex rounded-xl bg-pine-900 p-2.5">
-                <Icon className="h-5 w-5 text-teal-300" strokeWidth={1.8} />
-              </span>
-              <h3 className="mt-4 font-display text-lg font-medium text-pine-900">{title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-stone-500">{text}</p>
+
+        <div className="mt-10 space-y-6">
+          {/* Self */}
+          <div className="anim-fade-up overflow-hidden rounded-3xl border border-stone-200/80 bg-white">
+            <div className="grid items-center lg:grid-cols-2">
+              <div className="p-8 sm:p-12">
+                <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-teal-700">
+                  For yourself
+                </div>
+                <h3 className="mt-2 font-display text-2xl font-medium text-pine-900 sm:text-3xl">
+                  Your own recovery, made followable
+                </h3>
+                <p className="mt-3 text-[15px] leading-relaxed text-stone-500">
+                  You leave the clinic with a prescription and a headful of instructions. Scan it,
+                  confirm what was read, and live the days after with a plan instead of a guess.
+                </p>
+                <ul className="mt-5 space-y-2.5">
+                  {[
+                    'Scan any prescription; you confirm every extracted word',
+                    'Daily tasks you tick off, with progress you can see',
+                    'An assistant that knows your medicines and readings',
+                  ].map((t) => (
+                    <li key={t} className="flex items-start gap-2.5 text-sm text-stone-600">
+                      <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-teal-600" /> {t}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div className="self-end overflow-hidden pl-6 pt-4">
+                <SkylineScene variant="self" className="w-full min-w-[560px] translate-y-1" />
+              </div>
             </div>
-          ))}
+          </div>
+
+          {/* Child */}
+          <div className="anim-fade-up overflow-hidden rounded-3xl" style={{ backgroundColor: '#eef2fc' }}>
+            <div className="grid items-center lg:grid-cols-2">
+              <div className="self-end order-2 overflow-hidden pr-6 pt-4 lg:order-1">
+                <SkylineScene variant="child" className="w-full min-w-[560px] translate-y-1" />
+              </div>
+              <div className="order-1 p-8 sm:p-12 lg:order-2">
+                <div className="text-[11px] font-semibold uppercase tracking-[0.14em]" style={{ color: '#4f74d9' }}>
+                  For your children
+                </div>
+                <h3 className="mt-2 font-display text-2xl font-medium sm:text-3xl" style={{ color: '#27367a' }}>
+                  Small patients, zero guesswork
+                </h3>
+                <p className="mt-3 text-[15px] leading-relaxed" style={{ color: '#4a5578' }}>
+                  A fever at midnight, a crumpled prescription from the paediatrician, and a dose
+                  you&rsquo;d rather not get wrong. Your child&rsquo;s own profile keeps their
+                  medicines separate from yours — and explains them in words tired parents follow.
+                </p>
+                <ul className="mt-5 space-y-2.5">
+                  {[
+                    'A separate profile with their own records and ABHA',
+                    'Doses and instructions rewritten in plain language',
+                    'Safety checks tuned to exactly what they take',
+                  ].map((t) => (
+                    <li key={t} className="flex items-start gap-2.5 text-sm" style={{ color: '#4a5578' }}>
+                      <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" style={{ color: '#4f74d9' }} /> {t}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          {/* Parent */}
+          <div className="anim-fade-up overflow-hidden rounded-3xl" style={{ backgroundColor: '#f7f0e7' }}>
+            <div className="grid items-center lg:grid-cols-2">
+              <div className="p-8 sm:p-12">
+                <div className="text-[11px] font-semibold uppercase tracking-[0.14em]" style={{ color: '#a86f4f' }}>
+                  For your parents
+                </div>
+                <h3 className="mt-2 font-display text-2xl font-medium sm:text-3xl" style={{ color: '#4a3242' }}>
+                  Their care, gently in view
+                </h3>
+                <p className="mt-3 text-[15px] leading-relaxed" style={{ color: '#6b5560' }}>
+                  Three medicines, two doctors, and a blood-pressure diary nobody keeps. Give your
+                  parents a profile of their own and watch the trends instead of worrying in the
+                  dark — with warnings that name the medicine, not vague alarm.
+                </p>
+                <ul className="mt-5 space-y-2.5">
+                  {[
+                    'Their prescriptions and follow-ups in one place',
+                    'Blood pressure and glucose trends you can actually see',
+                    'Cross-medication safety checks across everything they take',
+                  ].map((t) => (
+                    <li key={t} className="flex items-start gap-2.5 text-sm" style={{ color: '#6b5560' }}>
+                      <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" style={{ color: '#a86f4f' }} /> {t}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div className="self-end overflow-hidden pl-6 pt-4">
+                <SkylineScene variant="parent" className="w-full min-w-[560px] translate-y-1" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Everything included — compact, not boxy */}
+      <section className="mx-auto max-w-6xl px-5 pb-20 sm:px-8">
+        <div className="rounded-3xl border border-stone-200/80 bg-white p-8 sm:p-10">
+          <h2 className="font-display text-2xl font-medium text-pine-900">Everything included</h2>
+          <div className="mt-6 grid gap-x-10 gap-y-3 sm:grid-cols-2">
+            {features.map(({ icon: Icon, title, text }) => (
+              <div key={title} className="flex items-start gap-3">
+                <span className="mt-0.5 inline-flex shrink-0 rounded-lg bg-sage-100 p-1.5">
+                  <Icon className="h-4 w-4 text-pine-800" strokeWidth={1.8} />
+                </span>
+                <p className="text-sm leading-relaxed text-stone-600">
+                  <span className="font-medium text-pine-900">{title}.</span> {text}
+                </p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 

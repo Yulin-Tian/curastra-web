@@ -4,7 +4,8 @@ from sqlalchemy.orm import Session
 
 from ..auth import get_current_user
 from ..database import get_db
-from ..models import User, Vital
+from ..models import Profile, User, Vital
+from ..profile_scope import get_active_profile, scoped, stamp
 from ..schemas import VitalCreate, VitalOut
 from ..services import engine_client
 
@@ -12,9 +13,14 @@ router = APIRouter(prefix="/api/vitals", tags=["vitals"])
 
 
 @router.post("", response_model=VitalOut, status_code=201)
-def add_vital(payload: VitalCreate, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+def add_vital(
+    payload: VitalCreate,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+    active: Profile | None = Depends(get_active_profile),
+):
     data = payload.model_dump(exclude_unset=True)
-    vital = Vital(user_id=user.id, **data)
+    vital = Vital(user_id=user.id, profile_id=stamp(active), **data)
     db.add(vital)
     db.commit()
     db.refresh(vital)
@@ -27,8 +33,9 @@ def list_vitals(
     limit: int = 100,
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
+    active: Profile | None = Depends(get_active_profile),
 ):
-    query = select(Vital).where(Vital.user_id == user.id)
+    query = select(Vital).where(Vital.user_id == user.id, scoped(Vital.profile_id, active))
     if type:
         query = query.where(Vital.type == type)
     vitals = db.scalars(query.order_by(Vital.measured_at.desc()).limit(min(limit, 500))).all()
@@ -45,10 +52,17 @@ def delete_vital(vital_id: int, user: User = Depends(get_current_user), db: Sess
 
 
 @router.post("/insights")
-def vitals_insights(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+def vitals_insights(
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+    active: Profile | None = Depends(get_active_profile),
+):
     """Generate gentle, factual health insights from the logged vitals."""
     vitals = db.scalars(
-        select(Vital).where(Vital.user_id == user.id).order_by(Vital.measured_at.desc()).limit(30)
+        select(Vital)
+        .where(Vital.user_id == user.id, scoped(Vital.profile_id, active))
+        .order_by(Vital.measured_at.desc())
+        .limit(30)
     ).all()
     if not vitals:
         raise HTTPException(status_code=400, detail="Log some vitals first to get insights.")

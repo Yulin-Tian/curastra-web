@@ -6,7 +6,8 @@ from sqlalchemy.orm import Session
 
 from ..auth import get_current_user
 from ..database import get_db
-from ..models import Record, User
+from ..models import Profile, Record, User
+from ..profile_scope import get_active_profile, scoped, stamp
 from ..schemas import ConfirmTextRequest, RecordDetailOut, RecordOut
 from ..services import engine_client
 
@@ -42,6 +43,7 @@ async def upload_record(
     notes: str | None = Form(None),
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
+    active: Profile | None = Depends(get_active_profile),
 ):
     if type not in ALLOWED_TYPES:
         raise HTTPException(status_code=400, detail=f"type must be one of {sorted(ALLOWED_TYPES)}.")
@@ -53,6 +55,7 @@ async def upload_record(
 
     record = Record(
         user_id=user.id,
+        profile_id=stamp(active),
         type=type,
         file_name=file.filename or "upload",
         mime_type=file.content_type or "application/octet-stream",
@@ -66,9 +69,15 @@ async def upload_record(
 
 
 @router.get("", response_model=list[RecordOut])
-def list_records(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+def list_records(
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+    active: Profile | None = Depends(get_active_profile),
+):
     records = db.scalars(
-        select(Record).where(Record.user_id == user.id).order_by(Record.uploaded_at.desc())
+        select(Record)
+        .where(Record.user_id == user.id, scoped(Record.profile_id, active))
+        .order_by(Record.uploaded_at.desc())
     ).all()
     return [_to_out(r) for r in records]
 

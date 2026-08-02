@@ -1,8 +1,10 @@
+import { useEffect, useState } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import {
   Activity,
   ClipboardList,
   FileText,
+  HeartHandshake,
   HeartPulse,
   LayoutDashboard,
   LogOut,
@@ -10,7 +12,16 @@ import {
   Pill,
   UserRound,
 } from 'lucide-react'
+import { api, getActiveProfileId, switchProfile } from '../api/client'
+import type { ProfileInfo } from '../api/types'
 import { useAuth } from '../auth/AuthContext'
+
+const relationshipLabels: Record<string, string> = {
+  self: 'Myself',
+  child: 'Child',
+  parent: 'Parent',
+  other: 'Family member',
+}
 
 const navItems = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, end: true },
@@ -25,6 +36,38 @@ const navItems = [
 export default function Layout() {
   const { user, logout } = useAuth()
   const location = useLocation()
+  const [profiles, setProfiles] = useState<ProfileInfo[]>([])
+
+  useEffect(() => {
+    api.get<ProfileInfo[]>('/api/profiles').then(setProfiles).catch(() => {})
+  }, [])
+
+  const activeId = getActiveProfileId()
+  const active =
+    profiles.find((p) => String(p.id) === activeId) ?? profiles.find((p) => p.is_primary) ?? null
+  const caringForOther = active !== null && !active.is_primary
+
+  const switcher = profiles.length > 1 && (
+    <div className="mx-3 mb-3 rounded-xl bg-white/5 px-3 py-2.5">
+      <label className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.14em] text-sage-200/50">
+        Caring for
+      </label>
+      <select
+        value={active ? String(active.id) : ''}
+        onChange={(e) => {
+          const p = profiles.find((x) => String(x.id) === e.target.value)
+          if (p) switchProfile(p.id, p.relationship, p.is_primary)
+        }}
+        className="w-full rounded-lg border-0 bg-white/10 px-2 py-1.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-teal-400/40 [&>option]:text-ink"
+      >
+        {profiles.map((p) => (
+          <option key={p.id} value={String(p.id)}>
+            {p.is_primary ? `${p.name} (me)` : `${p.name} (${relationshipLabels[p.relationship] ?? p.relationship})`}
+          </option>
+        ))}
+      </select>
+    </div>
+  )
 
   return (
     <div className="flex min-h-screen">
@@ -38,6 +81,7 @@ export default function Layout() {
             </div>
           </div>
         </div>
+        {switcher}
         <nav className="flex-1 space-y-0.5 px-3">
           {navItems.map(({ to, label, icon: Icon, end }) => (
             <NavLink
@@ -81,6 +125,14 @@ export default function Layout() {
         </header>
 
         <main className="mx-auto w-full max-w-5xl flex-1 px-5 py-10 print:max-w-none print:px-0 print:py-0 sm:px-10">
+          {caringForOther && active && (
+            <div className="mb-6 flex items-center gap-2 rounded-xl bg-sage-100 px-4 py-2.5 text-sm text-pine-900 print:hidden">
+              <HeartHandshake className="h-4 w-4 shrink-0 text-pine-800" strokeWidth={1.8} />
+              You are viewing <strong>{active.name}</strong>&rsquo;s care (
+              {(relationshipLabels[active.relationship] ?? active.relationship).toLowerCase()}). Records,
+              plans, and readings here are theirs.
+            </div>
+          )}
           <div key={location.pathname} className="anim-page">
             <Outlet />
           </div>

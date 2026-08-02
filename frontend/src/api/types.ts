@@ -28,6 +28,18 @@ export interface HealthRecord {
   confirmed_at?: string | null
 }
 
+export type Relationship = 'self' | 'child' | 'parent' | 'other'
+
+export interface ProfileInfo {
+  id: number
+  name: string
+  relationship: Relationship
+  is_primary: boolean
+  abha_number: string | null
+  abha_address: string | null
+  abha_linked: boolean
+}
+
 export interface AdherenceState {
   day: string
   completed: number[]

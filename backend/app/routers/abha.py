@@ -9,7 +9,8 @@ from sqlalchemy.orm import Session
 
 from ..auth import get_current_user
 from ..database import get_db
-from ..models import User
+from ..models import Profile, User
+from ..profile_scope import ensure_primary_profile, get_active_profile
 from ..schemas import AbhaLinkRequest, UserOut
 
 router = APIRouter(prefix="/api/abha", tags=["abha"])
@@ -40,32 +41,40 @@ def enroll_initiate(
     payload: EnrollInitiateRequest,
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
+    active: Profile | None = Depends(get_active_profile),
 ):
-    """Single-step mock ABHA enrollment (replaces the real multi-step ABDM OTP
-    flow, which rejects requests from non-India server regions)."""
+    """Single-step mock ABHA enrollment for the ACTIVE profile (replaces the
+    real multi-step ABDM OTP flow, which rejects non-India server regions).
+    Each family profile can hold its own ABHA, per the mock service's schema."""
     if not _AADHAAR_RE.match(payload.aadhaarNumber or ""):
         return _abha_envelope(400, "Aadhaar number must be exactly 12 digits")
-    if user.abha_linked:
+
+    target = active or ensure_primary_profile(user, db)
+    if target.abha_linked:
         return _abha_envelope(409, "This profile is already linked to an ABHA number.")
 
     # Credential generation per the mock service spec:
     # 91-XXXX-XXXX-XXXX and <sanitized_name><suffix>@sbx
     chunks = [str(secrets.randbelow(9000) + 1000) for _ in range(3)]
     abha_number = f"91-{chunks[0]}-{chunks[1]}-{chunks[2]}"
-    sanitized = re.sub(r"[^a-z0-9]", "", user.name.lower()) or "user"
+    sanitized = re.sub(r"[^a-z0-9]", "", target.name.lower()) or "user"
     abha_address = f"{sanitized}{chunks[2]}@sbx"
 
-    user.abha_number = abha_number.replace("-", "")
-    user.abha_address = abha_address
-    user.abha_linked = True
+    target.abha_number = abha_number.replace("-", "")
+    target.abha_address = abha_address
+    target.abha_linked = True
+    if target.is_primary:  # keep the legacy user fields in step for 'self'
+        user.abha_number = target.abha_number
+        user.abha_address = abha_address
+        user.abha_linked = True
     db.commit()
 
     return _abha_envelope(200, "ABHA card linked successfully.", {
         "abhaNumber": abha_number,
         "abhaAddress": abha_address,
-        "name": user.name,
+        "name": target.name,
         "isNew": True,
-        "profile_id": payload.profile_id or str(user.id),
+        "profile_id": str(target.id),
     })
 
 
@@ -90,10 +99,19 @@ def link_abha(payload: AbhaLinkRequest, user: User = Depends(get_current_user), 
 
 
 @router.post("/unlink", response_model=UserOut)
-def unlink_abha(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
-    user.abha_number = None
-    user.abha_address = None
-    user.abha_linked = False
+def unlink_abha(
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+    active: Profile | None = Depends(get_active_profile),
+):
+    target = active or ensure_primary_profile(user, db)
+    target.abha_number = None
+    target.abha_address = None
+    target.abha_linked = False
+    if target.is_primary:
+        user.abha_number = None
+        user.abha_address = None
+        user.abha_linked = False
     db.commit()
     db.refresh(user)
     return UserOut.model_validate(user)

@@ -1,4 +1,5 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { applyTheme, getStoredTheme } from './api/client'
 import { AuthProvider, useAuth } from './auth/AuthContext'
 import Layout from './components/Layout'
 import { ColdStartNotice } from './components/ColdStartNotice'
@@ -30,6 +31,9 @@ function Protected({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
+  // Family-profile theme is applied before first paint (no flash of pine
+  // while caring for a child).
+  applyTheme(getStoredTheme())
   return (
     <AuthProvider>
       <BrowserRouter>

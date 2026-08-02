@@ -25,6 +25,31 @@ body {
   font-feature-settings: "cv02", "cv11";
 }
 
+/* ---- Family-profile themes. Self keeps the pine identity; caring for a
+   child or parent re-colors the whole app (sidebar, chips, headings) while
+   the teal action color and paper canvas stay constant. ---- */
+[data-theme="child"] {
+  --color-pine-950: #1e2a5e;
+  --color-pine-900: #27367a;
+  --color-pine-800: #33459a;
+  --color-pine-100: #dfe5f5;
+  --color-sage-50: #f0f3fb;
+  --color-sage-100: #e7ecf8;
+  --color-sage-200: #d4ddf1;
+  --color-ink: #232c4e;
+}
+
+[data-theme="parent"] {
+  --color-pine-950: #38242f;
+  --color-pine-900: #4a3242;
+  --color-pine-800: #5d4254;
+  --color-pine-100: #ecdfe6;
+  --color-sage-50: #f6f1ea;
+  --color-sage-100: #efe7db;
+  --color-sage-200: #e2d5c3;
+  --color-ink: #3d2f36;
+}
+
 /* Serif display headings get slightly tighter, calmer spacing */
 .font-display {
   letter-spacing: -0.015em;

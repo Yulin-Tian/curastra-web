@@ -4,21 +4,58 @@
  * Everything is inline SVG in the app palette — no image files.
  */
 
-const c = {
-  pine: '#16342d',
-  pineSoft: '#1d443b',
-  teal: '#0d9488',
-  tealLight: '#5eead4',
-  sage: '#d7e3d6',
-  sageLight: '#e8efe7',
-  coral: '#e8907a',
-  sand: '#eecfa1',
-  sun: '#f2c94c',
-  white: '#ffffff',
-}
+const palettes = {
+  self: {
+    pine: '#16342d',
+    pineSoft: '#1d443b',
+    teal: '#0d9488',
+    tealLight: '#5eead4',
+    sage: '#d7e3d6',
+    sageLight: '#e8efe7',
+    coral: '#e8907a',
+    sand: '#eecfa1',
+    sun: '#f2c94c',
+    white: '#ffffff',
+  },
+  child: {
+    pine: '#27367a',
+    pineSoft: '#33459a',
+    teal: '#4f74d9',
+    tealLight: '#9db8f0',
+    sage: '#d4ddf1',
+    sageLight: '#e7ecf8',
+    coral: '#ef8a76',
+    sand: '#f2cf9a',
+    sun: '#f6c445',
+    white: '#ffffff',
+  },
+  parent: {
+    pine: '#4a3242',
+    pineSoft: '#5d4254',
+    teal: '#8a9b6e',
+    tealLight: '#c3cfa8',
+    sage: '#e2d5c3',
+    sageLight: '#efe7db',
+    coral: '#c98a6b',
+    sand: '#e6c9a2',
+    sun: '#e8a94c',
+    white: '#ffffff',
+  },
+} as const
 
-/** Wide skyline strip: hills, sun, houses with a small clinic, trees, a bus. */
-export function SkylineScene({ className = '' }: { className?: string }) {
+export type SceneVariant = keyof typeof palettes
+
+/** Wide skyline strip: hills, sun, houses with a small clinic, trees, a bus.
+ * The variant re-colors the scene and adds a signature element: a kite for
+ * the child theme, a bench for the parent theme. */
+export function SkylineScene({
+  className = '',
+  variant = 'self',
+}: {
+  className?: string
+  variant?: SceneVariant
+}) {
+  const c = palettes[variant]
   return (
     <svg viewBox="0 0 1440 240" className={className} aria-hidden="true" role="presentation">
       {/* hills */}
@@ -96,12 +133,37 @@ export function SkylineScene({ className = '' }: { className?: string }) {
         <circle cx="1146" cy="196" r="7" fill={c.pine} />
         <circle cx="1194" cy="196" r="7" fill={c.pine} />
       </g>
+
+      {variant === 'child' && (
+        <g>
+          {/* kite on a swooping string */}
+          <path d="M 1040 150 Q 1090 120 1108 66" stroke={c.pine} strokeWidth="2" fill="none" opacity="0.55" />
+          <polygon points="1108,44 1128,66 1108,88 1088,66" fill={c.coral} />
+          <path d="M 1108 88 q 6 10 -4 14 q 10 2 6 14" stroke={c.coral} strokeWidth="2.5" fill="none" strokeLinecap="round" />
+          {/* drifting balloon */}
+          <circle cx="330" cy="96" r="14" fill={c.teal} opacity="0.85" />
+          <path d="M330 110 q 4 14 -2 26" stroke={c.pine} strokeWidth="1.8" fill="none" opacity="0.5" />
+        </g>
+      )}
+
+      {variant === 'parent' && (
+        <g>
+          {/* park bench under the last tree */}
+          <rect x="1272" y="176" width="46" height="6" rx="2.5" fill={c.pineSoft} />
+          <rect x="1272" y="162" width="46" height="5" rx="2.5" fill={c.pineSoft} />
+          <rect x="1276" y="176" width="4" height="18" fill={c.pineSoft} />
+          <rect x="1310" y="176" width="4" height="18" fill={c.pineSoft} />
+          {/* warm dusk glow */}
+          <circle cx="196" cy="72" r="34" fill={c.sun} opacity="0.18" />
+        </g>
+      )}
     </svg>
   )
 }
 
 /** Small sprout-in-pot spot illustration for empty states. */
 export function SproutSpot({ className = '' }: { className?: string }) {
+  const c = palettes.self
   return (
     <svg viewBox="0 0 96 96" className={className} aria-hidden="true" role="presentation">
       <ellipse cx="48" cy="86" rx="26" ry="4" fill={c.sage} opacity="0.6" />

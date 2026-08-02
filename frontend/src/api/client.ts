@@ -5,6 +5,8 @@
 const BASE = (import.meta.env.VITE_API_URL as string | undefined) ?? ''
 
 const TOKEN_KEY = 'curastra_token'
+const PROFILE_KEY = 'curastra_profile_id'
+const THEME_KEY = 'curastra_theme'
 
 export function getToken(): string | null {
   return localStorage.getItem(TOKEN_KEY)
@@ -13,6 +15,35 @@ export function getToken(): string | null {
 export function setToken(token: string | null) {
   if (token) localStorage.setItem(TOKEN_KEY, token)
   else localStorage.removeItem(TOKEN_KEY)
+  if (!token) {
+    localStorage.removeItem(PROFILE_KEY)
+    localStorage.removeItem(THEME_KEY)
+  }
+}
+
+// ---- Active family profile (multi-profile care) ----
+export function getActiveProfileId(): string | null {
+  return localStorage.getItem(PROFILE_KEY)
+}
+
+export function getStoredTheme(): string {
+  return localStorage.getItem(THEME_KEY) ?? 'self'
+}
+
+export function applyTheme(theme: string) {
+  document.documentElement.dataset.theme = theme === 'self' ? '' : theme
+}
+
+/** Persist the switch and reload so every page refetches under the new scope. */
+export function switchProfile(profileId: number, relationship: string, isPrimary: boolean) {
+  if (isPrimary) {
+    localStorage.removeItem(PROFILE_KEY)
+    localStorage.setItem(THEME_KEY, 'self')
+  } else {
+    localStorage.setItem(PROFILE_KEY, String(profileId))
+    localStorage.setItem(THEME_KEY, relationship === 'other' ? 'self' : relationship)
+  }
+  window.location.assign('/dashboard')
 }
 
 export class ApiError extends Error {
@@ -27,6 +58,8 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const headers = new Headers(options.headers)
   const token = getToken()
   if (token) headers.set('Authorization', `Bearer ${token}`)
+  const activeProfile = getActiveProfileId()
+  if (activeProfile) headers.set('X-Profile-Id', activeProfile)
 
   // Free-tier services sleep when idle; if a call runs long, tell the UI so
   // it can show an honest "waking the server" notice instead of a dead spinner.

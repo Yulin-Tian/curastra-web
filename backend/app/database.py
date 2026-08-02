@@ -32,6 +32,12 @@ def get_db():
 # generic_type) here is applied idempotently at startup.
 _COLUMN_MIGRATIONS = [
     ("records", "confirmed_at", "TIMESTAMPTZ", "TIMESTAMP"),
+    # Multi-profile scoping: NULL means the account's primary ('self') profile.
+    ("records", "profile_id", "INTEGER", "INTEGER"),
+    ("care_plans", "profile_id", "INTEGER", "INTEGER"),
+    ("medications", "profile_id", "INTEGER", "INTEGER"),
+    ("vitals", "profile_id", "INTEGER", "INTEGER"),
+    ("chat_history", "profile_id", "INTEGER", "INTEGER"),
 ]
 
 
