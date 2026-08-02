@@ -163,7 +163,8 @@ export default function LandingPage() {
           </div>
 
           {/* Floating product mock, built from the design system itself */}
-          <div className="relative hidden lg:block">
+          <div className="hidden lg:block">
+            <div className="relative">
             <div className="anim-float rounded-2xl border border-stone-200 bg-white p-5 shadow-[0_24px_60px_rgba(31,45,41,0.10)]">
               <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-teal-700">
                 <ClipboardList className="h-4 w-4" /> Care plan · today
@@ -184,7 +185,7 @@ export default function LandingPage() {
                 ))}
               </div>
             </div>
-            <div className="anim-float-slow absolute -bottom-10 -left-8 w-72 rounded-2xl border border-stone-200 bg-pine-900 p-4 shadow-[0_24px_60px_rgba(31,45,41,0.18)]">
+            <div className="anim-float-slow absolute -bottom-6 -left-8 w-72 rounded-2xl border border-stone-200 bg-pine-900 p-4 shadow-[0_24px_60px_rgba(31,45,41,0.18)]">
               <div className="text-xs text-sage-200/70">You asked</div>
               <div className="mt-1 text-sm text-white">&ldquo;Can I take it with food?&rdquo;</div>
               <div className="mt-3 rounded-xl bg-white/10 p-3 text-[13px] leading-relaxed text-sage-100">
@@ -192,8 +193,9 @@ export default function LandingPage() {
                 plan says before food.
               </div>
             </div>
+            </div>
             <div className="mt-24 flex flex-col items-center">
-              <HandoverScene className="anim-fade-up anim-delay-4 h-48 w-auto" />
+              <HandoverScene className="anim-fade-up anim-delay-4 h-44 w-auto" />
               <p className="font-display text-sm italic text-pine-800/70">
                 The visit ends. Curastra carries it on.
               </p>
