@@ -7,14 +7,33 @@ When unconfigured, is_configured() is False and callers fall back to dev mode.
 import smtplib
 from email.mime.text import MIMEText
 
+import httpx
+
 from ..config import settings
 
 
 def is_configured() -> bool:
-    return bool(settings.smtp_host and settings.smtp_user and settings.smtp_password)
+    return bool(settings.brevo_api_key) or bool(
+        settings.smtp_host and settings.smtp_user and settings.smtp_password
+    )
 
 
-def send_email(to: str, subject: str, body: str) -> None:
+def _send_via_brevo(to: str, subject: str, body: str) -> None:
+    resp = httpx.post(
+        "https://api.brevo.com/v3/smtp/email",
+        headers={"api-key": settings.brevo_api_key, "content-type": "application/json"},
+        json={
+            "sender": {"email": settings.smtp_from or settings.smtp_user, "name": "Curastra"},
+            "to": [{"email": to}],
+            "subject": subject,
+            "textContent": body,
+        },
+        timeout=20,
+    )
+    resp.raise_for_status()
+
+
+def _send_via_smtp(to: str, subject: str, body: str) -> None:
     msg = MIMEText(body, "plain", "utf-8")
     msg["Subject"] = subject
     msg["From"] = settings.smtp_from or settings.smtp_user
@@ -24,6 +43,13 @@ def send_email(to: str, subject: str, body: str) -> None:
         server.starttls()
         server.login(settings.smtp_user, settings.smtp_password)
         server.send_message(msg)
+
+
+def send_email(to: str, subject: str, body: str) -> None:
+    if settings.brevo_api_key:
+        _send_via_brevo(to, subject, body)
+    else:
+        _send_via_smtp(to, subject, body)
 
 
 RESET_TEMPLATES = {
