@@ -1,6 +1,9 @@
+import secrets
+from datetime import datetime, timedelta, timezone
+
 import pyotp
-from fastapi import APIRouter, Depends, File, HTTPException, Response, UploadFile
-from pydantic import BaseModel, Field
+from fastapi import APIRouter, Depends, File, Header, HTTPException, Response, UploadFile
+from pydantic import BaseModel, EmailStr, Field
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -8,6 +11,7 @@ from ..auth import create_token, get_current_user, hash_password, verify_passwor
 from ..database import get_db
 from ..models import User
 from ..schemas import LoginRequest, RegisterRequest, TokenResponse, UserOut
+from ..services import mailer
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
@@ -49,6 +53,72 @@ def login(payload: LoginRequest, db: Session = Depends(get_db)):
 @router.get("/me", response_model=UserOut)
 def me(user: User = Depends(get_current_user)):
     return UserOut.model_validate(user)
+
+
+# --------------------------------------------------------------------------- #
+# Password recovery (email code flow)
+# --------------------------------------------------------------------------- #
+RESET_VALID_MINUTES = 15
+
+
+class ForgotRequest(BaseModel):
+    email: EmailStr
+
+
+class ResetRequest(BaseModel):
+    email: EmailStr
+    code: str = Field(min_length=6, max_length=6)
+    new_password: str = Field(min_length=8, max_length=128)
+
+
+@router.post("/forgot")
+def forgot_password(
+    payload: ForgotRequest,
+    db: Session = Depends(get_db),
+    x_language: str = Header("en", alias="X-Language"),
+):
+    """Always answers 200 with the same shape (no account enumeration).
+    With SMTP configured, the code is emailed; without it (development), the
+    code is returned in the response as dev_code."""
+    user = db.scalar(select(User).where(User.email == payload.email.lower()))
+    response: dict = {"ok": True}
+    if user is not None:
+        code = f"{secrets.randbelow(1000000):06d}"
+        user.reset_code_hash = hash_password(code)
+        user.reset_expires = datetime.now(timezone.utc) + timedelta(minutes=RESET_VALID_MINUTES)
+        db.commit()
+
+        lang = "hi" if x_language.lower().startswith("hi") else "en"
+        subject, body = mailer.RESET_TEMPLATES[lang]
+        if mailer.is_configured():
+            try:
+                mailer.send_email(user.email, subject, body.format(name=user.name, code=code))
+            except Exception:
+                raise HTTPException(status_code=502, detail="Could not send the email. Please try again.")
+        else:
+            response["dev_code"] = code  # development only: SMTP not configured
+    return response
+
+
+@router.post("/reset")
+def reset_password(payload: ResetRequest, db: Session = Depends(get_db)):
+    user = db.scalar(select(User).where(User.email == payload.email.lower()))
+    generic = HTTPException(status_code=400, detail="The code is not valid or has expired.")
+    if user is None or not user.reset_code_hash or not user.reset_expires:
+        raise generic
+    expires = user.reset_expires
+    if expires.tzinfo is None:
+        expires = expires.replace(tzinfo=timezone.utc)
+    if expires < datetime.now(timezone.utc):
+        raise generic
+    if not verify_password(payload.code, user.reset_code_hash):
+        raise generic
+
+    user.password_hash = hash_password(payload.new_password)
+    user.reset_code_hash = None  # single use
+    user.reset_expires = None
+    db.commit()
+    return {"ok": True}
 
 
 # --------------------------------------------------------------------------- #

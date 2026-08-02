@@ -153,6 +153,23 @@ check("health profile bad dob -> 422", r.status_code == 422, r.text)
 r = client.post(f"/api/records/{rec_id}/extract", headers=headers)
 check("extract with engine down -> 503 {error}", r.status_code == 503 and "error" in r.json(), r.text)
 
+# Password recovery (dev mode: no SMTP configured -> code in response)
+r = client.post("/api/auth/forgot", json={"email": "nobody@test.com"})
+check("forgot unknown email -> generic 200 no code", r.status_code == 200 and "dev_code" not in r.json(), r.text)
+r = client.post("/api/auth/forgot", json={"email": "smoke@test.com"})
+check("forgot known email -> dev code", r.status_code == 200 and len(r.json().get("dev_code", "")) == 6, r.text)
+reset_code = r.json()["dev_code"]
+r = client.post("/api/auth/reset", json={"email": "smoke@test.com", "code": "000000", "new_password": "resetpass123"})
+check("reset wrong code -> 400", r.status_code == 400, r.text)
+r = client.post("/api/auth/reset", json={"email": "smoke@test.com", "code": reset_code, "new_password": "resetpass123"})
+check("reset with code", r.status_code == 200, r.text)
+r = client.post("/api/auth/login", json={"email": "smoke@test.com", "password": "resetpass123"})
+check("login after reset", r.status_code == 200, r.text)
+r = client.post("/api/auth/reset", json={"email": "smoke@test.com", "code": reset_code, "new_password": "again12345"})
+check("reset code single-use -> 400", r.status_code == 400, r.text)
+# restore original password for the rest of the suite
+client.post("/api/auth/change-password", json={"current_password": "resetpass123", "new_password": "password123"}, headers=headers)
+
 # Account security: change password, TOTP 2FA, avatar
 r = client.post("/api/auth/change-password", json={"current_password": "wrong", "new_password": "password456"}, headers=headers)
 check("change password wrong current -> 400", r.status_code == 400, r.text)

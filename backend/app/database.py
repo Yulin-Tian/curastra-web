@@ -43,6 +43,8 @@ _COLUMN_MIGRATIONS = [
     ("users", "avatar_mime", "VARCHAR(120)", "VARCHAR(120)"),
     ("users", "totp_secret", "VARCHAR(64)", "VARCHAR(64)"),
     ("users", "totp_enabled", "BOOLEAN DEFAULT FALSE", "BOOLEAN DEFAULT 0"),
+    ("users", "reset_code_hash", "VARCHAR(255)", "VARCHAR(255)"),
+    ("users", "reset_expires", "TIMESTAMPTZ", "TIMESTAMP"),
 ]
 
 

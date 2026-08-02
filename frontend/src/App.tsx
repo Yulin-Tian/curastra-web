@@ -7,6 +7,7 @@ import { ColdStartNotice } from './components/ColdStartNotice'
 import { Spinner } from './components/ui'
 import LandingPage from './pages/LandingPage'
 import LoginPage from './pages/LoginPage'
+import ForgotPasswordPage from './pages/ForgotPasswordPage'
 import RegisterPage from './pages/RegisterPage'
 import DashboardPage from './pages/DashboardPage'
 import RecordsPage from './pages/RecordsPage'
@@ -43,6 +44,7 @@ export default function App() {
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/forgot" element={<ForgotPasswordPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route
             element={

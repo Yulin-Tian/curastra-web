@@ -27,6 +27,14 @@ class Settings:
     vapid_subject: str = os.getenv("VAPID_SUBJECT", "mailto:group110@curastra.example")
     cron_secret: str = os.getenv("CRON_SECRET", "")
 
+    # SMTP for password-recovery emails (e.g. Gmail: smtp.gmail.com:587 with an
+    # app password). Unconfigured => dev mode: the API returns the code.
+    smtp_host: str = os.getenv("SMTP_HOST", "")
+    smtp_port: int = int(os.getenv("SMTP_PORT", "587"))
+    smtp_user: str = os.getenv("SMTP_USER", "")
+    smtp_password: str = os.getenv("SMTP_PASS", "")
+    smtp_from: str = os.getenv("SMTP_FROM", os.getenv("SMTP_USER", ""))
+
     cors_origins: tuple = tuple(
         o.strip()
         for o in os.getenv("CORS_ORIGINS", "http://localhost:5173").split(",")

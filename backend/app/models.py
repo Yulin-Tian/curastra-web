@@ -36,6 +36,9 @@ class User(Base):
     avatar_mime: Mapped[str | None] = mapped_column(String(120), nullable=True)
     totp_secret: Mapped[str | None] = mapped_column(String(64), nullable=True)
     totp_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
+    # Password recovery: bcrypt hash of the emailed 6-digit code + its expiry.
+    reset_code_hash: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    reset_expires: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
 
     records: Mapped[list["Record"]] = relationship(back_populates="user", cascade="all, delete-orphan")
