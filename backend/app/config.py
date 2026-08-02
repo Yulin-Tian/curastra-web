@@ -32,6 +32,9 @@ class Settings:
     # Neither configured => dev mode: the API returns the code.
     brevo_api_key: str = os.getenv("BREVO_API_KEY", "").strip()
     smtp2go_api_key: str = os.getenv("SMTP2GO_API_KEY", "").strip()
+    resend_api_key: str = os.getenv("RESEND_API_KEY", "").strip()
+    # Sender for API-based providers, e.g. "Curastra <no-reply@yourdomain>"
+    email_from: str = os.getenv("EMAIL_FROM", "").strip()
     smtp_host: str = os.getenv("SMTP_HOST", "")
     smtp_port: int = int(os.getenv("SMTP_PORT", "587"))
     smtp_user: str = os.getenv("SMTP_USER", "").strip()

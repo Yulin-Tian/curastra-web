@@ -13,9 +13,24 @@ from ..config import settings
 
 
 def is_configured() -> bool:
-    return bool(settings.smtp2go_api_key or settings.brevo_api_key) or bool(
+    return bool(settings.resend_api_key or settings.smtp2go_api_key or settings.brevo_api_key) or bool(
         settings.smtp_host and settings.smtp_user and settings.smtp_password
     )
+
+
+def _send_via_resend(to: str, subject: str, body: str) -> None:
+    resp = httpx.post(
+        "https://api.resend.com/emails",
+        headers={"Authorization": f"Bearer {settings.resend_api_key}"},
+        json={
+            "from": settings.email_from or settings.smtp_from or settings.smtp_user,
+            "to": [to],
+            "subject": subject,
+            "text": body,
+        },
+        timeout=20,
+    )
+    resp.raise_for_status()
 
 
 def _send_via_smtp2go(to: str, subject: str, body: str) -> None:
@@ -64,7 +79,9 @@ def _send_via_smtp(to: str, subject: str, body: str) -> None:
 
 
 def send_email(to: str, subject: str, body: str) -> None:
-    if settings.smtp2go_api_key:
+    if settings.resend_api_key:
+        _send_via_resend(to, subject, body)
+    elif settings.smtp2go_api_key:
         _send_via_smtp2go(to, subject, body)
     elif settings.brevo_api_key:
         _send_via_brevo(to, subject, body)
