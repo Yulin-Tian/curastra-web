@@ -93,8 +93,9 @@ def forgot_password(
         if mailer.is_configured():
             try:
                 mailer.send_email(user.email, subject, body.format(name=user.name, code=code))
-            except Exception:
-                raise HTTPException(status_code=502, detail="Could not send the email. Please try again.")
+            except Exception as e:
+                # TEMPORARY diagnostic while wiring SMTP; revert to generic.
+                raise HTTPException(status_code=502, detail=f"SMTP failure: {repr(e)[:200]}")
         else:
             response["dev_code"] = code  # development only: SMTP not configured
     return response
