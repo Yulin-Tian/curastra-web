@@ -13,29 +13,31 @@ import {
   UserRound,
 } from 'lucide-react'
 import { api, getActiveProfileId, switchProfile } from '../api/client'
+import { useLang } from '../i18n/LanguageContext'
+import { LanguageSwitcher } from './LanguageSwitcher'
 import type { ProfileInfo } from '../api/types'
 import { useAuth } from '../auth/AuthContext'
 
-const relationshipLabels: Record<string, string> = {
-  self: 'Myself',
-  child: 'Child',
-  parent: 'Parent',
-  other: 'Family member',
-}
-
 const navItems = [
-  { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, end: true },
-  { to: '/records', label: 'Records', icon: FileText },
-  { to: '/care-plans', label: 'Care Plans', icon: ClipboardList },
-  { to: '/medications', label: 'Medications', icon: Pill },
-  { to: '/vitals', label: 'Vitals & Insights', icon: Activity },
-  { to: '/assistant', label: 'AI Assistant', icon: MessageCircle },
-  { to: '/profile', label: 'Profile', icon: UserRound },
+  { to: '/dashboard', label: 'nav.dashboard', icon: LayoutDashboard, end: true },
+  { to: '/records', label: 'nav.records', icon: FileText },
+  { to: '/care-plans', label: 'nav.carePlans', icon: ClipboardList },
+  { to: '/medications', label: 'nav.medications', icon: Pill },
+  { to: '/vitals', label: 'nav.vitals', icon: Activity },
+  { to: '/assistant', label: 'nav.assistant', icon: MessageCircle },
+  { to: '/profile', label: 'nav.profile', icon: UserRound },
 ]
 
 export default function Layout() {
   const { logout } = useAuth()
   const location = useLocation()
+  const { t } = useLang()
+  const relationshipLabels: Record<string, string> = {
+    self: t('chrome.me'),
+    child: t('chrome.child'),
+    parent: t('chrome.parent'),
+    other: t('chrome.other'),
+  }
   const [profiles, setProfiles] = useState<ProfileInfo[]>([])
 
   useEffect(() => {
@@ -57,7 +59,7 @@ export default function Layout() {
   const switcher = profiles.length > 1 && (
     <div className="mx-3 mb-3 rounded-2xl bg-white/5 p-2">
       <div className="mb-1.5 px-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-sage-200/50">
-        Caring for
+        {t('chrome.caringFor')}
       </div>
       <div className="space-y-1">
         {profiles.map((p) => {
@@ -80,7 +82,7 @@ export default function Layout() {
               <span className="min-w-0">
                 <span className="block truncate text-[13px] font-medium text-white">{p.name}</span>
                 <span className="block text-[11px] text-sage-200/60">
-                  {p.is_primary ? 'Me' : relationshipLabels[p.relationship] ?? p.relationship}
+                  {p.is_primary ? t('chrome.me') : relationshipLabels[p.relationship] ?? p.relationship}
                 </span>
               </span>
               {isActive && <span className="ml-auto h-2 w-2 shrink-0 rounded-full bg-teal-300" />}
@@ -99,7 +101,7 @@ export default function Layout() {
           <div>
             <div className="font-display text-xl font-medium tracking-tight text-white">Curastra</div>
             <div className="-mt-0.5 text-[11px] tracking-wide text-sage-200/60">
-              Everyday care, continued
+              {t('chrome.tagline')}
             </div>
           </div>
         </div>
@@ -119,7 +121,7 @@ export default function Layout() {
               }
             >
               <Icon className="h-[18px] w-[18px]" strokeWidth={1.8} />
-              {label}
+              {t(label)}
             </NavLink>
           ))}
           <button
@@ -127,9 +129,12 @@ export default function Layout() {
             className="flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-[13.5px] font-medium text-sage-200/70 transition-colors hover:bg-white/5 hover:text-white"
           >
             <LogOut className="h-[18px] w-[18px]" strokeWidth={1.8} />
-            Sign out
+            {t('nav.signout')}
           </button>
         </nav>
+        <div className="mx-3 mb-4 flex justify-center">
+          <LanguageSwitcher tone="dark" />
+        </div>
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
@@ -140,7 +145,7 @@ export default function Layout() {
             <span className="font-display text-lg font-medium">Curastra</span>
           </div>
           <button onClick={logout} className="text-sm text-sage-200/70">
-            Sign out
+            {t('nav.signout')}
           </button>
         </header>
 
@@ -148,9 +153,7 @@ export default function Layout() {
           {caringForOther && active && (
             <div className="mb-6 flex items-center gap-2 rounded-xl bg-sage-100 px-4 py-2.5 text-sm text-pine-900 print:hidden">
               <HeartHandshake className="h-4 w-4 shrink-0 text-pine-800" strokeWidth={1.8} />
-              You are viewing <strong>{active.name}</strong>&rsquo;s care (
-              {(relationshipLabels[active.relationship] ?? active.relationship).toLowerCase()}). Records,
-              plans, and readings here are theirs.
+              {t('chrome.viewingBanner', { name: active.name, rel: relationshipLabels[active.relationship] ?? active.relationship })}
             </div>
           )}
           <div key={location.pathname} className="anim-page">
@@ -172,7 +175,7 @@ export default function Layout() {
               }
             >
               <Icon className="h-5 w-5" strokeWidth={1.8} />
-              {label.split(' ')[0]}
+              {t(label).split(' ')[0]}
             </NavLink>
           ))}
         </nav>

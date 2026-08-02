@@ -4,6 +4,7 @@ import { FileText, Upload } from 'lucide-react'
 import { api } from '../api/client'
 import type { HealthRecord, RecordType } from '../api/types'
 import { Button, Card, EmptyState, ErrorBanner, PageTitle, Spinner, inputClass } from '../components/ui'
+import { useLang } from '../i18n/LanguageContext'
 
 const typeLabels: Record<RecordType, string> = {
   prescription: 'Prescription',
@@ -12,6 +13,7 @@ const typeLabels: Record<RecordType, string> = {
 }
 
 export default function RecordsPage() {
+  const { t } = useLang()
   const [records, setRecords] = useState<HealthRecord[] | null>(null)
   const [error, setError] = useState('')
   const [uploading, setUploading] = useState(false)
@@ -58,10 +60,7 @@ export default function RecordsPage() {
 
   return (
     <div>
-      <PageTitle
-        title="Health Records"
-        subtitle="Upload prescriptions and lab reports as photos, PDFs, or documents."
-      />
+      <PageTitle title={t('records.title')} subtitle={t('records.sub')} />
       <ErrorBanner message={error} />
 
       <Card className="mb-6">

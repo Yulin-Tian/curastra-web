@@ -1,6 +1,7 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { applyTheme, getStoredTheme } from './api/client'
 import { AuthProvider, useAuth } from './auth/AuthContext'
+import { LanguageProvider } from './i18n/LanguageContext'
 import Layout from './components/Layout'
 import { ColdStartNotice } from './components/ColdStartNotice'
 import { Spinner } from './components/ui'
@@ -35,6 +36,7 @@ export default function App() {
   // while caring for a child).
   applyTheme(getStoredTheme())
   return (
+    <LanguageProvider>
     <AuthProvider>
       <BrowserRouter>
         <ColdStartNotice />
@@ -63,5 +65,6 @@ export default function App() {
         </Routes>
       </BrowserRouter>
     </AuthProvider>
+    </LanguageProvider>
   )
 }

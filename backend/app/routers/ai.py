@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import Header, APIRouter, Depends
 
 from ..auth import get_current_user
 from ..models import User
@@ -9,13 +9,13 @@ router = APIRouter(prefix="/api/ai", tags=["ai"])
 
 
 @router.post("/simplify")
-def simplify(payload: SimplifyRequest, user: User = Depends(get_current_user)):
+def simplify(payload: SimplifyRequest, user: User = Depends(get_current_user), x_language: str = Header("en", alias="X-Language")):
     """Rewrite a medical instruction in plain language (+ a speakable version)."""
-    return engine_client.simplify(payload.text)
+    return engine_client.simplify(payload.text, language=x_language)
 
 
 @router.post("/lab-analyze")
-def lab_analyze(payload: LabAnalyzeRequest, user: User = Depends(get_current_user)):
+def lab_analyze(payload: LabAnalyzeRequest, user: User = Depends(get_current_user), x_language: str = Header("en", alias="X-Language")):
     """Plain-language lab report explanation with out-of-range flags. The text
     must be the user-confirmed extraction (human-in-the-loop applies here too)."""
-    return engine_client.lab_analyze(payload.verified_text)
+    return engine_client.lab_analyze(payload.verified_text, language=x_language)

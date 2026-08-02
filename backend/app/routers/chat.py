@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import Header, APIRouter, Depends
 from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
@@ -68,6 +68,7 @@ def send_message(
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
     active: Profile | None = Depends(get_active_profile),
+    x_language: str = Header("en", alias="X-Language"),
 ):
     history_rows = db.scalars(
         select(ChatMessage)
@@ -78,7 +79,7 @@ def send_message(
     history = [{"role": m.role, "content": m.content} for m in reversed(history_rows)]
 
     context = _build_context(user, db, active)
-    result = engine_client.chat(str(user.id), payload.message, context or None, history)
+    result = engine_client.chat(str(user.id), payload.message, context or None, history, language=x_language)
 
     # Persist both turns only after a successful engine reply, so a failed
     # call doesn't leave a user message with no answer in the history.

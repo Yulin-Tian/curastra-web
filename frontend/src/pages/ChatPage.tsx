@@ -3,6 +3,7 @@ import { AlertTriangle, MessageCircle, Send, Trash2 } from 'lucide-react'
 import { api } from '../api/client'
 import type { ChatMessage, ChatResult, SafetyFlag } from '../api/types'
 import { Button, ErrorBanner, Spinner, PageTitle } from '../components/ui'
+import { useLang } from '../i18n/LanguageContext'
 
 interface DisplayMessage {
   id: string
@@ -11,13 +12,11 @@ interface DisplayMessage {
   safety_flag: SafetyFlag
 }
 
-const DISCLAIMER =
-  'The assistant gives general guidance only. It does not diagnose or replace your doctor.'
-
 /** The headline feature: a context-aware assistant grounded in the user's own
  * medications, vitals, and care plan. An "advised_see_doctor" safety flag from
  * the engine renders as a prominent red banner. */
 export default function ChatPage() {
+  const { t } = useLang()
   const [messages, setMessages] = useState<DisplayMessage[] | null>(null)
   const [input, setInput] = useState('')
   const [sending, setSending] = useState(false)
@@ -84,7 +83,7 @@ export default function ChatPage() {
   return (
     <div className="flex h-[calc(100vh-8rem)] flex-col sm:h-[calc(100vh-6rem)]">
       <div className="flex items-start justify-between">
-        <PageTitle title="AI Health Assistant" subtitle="Ask about your medications, plan, or readings." />
+        <PageTitle title={t('chat.title')} subtitle={t('chat.sub')} />
         {messages && messages.length > 0 && (
           <button onClick={onClear} title="Clear conversation" className="mt-1 rounded p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600">
             <Trash2 className="h-4 w-4" />
@@ -101,14 +100,9 @@ export default function ChatPage() {
             <span className="rounded-2xl bg-sage-100 p-4">
               <MessageCircle className="h-8 w-8 text-pine-800" strokeWidth={1.6} />
             </span>
-            <p className="mt-4 font-display text-lg text-pine-900">Ask me anything about your care</p>
+            <p className="mt-4 font-display text-lg text-pine-900">{t('chat.empty')}</p>
             <div className="mt-4 flex max-w-md flex-wrap justify-center gap-2">
-              {[
-                'When should I take my medicines?',
-                'What does my care plan say?',
-                'What do my recent readings look like?',
-                'What should I watch out for?',
-              ].map((q) => (
+              {[t('chat.chip1'), t('chat.chip2'), t('chat.chip3'), t('chat.chip4')].map((q) => (
                 <button
                   key={q}
                   onClick={() => sendText(q)}
@@ -125,7 +119,7 @@ export default function ChatPage() {
               {m.safety_flag === 'advised_see_doctor' && (
                 <div className="mb-1 flex items-center gap-2 rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700">
                   <AlertTriangle className="h-4 w-4 shrink-0" />
-                  Please seek medical help. Contact a doctor or emergency services.
+                  {t('chat.seekHelp')}
                 </div>
               )}
               <div className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
@@ -149,7 +143,7 @@ export default function ChatPage() {
       <form onSubmit={onSend} className="mt-3 flex gap-2">
         <input
           className="flex-1 rounded-xl border border-stone-300 bg-white px-4 py-2.5 text-sm placeholder:text-stone-400 focus:border-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-600/15"
-          placeholder="Type your question…"
+          placeholder={t('chat.placeholder')}
           value={input}
           onChange={(e) => setInput(e.target.value)}
           maxLength={4000}
@@ -158,7 +152,7 @@ export default function ChatPage() {
           <Send className="h-4 w-4" />
         </Button>
       </form>
-      <p className="mt-2 text-center text-xs text-slate-400">{DISCLAIMER}</p>
+      <p className="mt-2 text-center text-xs text-slate-400">{t('chat.disclaimer')}</p>
     </div>
   )
 }

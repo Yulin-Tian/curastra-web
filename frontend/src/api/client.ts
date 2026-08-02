@@ -60,6 +60,8 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   if (token) headers.set('Authorization', `Bearer ${token}`)
   const activeProfile = getActiveProfileId()
   if (activeProfile) headers.set('X-Profile-Id', activeProfile)
+  // AI responses follow the user's app language (English default).
+  headers.set('X-Language', localStorage.getItem('curastra_lang') === 'hi' ? 'hi' : 'en')
 
   // Free-tier services sleep when idle; if a call runs long, tell the UI so
   // it can show an honest "waking the server" notice instead of a dead spinner.

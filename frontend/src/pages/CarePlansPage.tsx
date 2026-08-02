@@ -4,8 +4,10 @@ import { ClipboardList } from 'lucide-react'
 import { api } from '../api/client'
 import type { CarePlan } from '../api/types'
 import { EmptyState, ErrorBanner, PageTitle, Spinner } from '../components/ui'
+import { useLang } from '../i18n/LanguageContext'
 
 export default function CarePlansPage() {
+  const { t } = useLang()
   const [plans, setPlans] = useState<CarePlan[] | null>(null)
   const [error, setError] = useState('')
 
@@ -18,10 +20,7 @@ export default function CarePlansPage() {
 
   return (
     <div>
-      <PageTitle
-        title="Care Plans"
-        subtitle="Structured after-care plans generated from your confirmed prescriptions."
-      />
+      <PageTitle title={t('plans.title')} subtitle={t('plans.sub')} />
       <ErrorBanner message={error} />
       {plans === null ? (
         <Spinner label="Loading care plans…" />

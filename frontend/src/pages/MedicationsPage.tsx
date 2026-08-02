@@ -3,6 +3,7 @@ import { Pill, Plus, ShieldCheck, Trash2 } from 'lucide-react'
 import { api } from '../api/client'
 import type { MedAlert, Medication, MedSafetyResult } from '../api/types'
 import { Button, Card, Disclaimer, EmptyState, ErrorBanner, PageTitle, Spinner, inputClass } from '../components/ui'
+import { useLang } from '../i18n/LanguageContext'
 
 const alertStyles: Record<MedAlert['severity'], string> = {
   info: 'border-blue-200 bg-blue-50 text-blue-800',
@@ -11,6 +12,7 @@ const alertStyles: Record<MedAlert['severity'], string> = {
 }
 
 export default function MedicationsPage() {
+  const { t } = useLang()
   const [meds, setMeds] = useState<Medication[] | null>(null)
   const [error, setError] = useState('')
   const [name, setName] = useState('')
@@ -79,10 +81,7 @@ export default function MedicationsPage() {
 
   return (
     <div>
-      <PageTitle
-        title="Medications"
-        subtitle="Your current medicines. Run a safety check for duplicates and interactions."
-      />
+      <PageTitle title={t('meds.title')} subtitle={t('meds.sub')} />
       <ErrorBanner message={error} />
 
       <Card className="mb-6">

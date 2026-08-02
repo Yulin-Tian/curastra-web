@@ -59,27 +59,29 @@ def generate_care_plan(file_name: str, verified_text: str, user_notes: str | Non
     return _post("/v1/generate", json=payload)
 
 
-def simplify(text: str) -> dict:
-    return _post("/v1/simplify", json={"text": text})
+def simplify(text: str, language: str = "en") -> dict:
+    return _post("/v1/simplify", json={"text": text, "language": language})
 
 
-def lab_analyze(verified_text: str) -> dict:
-    return _post("/v1/lab-analyze", json={"verified_text": verified_text})
+def lab_analyze(verified_text: str, language: str = "en") -> dict:
+    return _post("/v1/lab-analyze", json={"verified_text": verified_text, "language": language})
 
 
-def med_safety(medications: list[dict]) -> dict:
-    return _post("/v1/med-safety", json={"medications": medications})
+def med_safety(medications: list[dict], language: str = "en") -> dict:
+    return _post("/v1/med-safety", json={"medications": medications, "language": language})
 
 
-def insights(user_id: str, vitals_history: list[dict], adherence: list[dict]) -> dict:
+def insights(user_id: str, vitals_history: list[dict], adherence: list[dict], language: str = "en") -> dict:
     return _post(
         "/v1/insights",
-        json={"user_id": user_id, "vitals_history": vitals_history, "adherence": adherence},
+        json={"user_id": user_id, "vitals_history": vitals_history, "adherence": adherence,
+              "language": language},
     )
 
 
-def chat(user_id: str, message: str, context: dict | None, history: list[dict]) -> dict:
+def chat(user_id: str, message: str, context: dict | None, history: list[dict], language: str = "en") -> dict:
     return _post(
         "/v1/chat",
-        json={"user_id": user_id, "message": message, "context": context, "history": history},
+        json={"user_id": user_id, "message": message, "context": context, "history": history,
+              "language": language},
     )

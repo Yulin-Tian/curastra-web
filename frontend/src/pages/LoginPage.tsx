@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { HeartPulse, ScanText, MessageCircle, ShieldCheck } from 'lucide-react'
 import { useAuth } from '../auth/AuthContext'
+import { useLang } from '../i18n/LanguageContext'
+import { LanguageSwitcher } from '../components/LanguageSwitcher'
 import { Button, ErrorBanner, inputClass } from '../components/ui'
 
 const features = [
@@ -12,6 +14,7 @@ const features = [
 
 export default function LoginPage() {
   const { login } = useAuth()
+  const { t } = useLang()
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -80,13 +83,14 @@ export default function LoginPage() {
               <span className="font-display text-2xl font-medium text-pine-900">Curastra</span>
             </Link>
           </div>
-          <h1 className="font-display text-3xl font-medium text-pine-900">Welcome back</h1>
-          <p className="mt-1.5 text-sm text-stone-500">Sign in to continue your care.</p>
+          <div className="mb-4 flex justify-end"><LanguageSwitcher /></div>
+          <h1 className="font-display text-3xl font-medium text-pine-900">{t('auth.welcomeBack')}</h1>
+          <p className="mt-1.5 text-sm text-stone-500">{t('auth.signinSub')}</p>
 
           <form onSubmit={onSubmit} className="mt-8 space-y-4">
             <ErrorBanner message={error} />
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-pine-900">Email</label>
+              <label className="mb-1.5 block text-sm font-medium text-pine-900">{t('auth.email')}</label>
               <input
                 type="email"
                 required
@@ -97,7 +101,7 @@ export default function LoginPage() {
               />
             </div>
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-pine-900">Password</label>
+              <label className="mb-1.5 block text-sm font-medium text-pine-900">{t('auth.password')}</label>
               <input
                 type="password"
                 required
@@ -129,12 +133,12 @@ export default function LoginPage() {
               </div>
             )}
             <Button type="submit" disabled={busy} className="w-full !py-3">
-              {busy ? 'Signing in…' : 'Sign in'}
+              {busy ? '…' : t('auth.signinBtn')}
             </Button>
             <p className="pt-1 text-center text-sm text-stone-500">
-              New here?{' '}
+              {t('auth.newHere')}{' '}
               <Link to="/register" className="font-medium text-teal-700 hover:underline">
-                Create an account
+                {t('auth.createAccount')}
               </Link>
             </p>
           </form>

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import Header, APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -56,6 +56,7 @@ def vitals_insights(
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
     active: Profile | None = Depends(get_active_profile),
+    x_language: str = Header("en", alias="X-Language"),
 ):
     """Generate gentle, factual health insights from the logged vitals."""
     vitals = db.scalars(
@@ -76,4 +77,4 @@ def vitals_insights(
         }
         for v in reversed(vitals)  # oldest first reads naturally as a series
     ]
-    return engine_client.insights(str(user.id), history, adherence=[])
+    return engine_client.insights(str(user.id), history, adherence=[], language=x_language)

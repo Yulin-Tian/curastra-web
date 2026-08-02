@@ -2,7 +2,7 @@ import re
 from datetime import datetime, timezone
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import Header, APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -31,6 +31,7 @@ def create_care_plan(
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
     active: Profile | None = Depends(get_active_profile),
+    x_language: str = Header("en", alias="X-Language"),
 ):
     """Generate a care plan from user-confirmed text (the human-in-the-loop
     contract: the text must have been reviewed on the confirm screen first)."""
@@ -44,6 +45,12 @@ def create_care_plan(
     # Patient basics (allergies, conditions, age data) travel as user notes so
     # the engine can tailor tasks and red flags without a contract change.
     notes_parts = []
+    if x_language.lower().startswith("hi"):
+        notes_parts.append(
+            "Language: write all user-facing text in the plan (instructions, red flags, "
+            "questions, disclaimer) in natural, simple Hindi (Devanagari script). Keep "
+            "medicine names as written and keep JSON keys/enums in English."
+        )
     if active is not None:
         notes_parts.append(f"This care plan is for the patient's {active.relationship}: {active.name}.")
     basics = profile_context(user, db) if active is None else {}

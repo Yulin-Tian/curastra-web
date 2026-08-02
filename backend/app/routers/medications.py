@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import Header, APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -74,6 +74,7 @@ def safety_check(
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
     active: Profile | None = Depends(get_active_profile),
+    x_language: str = Header("en", alias="X-Language"),
 ):
     """Run the active profile's current medication list through the engine's
     cross-medication safety analysis: duplicates, interactions, dosage flags."""
@@ -86,4 +87,4 @@ def safety_check(
         raise HTTPException(status_code=400, detail="Add at least one medication first.")
 
     items = [{"name": m.name, "dosage": m.dosage, "frequency": m.frequency} for m in meds]
-    return engine_client.med_safety(items)
+    return engine_client.med_safety(items, language=x_language)

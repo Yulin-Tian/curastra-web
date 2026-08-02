@@ -4,6 +4,7 @@ import { api } from '../api/client'
 import type { Insight, InsightsResult, Vital } from '../api/types'
 import { Button, Card, Disclaimer, EmptyState, ErrorBanner, PageTitle, Spinner, inputClass } from '../components/ui'
 import { VitalsChart } from '../components/VitalsChart'
+import { useLang } from '../i18n/LanguageContext'
 
 const vitalTypes = [
   { value: 'blood_pressure', label: 'Blood pressure', unit: 'mmHg', placeholder: '120/80' },
@@ -22,6 +23,7 @@ const categoryColors: Record<Insight['category'], string> = {
 }
 
 export default function VitalsPage() {
+  const { t } = useLang()
   const [vitals, setVitals] = useState<Vital[] | null>(null)
   const [error, setError] = useState('')
   const [type, setType] = useState(vitalTypes[0])
@@ -95,7 +97,7 @@ export default function VitalsPage() {
 
   return (
     <div>
-      <PageTitle title="Vitals & Insights" subtitle="Log your readings and get gentle, factual insights." />
+      <PageTitle title={t('vitals.title')} subtitle={t('vitals.sub')} />
       <ErrorBanner message={error} />
 
       <Card className="mb-6">

@@ -4,6 +4,7 @@ import { Activity, ArrowRight, CheckCircle2, Circle, ClipboardList, FileText, Me
 import { api } from '../api/client'
 import type { CarePlan, HealthRecord, Medication, Vital } from '../api/types'
 import { useAuth } from '../auth/AuthContext'
+import { useLang } from '../i18n/LanguageContext'
 import { Card } from '../components/ui'
 import { SkylineScene } from '../components/illustrations'
 
@@ -15,6 +16,7 @@ interface BasicsProbe {
 
 export default function DashboardPage() {
   const { user } = useAuth()
+  const { t } = useLang()
   const [records, setRecords] = useState<HealthRecord[]>([])
   const [plans, setPlans] = useState<CarePlan[]>([])
   const [meds, setMeds] = useState<Medication[]>([])
@@ -37,10 +39,10 @@ export default function DashboardPage() {
   }, [])
 
   const steps = [
-    { done: hasBasics === true, label: 'Add your health basics', hint: 'Allergies and conditions tailor your care plans.', to: '/profile' },
-    { done: records.length > 0, label: 'Upload a prescription', hint: 'A photo is enough. You review every extracted word.', to: '/records' },
-    { done: plans.length > 0, label: 'Generate your first care plan', hint: 'Confirm the text and the plan builds itself.', to: records.length > 0 ? `/records/${records[0].id}` : '/records' },
-    { done: false, label: 'Ask the assistant anything', hint: 'It knows your plan, medicines, and readings.', to: '/assistant' },
+    { done: hasBasics === true, label: t('dash.check1'), hint: '', to: '/profile' },
+    { done: records.length > 0, label: t('dash.check2'), hint: '', to: '/records' },
+    { done: plans.length > 0, label: t('dash.check3'), hint: '', to: records.length > 0 ? `/records/${records[0].id}` : '/records' },
+    { done: false, label: t('dash.check4'), hint: '', to: '/assistant' },
   ]
   const showChecklist = loadedCore && !(hasBasics && records.length > 0 && plans.length > 0)
 
@@ -48,11 +50,11 @@ export default function DashboardPage() {
   const latestPlan = plans[0]
 
   const stats = [
-    { label: 'Records', value: records.length, icon: FileText, to: '/records' },
-    { label: 'Care plans', value: plans.length, icon: ClipboardList, to: '/care-plans' },
-    { label: 'Active medications', value: meds.length, icon: Pill, to: '/medications' },
+    { label: t('dash.records'), value: records.length, icon: FileText, to: '/records' },
+    { label: t('dash.plans'), value: plans.length, icon: ClipboardList, to: '/care-plans' },
+    { label: t('dash.activeMeds'), value: meds.length, icon: Pill, to: '/medications' },
     {
-      label: 'Last reading',
+      label: t('dash.lastReading'),
       value: latestVital ? `${latestVital.value} ${latestVital.unit ?? ''}` : '—',
       icon: Activity,
       to: '/vitals',
@@ -63,15 +65,15 @@ export default function DashboardPage() {
     <div>
       <div className="mb-10">
         <h1 className="font-display text-4xl font-medium leading-tight text-pine-900">
-          Hello, {user?.name.split(' ')[0]}
+          {t('dash.hello', { name: user?.name.split(' ')[0] ?? '' })}
         </h1>
-        <p className="mt-2 text-[15px] text-stone-500">Here is where your care stands today.</p>
+        <p className="mt-2 text-[15px] text-stone-500">{t('dash.sub')}</p>
       </div>
 
       {showChecklist && (
         <Card className="mb-6 !border-teal-600/25">
-          <h2 className="font-display text-lg font-medium text-pine-900">Getting started</h2>
-          <p className="mt-0.5 text-sm text-stone-500">Three small steps and Curastra starts working for you.</p>
+          <h2 className="font-display text-lg font-medium text-pine-900">{t('dash.checkTitle')}</h2>
+          <p className="mt-0.5 text-sm text-stone-500">{t('dash.checkSub')}</p>
           <ul className="mt-4 space-y-1">
             {steps.map(({ done, label, hint, to }) => (
               <li key={label}>
@@ -119,14 +121,14 @@ export default function DashboardPage() {
           {
             to: '/records',
             icon: Upload,
-            title: 'Upload a prescription',
-            text: 'Scan it, review the text, and turn it into a clear care plan.',
+            title: t('dash.uploadTitle'),
+            text: t('dash.uploadText'),
           },
           {
             to: '/assistant',
             icon: MessageCircle,
-            title: 'Ask the AI assistant',
-            text: 'Questions about your medicines, plan, or readings, answered in context.',
+            title: t('dash.askTitle'),
+            text: t('dash.askText'),
           },
         ].map(({ to, icon: Icon, title, text }) => (
           <Link key={to} to={to}>
@@ -146,14 +148,14 @@ export default function DashboardPage() {
 
       {latestPlan && latestPlan.plan.red_flags.length > 0 && (
         <Card className="mt-8 !border-red-200 !bg-red-50">
-          <div className="font-semibold text-red-700">Warning signs from your latest care plan</div>
+          <div className="font-semibold text-red-700">{t('dash.warnTitle')}</div>
           <ul className="mt-2 list-inside list-disc space-y-1 text-sm text-red-700">
             {latestPlan.plan.red_flags.map((flag) => (
               <li key={flag}>{flag}</li>
             ))}
           </ul>
           <Link to={`/care-plans/${latestPlan.id}`} className="mt-2 inline-block text-sm font-medium text-red-700 underline">
-            Open the plan
+            {t('dash.openPlan')}
           </Link>
         </Card>
       )}
@@ -162,7 +164,7 @@ export default function DashboardPage() {
         <SkylineScene className="mx-auto w-full min-w-[720px]" />
       </div>
       <p className="mt-4 text-center text-xs text-stone-400">
-        Curastra supports your everyday care. It never diagnoses or replaces medical advice.
+        {t('dash.footer')}
       </p>
     </div>
   )

@@ -7,6 +7,7 @@ import { disablePush, enablePush, pushSupported } from '../api/push'
 import type { ProfileInfo } from '../api/types'
 import { useAuth } from '../auth/AuthContext'
 import { Button, Card, ErrorBanner, PageTitle, Spinner, inputClass } from '../components/ui'
+import { useLang } from '../i18n/LanguageContext'
 
 function AccountCard() {
   const { user, refreshUser } = useAuth()
@@ -617,6 +618,7 @@ function ReminderCard() {
 
 export default function ProfilePage() {
   const { user, refreshUser } = useAuth()
+  const { t } = useLang()
   const [searchParams] = useSearchParams()
   const isWelcome = searchParams.get('welcome') === '1'
   const [aadhaar, setAadhaar] = useState('')
@@ -670,11 +672,11 @@ export default function ProfilePage() {
   return (
     <div>
       <PageTitle
-        title={isWelcome ? `Welcome, ${user.name.split(' ')[0]}` : 'Profile'}
+        title={isWelcome ? `Welcome, ${user.name.split(' ')[0]}` : t('profile.title')}
         subtitle={
           isWelcome
             ? 'One quick step: fill in your health basics so your care plans and assistant fit you. You can skip this and return anytime.'
-            : 'Your account, health basics, reminders, and health ID.'
+            : t('profile.sub')
         }
       />
       <ErrorBanner message={error} />

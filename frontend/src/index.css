@@ -59,6 +59,16 @@ body {
   letter-spacing: -0.015em;
 }
 
+/* Hindi: Fraunces and Inter have no Devanagari, so both font roles switch to
+   Noto Sans Devanagari (with latin fallbacks for mixed-script lines). */
+html[lang="hi"] {
+  --font-sans: "Noto Sans Devanagari", "Inter", system-ui, sans-serif;
+  --font-display: "Noto Sans Devanagari", "Fraunces", Georgia, serif;
+}
+html[lang="hi"] .font-display {
+  letter-spacing: 0;
+}
+
 /* ---- Landing-page motion (pure CSS, calm and slow — Nordic, not flashy) ---- */
 @keyframes fade-up {
   from {
