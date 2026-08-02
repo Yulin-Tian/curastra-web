@@ -161,6 +161,106 @@ export function SkylineScene({
   )
 }
 
+/**
+ * Flat-style human figures in each theme's palette (SiO/Ruter spirit:
+ * geometric bodies, round-cap stroke limbs, no faces).
+ *  self   — an adult striding ahead, care plan in hand
+ *  child  — a parent and a small child walking hand in hand, balloon aloft
+ *  parent — an elder with a cane, a companion's arm around their back
+ */
+export function FamilyFigure({
+  variant,
+  className = '',
+}: {
+  variant: SceneVariant
+  className?: string
+}) {
+  const c = palettes[variant]
+  const limb = { strokeLinecap: 'round' as const, fill: 'none' as const }
+
+  if (variant === 'child') {
+    return (
+      <svg viewBox="0 0 300 230" className={className} aria-hidden="true" role="presentation">
+        <ellipse cx="150" cy="216" rx="95" ry="7" fill={c.sage} opacity="0.7" />
+        {/* balloon */}
+        <path d="M232 118 Q 240 80 228 58" stroke={c.pine} strokeWidth="2" fill="none" opacity="0.5" />
+        <circle cx="226" cy="44" r="15" fill={c.coral} />
+        {/* adult */}
+        <path d="M118 128 L104 176 L96 208" stroke={c.pine} strokeWidth="11" {...limb} />
+        <path d="M126 128 L140 172 L148 206" stroke={c.pine} strokeWidth="11" {...limb} />
+        <rect x="100" y="62" width="46" height="74" rx="22" fill={c.teal} />
+        <path d="M112 84 L88 122" stroke={c.teal} strokeWidth="10" {...limb} />
+        <path d="M136 86 L172 122" stroke={c.teal} strokeWidth="10" {...limb} />
+        <circle cx="123" cy="40" r="17" fill="#eeb98f" />
+        <path d="M106 36 a17 17 0 0 1 34 -2 l-4 -12 h-26 Z" fill={c.pine} />
+        {/* child */}
+        <path d="M204 162 L198 190 L194 208" stroke={c.pineSoft} strokeWidth="9" {...limb} />
+        <path d="M212 162 L220 188 L224 206" stroke={c.pineSoft} strokeWidth="9" {...limb} />
+        <rect x="194" y="120" width="30" height="48" rx="15" fill={c.coral} />
+        <path d="M200 132 L174 122" stroke={c.coral} strokeWidth="8" {...limb} />
+        <path d="M220 130 L232 118" stroke={c.coral} strokeWidth="8" {...limb} />
+        <circle cx="209" cy="104" r="12" fill="#f2c9a4" />
+        <path d="M197 102 a12 12 0 0 1 24 -2 l-3 -8 h-18 Z" fill={c.pineSoft} />
+        {/* joined hands */}
+        <circle cx="173" cy="122" r="5" fill="#eeb98f" />
+      </svg>
+    )
+  }
+
+  if (variant === 'parent') {
+    return (
+      <svg viewBox="0 0 300 230" className={className} aria-hidden="true" role="presentation">
+        <ellipse cx="150" cy="216" rx="95" ry="7" fill={c.sage} opacity="0.7" />
+        {/* companion (behind) */}
+        <path d="M110 130 L98 176 L92 208" stroke={c.pineSoft} strokeWidth="11" {...limb} />
+        <path d="M118 130 L128 174 L134 206" stroke={c.pineSoft} strokeWidth="11" {...limb} />
+        <rect x="92" y="64" width="46" height="74" rx="22" fill={c.teal} />
+        <path d="M104 86 L82 124" stroke={c.teal} strokeWidth="10" {...limb} />
+        {/* arm around the elder's back */}
+        <path d="M130 84 Q 162 78 182 96" stroke={c.teal} strokeWidth="10" {...limb} />
+        <circle cx="115" cy="42" r="17" fill="#caa27e" />
+        <path d="M98 38 a17 17 0 0 1 34 -2 l-4 -12 h-26 Z" fill={c.pine} />
+        {/* elder, slightly stooped */}
+        <path d="M196 138 L188 178 L184 208" stroke={c.pine} strokeWidth="11" {...limb} />
+        <path d="M206 138 L216 176 L222 206" stroke={c.pine} strokeWidth="11" {...limb} />
+        <rect x="182" y="82" width="44" height="66" rx="21" fill={c.sand} transform="rotate(6 204 115)" />
+        {/* scarf */}
+        <path d="M188 96 Q 206 104 222 98" stroke={c.coral} strokeWidth="9" {...limb} />
+        <path d="M226 108 L248 150" stroke={c.sand} strokeWidth="10" {...limb} />
+        <circle cx="212" cy="64" r="16" fill="#e8c39e" />
+        <path d="M196 62 a16 16 0 0 1 32 -4 l-6 -8 h-22 Z" fill="#cfd4d6" />
+        {/* cane */}
+        <path d="M248 152 L252 210" stroke={c.pineSoft} strokeWidth="5" {...limb} />
+        <path d="M242 150 Q 250 146 254 152" stroke={c.pineSoft} strokeWidth="5" {...limb} />
+      </svg>
+    )
+  }
+
+  // self
+  return (
+    <svg viewBox="0 0 300 230" className={className} aria-hidden="true" role="presentation">
+      <ellipse cx="150" cy="216" rx="80" ry="7" fill={c.sage} opacity="0.7" />
+      {/* stride */}
+      <path d="M142 132 L118 176 L104 206" stroke={c.pine} strokeWidth="11" {...limb} />
+      <path d="M154 132 L176 172 L192 202" stroke={c.pine} strokeWidth="11" {...limb} />
+      <rect x="124" y="60" width="48" height="78" rx="23" fill={c.teal} />
+      {/* back arm swinging */}
+      <path d="M134 84 L106 118" stroke={c.teal} strokeWidth="10" {...limb} />
+      {/* front arm holding the plan */}
+      <path d="M162 86 L196 108" stroke={c.teal} strokeWidth="10" {...limb} />
+      <rect x="188" y="94" width="26" height="34" rx="3" fill={c.white} stroke={c.pine} strokeWidth="2.5" />
+      <line x1="193" y1="104" x2="209" y2="104" stroke={c.tealLight} strokeWidth="3" strokeLinecap="round" />
+      <line x1="193" y1="112" x2="209" y2="112" stroke={c.sage} strokeWidth="3" strokeLinecap="round" />
+      <line x1="193" y1="120" x2="204" y2="120" stroke={c.sage} strokeWidth="3" strokeLinecap="round" />
+      <circle cx="148" cy="38" r="17" fill="#eeb98f" />
+      <path d="M131 34 a17 17 0 0 1 34 -2 l-4 -12 h-26 Z" fill={c.pine} />
+      {/* little bag */}
+      <path d="M136 92 L132 118" stroke={c.pineSoft} strokeWidth="3" />
+      <rect x="122" y="116" width="22" height="18" rx="5" fill={c.coral} />
+    </svg>
+  )
+}
+
 /** Small sprout-in-pot spot illustration for empty states. */
 export function SproutSpot({ className = '' }: { className?: string }) {
   const c = palettes.self

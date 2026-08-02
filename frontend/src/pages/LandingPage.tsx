@@ -15,7 +15,7 @@ import {
   Activity,
 } from 'lucide-react'
 import { useAuth } from '../auth/AuthContext'
-import { SkylineScene } from '../components/illustrations'
+import { FamilyFigure, SkylineScene } from '../components/illustrations'
 
 const painPoints = [
   {
@@ -94,7 +94,7 @@ export default function LandingPage() {
             {user ? (
               <Link
                 to="/dashboard"
-                className="inline-flex items-center gap-1.5 rounded-xl bg-teal-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-teal-700"
+                className="inline-flex items-center gap-1.5 rounded-xl border border-teal-700/40 bg-teal-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-teal-700"
               >
                 Open the app <ArrowRight className="h-4 w-4" />
               </Link>
@@ -108,7 +108,7 @@ export default function LandingPage() {
                 </Link>
                 <Link
                   to="/register"
-                  className="inline-flex items-center gap-1.5 rounded-xl bg-teal-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-teal-700"
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-teal-700/40 bg-teal-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-teal-700"
                 >
                   Get started <ArrowRight className="h-4 w-4" />
                 </Link>
@@ -145,7 +145,7 @@ export default function LandingPage() {
             <div className="anim-fade-up anim-delay-3 mt-8 flex flex-wrap items-center gap-3">
               <Link
                 to={user ? '/dashboard' : '/register'}
-                className="inline-flex items-center gap-2 rounded-xl bg-teal-600 px-6 py-3.5 text-[15px] font-medium text-white shadow-[0_8px_24px_rgba(13,148,136,0.25)] transition-all hover:-translate-y-0.5 hover:bg-teal-700"
+                className="inline-flex items-center gap-2 rounded-xl border border-teal-700/40 bg-teal-600 px-6 py-3.5 text-[15px] font-medium text-white shadow-sm transition-all hover:-translate-y-0.5 hover:bg-teal-700 hover:shadow-md"
               >
                 Try Curastra <ArrowRight className="h-4 w-4" />
               </Link>
@@ -262,7 +262,13 @@ export default function LandingPage() {
                   ))}
                 </ul>
               </div>
-              <div className="self-end overflow-hidden pl-6 pt-4">
+              <div className="flex h-full flex-col justify-end overflow-hidden pl-6">
+                <div className="flex flex-col items-center pt-8">
+                  <FamilyFigure variant="self" className="h-44 w-auto" />
+                  <p className="mb-2 font-display text-sm italic text-pine-800/70">
+                    Recovery, with a plan in hand.
+                  </p>
+                </div>
                 <SkylineScene variant="self" className="w-full min-w-[560px] translate-y-1" />
               </div>
             </div>
@@ -271,7 +277,13 @@ export default function LandingPage() {
           {/* Child */}
           <div className="anim-fade-up overflow-hidden rounded-3xl" style={{ backgroundColor: '#eef2fc' }}>
             <div className="grid items-center lg:grid-cols-2">
-              <div className="self-end order-2 overflow-hidden pr-6 pt-4 lg:order-1">
+              <div className="order-2 flex h-full flex-col justify-end overflow-hidden pr-6 lg:order-1">
+                <div className="flex flex-col items-center pt-8">
+                  <FamilyFigure variant="child" className="h-44 w-auto" />
+                  <p className="mb-2 font-display text-sm italic" style={{ color: '#27367aB3' }}>
+                    Small hands, held steady.
+                  </p>
+                </div>
                 <SkylineScene variant="child" className="w-full min-w-[560px] translate-y-1" />
               </div>
               <div className="order-1 p-8 sm:p-12 lg:order-2">
@@ -328,7 +340,13 @@ export default function LandingPage() {
                   ))}
                 </ul>
               </div>
-              <div className="self-end overflow-hidden pl-6 pt-4">
+              <div className="flex h-full flex-col justify-end overflow-hidden pl-6">
+                <div className="flex flex-col items-center pt-8">
+                  <FamilyFigure variant="parent" className="h-44 w-auto" />
+                  <p className="mb-2 font-display text-sm italic" style={{ color: '#4a3242B3' }}>
+                    Walking beside them, gently.
+                  </p>
+                </div>
                 <SkylineScene variant="parent" className="w-full min-w-[560px] translate-y-1" />
               </div>
             </div>
@@ -396,7 +414,7 @@ export default function LandingPage() {
         <div className="mt-8">
           <Link
             to={user ? '/dashboard' : '/register'}
-            className="inline-flex items-center gap-2 rounded-xl bg-teal-600 px-7 py-3.5 text-[15px] font-medium text-white shadow-[0_8px_24px_rgba(13,148,136,0.25)] transition-all hover:-translate-y-0.5 hover:bg-teal-700"
+            className="inline-flex items-center gap-2 rounded-xl border border-teal-700/40 bg-teal-600 px-7 py-3.5 text-[15px] font-medium text-white shadow-sm transition-all hover:-translate-y-0.5 hover:bg-teal-700 hover:shadow-md"
           >
             Get started for free <ArrowRight className="h-4 w-4" />
           </Link>
