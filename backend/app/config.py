@@ -31,8 +31,9 @@ class Settings:
     # app password). Unconfigured => dev mode: the API returns the code.
     smtp_host: str = os.getenv("SMTP_HOST", "")
     smtp_port: int = int(os.getenv("SMTP_PORT", "587"))
-    smtp_user: str = os.getenv("SMTP_USER", "")
-    smtp_password: str = os.getenv("SMTP_PASS", "")
+    smtp_user: str = os.getenv("SMTP_USER", "").strip()
+    # Google shows app passwords with spaces; SMTP wants them without.
+    smtp_password: str = os.getenv("SMTP_PASS", "").replace(" ", "").strip()
     smtp_from: str = os.getenv("SMTP_FROM", os.getenv("SMTP_USER", ""))
 
     cors_origins: tuple = tuple(
