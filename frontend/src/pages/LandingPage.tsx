@@ -185,7 +185,7 @@ export default function LandingPage() {
                 ))}
               </div>
             </div>
-            <div className="anim-float-slow absolute -bottom-6 -left-8 w-72 rounded-2xl border border-stone-200 bg-pine-900 p-4 shadow-[0_24px_60px_rgba(31,45,41,0.18)]">
+            <div className="anim-float-slow absolute -bottom-16 -left-8 w-72 rounded-2xl border border-stone-200 bg-pine-900 p-4 shadow-[0_24px_60px_rgba(31,45,41,0.18)]">
               <div className="text-xs text-sage-200/70">You asked</div>
               <div className="mt-1 text-sm text-white">&ldquo;Can I take it with food?&rdquo;</div>
               <div className="mt-3 rounded-xl bg-white/10 p-3 text-[13px] leading-relaxed text-sage-100">
