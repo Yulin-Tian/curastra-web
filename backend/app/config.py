@@ -19,6 +19,11 @@ class Settings:
     ai_engine_url: str = os.getenv("AI_ENGINE_URL", "http://localhost:8000")
     internal_api_key: str = os.getenv("INTERNAL_API_KEY", "")
 
+    # A. Pawar's real ABHA microservice (Azure India; talks to the ABDM
+    # sandbox). Unset => the built-in mock enrollment. Its JWT_SECRET must
+    # equal this backend's so user tokens can be forwarded.
+    abha_service_url: str = os.getenv("ABHA_SERVICE_URL", "").strip().rstrip("/")
+
     # Web Push (daily reminders). Keys are VAPID; the public one is shared
     # with browsers, the private one signs each push. CRON_SECRET guards the
     # /dispatch endpoint that the external scheduler calls hourly.

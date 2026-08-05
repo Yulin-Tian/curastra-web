@@ -2,18 +2,43 @@ import re
 import secrets
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException
+import httpx
+from fastapi import APIRouter, Depends, Header, HTTPException
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from ..auth import get_current_user
+from ..config import settings
 from ..database import get_db
 from ..models import Profile, User
 from ..profile_scope import ensure_primary_profile, get_active_profile
 from ..schemas import AbhaLinkRequest, UserOut
 
 router = APIRouter(prefix="/api/abha", tags=["abha"])
+
+
+def _real_service() -> bool:
+    return bool(settings.abha_service_url)
+
+
+def _forward(path: str, payload: dict, authorization: str | None):
+    """Proxy a call to the real ABHA microservice, forwarding the user's own
+    bearer token (the services share a JWT secret)."""
+    try:
+        resp = httpx.post(
+            f"{settings.abha_service_url}{path}",
+            headers={"Authorization": authorization or "", "Content-Type": "application/json"},
+            json=payload,
+            timeout=60,
+        )
+    except httpx.HTTPError:
+        return _abha_envelope(502, "The ABHA service is unreachable right now. Please try again.")
+    try:
+        body = resp.json()
+    except ValueError:
+        return _abha_envelope(502, "The ABHA service returned an unexpected response.")
+    return JSONResponse(status_code=resp.status_code, content=body)
 
 _AADHAAR_RE = re.compile(r"^\d{12}$")
 
@@ -42,12 +67,21 @@ def enroll_initiate(
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
     active: Profile | None = Depends(get_active_profile),
+    authorization: str | None = Header(None),
 ):
-    """Single-step mock ABHA enrollment for the ACTIVE profile (replaces the
-    real multi-step ABDM OTP flow, which rejects non-India server regions).
-    Each family profile can hold its own ABHA, per the mock service's schema."""
+    """ABHA enrollment step 1 for the ACTIVE profile.
+
+    With ABHA_SERVICE_URL set, this proxies to the real India-hosted ABDM
+    gateway service (returns a txnId; an OTP goes to the Aadhaar-linked
+    mobile). Otherwise the built-in mock links instantly."""
     if not _AADHAAR_RE.match(payload.aadhaarNumber or ""):
         return _abha_envelope(400, "Aadhaar number must be exactly 12 digits")
+
+    if _real_service():
+        target = active or ensure_primary_profile(user, db)
+        if target.abha_linked:
+            return _abha_envelope(409, "This profile is already linked to an ABHA number.")
+        return _forward("/api/abha/enroll/initiate", {"aadhaarNumber": payload.aadhaarNumber}, authorization)
 
     target = active or ensure_primary_profile(user, db)
     if target.abha_linked:
@@ -76,6 +110,48 @@ def enroll_initiate(
         "isNew": True,
         "profile_id": str(target.id),
     })
+
+
+class EnrollVerifyRequest(BaseModel):
+    txnId: str
+    otp: str
+    mobileNumber: str
+
+
+@router.post("/enroll/verify")
+def enroll_verify(
+    payload: EnrollVerifyRequest,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+    active: Profile | None = Depends(get_active_profile),
+    authorization: str | None = Header(None),
+):
+    """ABHA enrollment step 2 (real service only): verify the OTP; on success
+    the returned credentials are persisted to the active profile."""
+    if not _real_service():
+        return _abha_envelope(400, "OTP verification is not part of the mock enrollment.")
+
+    result = _forward(
+        "/api/abha/enroll/verify",
+        {"txnId": payload.txnId, "otp": payload.otp, "mobileNumber": payload.mobileNumber},
+        authorization,
+    )
+    if result.status_code == 200:
+        import json
+
+        data = json.loads(bytes(result.body)).get("data", {})
+        abha_number = (data.get("abhaNumber") or "").replace("-", "")
+        if abha_number:
+            target = active or ensure_primary_profile(user, db)
+            target.abha_number = abha_number
+            target.abha_address = data.get("abhaAddress")
+            target.abha_linked = True
+            if target.is_primary:
+                user.abha_number = abha_number
+                user.abha_address = data.get("abhaAddress")
+                user.abha_linked = True
+            db.commit()
+    return result
 
 
 @router.post("/link", response_model=UserOut)

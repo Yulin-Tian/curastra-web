@@ -627,6 +627,10 @@ export default function ProfilePage() {
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
   const [profiles, setProfiles] = useState<ProfileInfo[]>([])
+  // Real ABDM flow: initiate returns a txnId, then the OTP step verifies.
+  const [txnId, setTxnId] = useState<string | null>(null)
+  const [otp, setOtp] = useState('')
+  const [mobile, setMobile] = useState('')
 
   const refreshProfiles = useCallback(async () => {
     try {
@@ -651,11 +655,38 @@ export default function ProfilePage() {
     setError('')
     setBusy(true)
     try {
-      await api.post('/api/abha/enroll/initiate', { aadhaarNumber: aadhaar })
-      setAadhaar('')
-      await Promise.all([refreshUser(), refreshProfiles()])
+      const res = await api.post<{ data?: { txnId?: string; abhaNumber?: string } }>(
+        '/api/abha/enroll/initiate',
+        { aadhaarNumber: aadhaar },
+      )
+      if (res.data?.txnId) {
+        // Real ABDM service: continue to the OTP step.
+        setTxnId(res.data.txnId)
+      } else {
+        // Mock service: linked instantly.
+        setAadhaar('')
+        await Promise.all([refreshUser(), refreshProfiles()])
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Enrollment failed.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function onVerifyOtp(e: React.FormEvent) {
+    e.preventDefault()
+    setError('')
+    setBusy(true)
+    try {
+      await api.post('/api/abha/enroll/verify', { txnId, otp, mobileNumber: mobile })
+      setTxnId(null)
+      setAadhaar('')
+      setOtp('')
+      setMobile('')
+      await Promise.all([refreshUser(), refreshProfiles()])
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Verification failed.')
     } finally {
       setBusy(false)
     }
@@ -719,6 +750,45 @@ export default function ProfilePage() {
               {t('abha.unlink')}
             </Button>
           </div>
+        ) : txnId ? (
+          <form onSubmit={onVerifyOtp} className="mt-4 space-y-3">
+            <p className="rounded-lg bg-teal-50 px-3 py-2 text-sm text-teal-700">
+              <strong>{t('abha.otpTitle')}.</strong> {t('abha.otpDesc')}
+            </p>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+              <div>
+                <label className="mb-1 block text-sm font-medium text-slate-700">{t('abha.otp')}</label>
+                <input
+                  inputMode="numeric"
+                  maxLength={6}
+                  required
+                  autoFocus
+                  className={`${inputClass} !w-36 text-center tracking-[0.3em]`}
+                  placeholder="000000"
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+                />
+              </div>
+              <div className="flex-1">
+                <label className="mb-1 block text-sm font-medium text-slate-700">{t('abha.mobile')}</label>
+                <input
+                  inputMode="numeric"
+                  maxLength={10}
+                  required
+                  className={inputClass}
+                  placeholder="9876543210"
+                  value={mobile}
+                  onChange={(e) => setMobile(e.target.value.replace(/\D/g, ''))}
+                />
+              </div>
+              <Button type="submit" disabled={busy || otp.length !== 6 || mobile.length !== 10}>
+                {busy ? t('abha.verifying') : t('abha.verifyBtn')}
+              </Button>
+              <Button type="button" variant="secondary" onClick={() => { setTxnId(null); setOtp(''); }}>
+                {t('abha.startOver')}
+              </Button>
+            </div>
+          </form>
         ) : (
           <form onSubmit={onLink} className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-end">
             <div className="flex-1">

@@ -382,6 +382,16 @@ export const T: Record<string, Entry> = {
   'abha.enrolling': { en: 'Enrolling…', hi: 'नामांकन हो रहा है…' },
   'abha.linked': { en: 'Linked', hi: 'जुड़ा है' },
   'abha.unlink': { en: 'Unlink', hi: 'अलग करें' },
+  'abha.otpTitle': { en: 'Enter the OTP', hi: 'OTP दर्ज करें' },
+  'abha.otpDesc': {
+    en: 'An OTP has been sent to the mobile number linked with this Aadhaar.',
+    hi: 'इस आधार से जुड़े मोबाइल नंबर पर OTP भेजा गया है।',
+  },
+  'abha.mobile': { en: 'Mobile number', hi: 'मोबाइल नंबर' },
+  'abha.otp': { en: 'OTP', hi: 'OTP' },
+  'abha.verifyBtn': { en: 'Verify & link', hi: 'सत्यापित कर जोड़ें' },
+  'abha.verifying': { en: 'Verifying…', hi: 'सत्यापित हो रहा है…' },
+  'abha.startOver': { en: 'Start over', hi: 'फिर से शुरू करें' },
 
   // ---- Register ----
   'reg.title': { en: 'Create your account', hi: 'अपना खाता बनाएँ' },
