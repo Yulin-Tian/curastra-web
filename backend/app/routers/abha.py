@@ -45,10 +45,19 @@ def _friendly_message(status_code: int, raw: str) -> str:
     """Turn a possibly-technical upstream message into patient-facing text."""
     low = (raw or "").strip().lower()
     if not low or any(frag in low for frag in _TECHNICAL_FRAGMENTS):
-        if status_code == 400:
+        # Axios wraps the ABDM gateway's status inside the message ("Request
+        # failed with status code 422"); that inner code is more truthful
+        # about the cause than whatever outer status the wrapper chose.
+        embedded = re.search(r"status code (\d{3})", low)
+        effective = int(embedded.group(1)) if embedded else status_code
+        if effective == 422:
+            return ("This Aadhaar could not be enrolled. It may already be linked "
+                    "to an existing ABHA account, or the details did not match "
+                    "ABDM records. Please verify and try again.")
+        if effective == 400:
             return ("We could not start ABHA enrollment for this Aadhaar number. "
                     "Please check the number and try again.")
-        if status_code in (502, 503, 504):
+        if effective in (502, 503, 504):
             return "The ABHA service is busy right now. Please try again in a moment."
         return "ABHA enrollment could not be completed. Please try again."
     return raw  # a genuine, human-readable message from upstream — keep it

@@ -712,8 +712,6 @@ export default function ProfilePage() {
             : t('profile.sub')
         }
       />
-      <ErrorBanner message={error} />
-
       <AccountCard />
 
       <FamilyCard profiles={profiles} refresh={refreshProfiles} />
@@ -734,6 +732,14 @@ export default function ProfilePage() {
         <p className="mt-1 text-sm text-slate-500">
           {t('abha.desc')}
         </p>
+
+        {/* ABHA errors belong here, next to the form the user just used —
+            not in a banner at the top of the page. */}
+        {error && (
+          <div className="mt-3">
+            <ErrorBanner message={error} />
+          </div>
+        )}
 
         {abhaProfile?.abha_linked ? (
           <div className="mt-4">
