@@ -8,6 +8,8 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
+from sqlalchemy import select
+
 from ..auth import get_current_user
 from ..config import settings
 from ..database import get_db
@@ -22,9 +24,40 @@ def _real_service() -> bool:
     return bool(settings.abha_service_url)
 
 
+# Raw upstream/axios/gateway messages we never want to show a patient. When
+# any of these fragments appears, we substitute clean guidance instead.
+_TECHNICAL_FRAGMENTS = (
+    "request failed with status",
+    "econnrefused",
+    "etimedout",
+    "socket hang up",
+    "network error",
+    "internal server error",
+    "cannot read propert",
+    "undefined",
+    "exception",
+    "traceback",
+    "axioserror",
+)
+
+
+def _friendly_message(status_code: int, raw: str) -> str:
+    """Turn a possibly-technical upstream message into patient-facing text."""
+    low = (raw or "").strip().lower()
+    if not low or any(frag in low for frag in _TECHNICAL_FRAGMENTS):
+        if status_code == 400:
+            return ("We could not start ABHA enrollment for this Aadhaar number. "
+                    "Please check the number and try again.")
+        if status_code in (502, 503, 504):
+            return "The ABHA service is busy right now. Please try again in a moment."
+        return "ABHA enrollment could not be completed. Please try again."
+    return raw  # a genuine, human-readable message from upstream — keep it
+
+
 def _forward(path: str, payload: dict, authorization: str | None):
     """Proxy a call to the real ABHA microservice, forwarding the user's own
-    bearer token (the services share a JWT secret)."""
+    bearer token (the services share a JWT secret). Upstream error messages
+    are sanitised so raw gateway/axios strings never reach the user."""
     try:
         resp = httpx.post(
             f"{settings.abha_service_url}{path}",
@@ -38,6 +71,12 @@ def _forward(path: str, payload: dict, authorization: str | None):
         body = resp.json()
     except ValueError:
         return _abha_envelope(502, "The ABHA service returned an unexpected response.")
+
+    # On error, clean the message; on success pass the body through untouched.
+    if resp.status_code >= 400 or body.get("success") is False:
+        raw = body.get("message") or body.get("error") or ""
+        return _abha_envelope(resp.status_code if resp.status_code >= 400 else 400,
+                              _friendly_message(resp.status_code, raw))
     return JSONResponse(status_code=resp.status_code, content=body)
 
 _AADHAAR_RE = re.compile(r"^\d{12}$")
@@ -142,6 +181,16 @@ def enroll_verify(
         data = json.loads(bytes(result.body)).get("data", {})
         abha_number = (data.get("abhaNumber") or "").replace("-", "")
         if abha_number:
+            # ABHA uniqueness (the README requires the calling backend to
+            # enforce this): reject a number already linked to any other
+            # profile, so an Aadhaar cannot be double-registered.
+            clash = db.scalar(
+                select(Profile).where(Profile.abha_number == abha_number)
+            )
+            if clash is not None:
+                return _abha_envelope(
+                    409, "This ABHA number is already linked to another Curastra profile."
+                )
             target = active or ensure_primary_profile(user, db)
             target.abha_number = abha_number
             target.abha_address = data.get("abhaAddress")
