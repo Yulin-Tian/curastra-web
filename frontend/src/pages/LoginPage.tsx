@@ -46,7 +46,7 @@ export default function LoginPage() {
       <div className="relative hidden flex-col justify-between overflow-hidden bg-pine-900 p-12 text-white lg:flex lg:w-[44%]">
         <div className="anim-drift pointer-events-none absolute -right-24 top-1/4 h-96 w-96 rounded-full bg-teal-400/10 blur-3xl" />
         <Link to="/" className="relative flex items-center gap-2.5">
-          <HeartPulse className="h-8 w-8 text-teal-400" strokeWidth={1.8} />
+          <HeartPulse className="anim-heartbeat h-8 w-8 text-teal-400" strokeWidth={1.8} />
           <span className="font-display text-2xl font-medium">Curastra</span>
         </Link>
         <div>

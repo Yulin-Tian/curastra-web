@@ -5,7 +5,7 @@ import { api } from '../api/client'
 import type { CarePlan, HealthRecord, Medication, Vital } from '../api/types'
 import { useAuth } from '../auth/AuthContext'
 import { useLang } from '../i18n/LanguageContext'
-import { Card } from '../components/ui'
+import { Card, CountUp } from '../components/ui'
 import { SkylineScene } from '../components/illustrations'
 
 interface BasicsProbe {
@@ -109,7 +109,9 @@ export default function DashboardPage() {
               <span className="inline-flex rounded-xl bg-sage-100 p-2.5">
                 <Icon className="h-5 w-5 text-pine-800" strokeWidth={1.8} />
               </span>
-              <div className="mt-4 font-display text-3xl font-medium text-pine-900">{value}</div>
+              <div className="mt-4 font-display text-3xl font-medium text-pine-900">
+                {typeof value === 'number' ? <CountUp value={value} /> : value}
+              </div>
               <div className="mt-0.5 text-[13px] text-stone-500">{label}</div>
             </Card>
           </Link>

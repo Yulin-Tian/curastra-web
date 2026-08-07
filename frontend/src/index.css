@@ -160,6 +160,23 @@ html[lang="hi"] .font-display {
   animation: fade-up 0.3s 1s ease forwards;
 }
 
+/* The brand heartbeat: a gentle lub-dub on the logo mark. */
+@keyframes heartbeat {
+  0%, 28%, 100% {
+    transform: scale(1);
+  }
+  10% {
+    transform: scale(1.1);
+  }
+  20% {
+    transform: scale(1.04);
+  }
+}
+.anim-heartbeat {
+  animation: heartbeat 2.2s ease-in-out infinite;
+  transform-origin: center;
+}
+
 /* Checkbox / completion pop, Stripe-style micro-interaction. */
 @keyframes pop {
   0% {
@@ -184,6 +201,7 @@ html[lang="hi"] .font-display {
   .anim-page,
   .anim-page > *,
   .anim-pop,
+  .anim-heartbeat,
   .chart-dot,
   .chart-line {
     animation: none;

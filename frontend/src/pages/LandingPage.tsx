@@ -116,7 +116,7 @@ export default function LandingPage() {
       <header className="sticky top-0 z-20 border-b border-stone-200/60 bg-paper/85 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-3.5 sm:px-8">
           <Link to="/" className="flex items-center gap-2">
-            <HeartPulse className="h-7 w-7 text-teal-600" strokeWidth={2} />
+            <HeartPulse className="anim-heartbeat h-7 w-7 text-teal-600" strokeWidth={2} />
             <span className="font-display text-[22px] font-semibold text-pine-900">Curastra</span>
           </Link>
           <nav className="flex items-center gap-2.5">

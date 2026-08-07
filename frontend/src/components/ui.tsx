@@ -1,6 +1,31 @@
-import type { ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { AlertTriangle, ChevronDown, Info, Loader2 } from 'lucide-react'
 import { SproutSpot } from './illustrations'
+
+/** Animated number: counts up from 0 with an ease-out on first render.
+ * Honors prefers-reduced-motion by rendering the final value directly. */
+export function CountUp({ value, duration = 900 }: { value: number; duration?: number }) {
+  const [shown, setShown] = useState(0)
+  const raf = useRef(0)
+
+  useEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || value === 0) {
+      setShown(value)
+      return
+    }
+    const start = performance.now()
+    const tick = (now: number) => {
+      const t = Math.min((now - start) / duration, 1)
+      const eased = 1 - Math.pow(1 - t, 3)
+      setShown(Math.round(eased * value))
+      if (t < 1) raf.current = requestAnimationFrame(tick)
+    }
+    raf.current = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf.current)
+  }, [value, duration])
+
+  return <>{shown}</>
+}
 
 /**
  * Segmented pill control — replaces native <select> for short option lists.

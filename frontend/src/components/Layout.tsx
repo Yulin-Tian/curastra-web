@@ -97,7 +97,7 @@ export default function Layout() {
     <div className="flex min-h-screen">
       <aside className="hidden w-64 shrink-0 flex-col bg-pine-900 text-sage-100 print:hidden sm:flex">
         <div className="flex items-center gap-2.5 px-6 pb-8 pt-7">
-          <HeartPulse className="h-7 w-7 text-teal-400" strokeWidth={1.8} />
+          <HeartPulse className="anim-heartbeat h-7 w-7 text-teal-400" strokeWidth={1.8} />
           <div>
             <div className="font-display text-xl font-medium tracking-tight text-white">Curastra</div>
             <div className="-mt-0.5 text-[11px] tracking-wide text-sage-200/60">
@@ -141,7 +141,7 @@ export default function Layout() {
         {/* Mobile top bar */}
         <header className="flex items-center justify-between bg-pine-900 px-4 py-3 text-white print:hidden sm:hidden">
           <div className="flex items-center gap-2">
-            <HeartPulse className="h-6 w-6 text-teal-400" strokeWidth={1.8} />
+            <HeartPulse className="anim-heartbeat h-6 w-6 text-teal-400" strokeWidth={1.8} />
             <span className="font-display text-lg font-medium">Curastra</span>
           </div>
           <button onClick={logout} className="text-sm text-sage-200/70">
