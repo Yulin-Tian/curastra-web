@@ -31,7 +31,7 @@ services:
       - key: INTERNAL_API_KEY
         sync: false
       - key: CORS_ORIGINS
-        value: https://curastra-web.onrender.com
+        value: https://curastra-web.onrender.com,https://curastra.app,https://www.curastra.app
 
   - type: web
     name: curastra-web
