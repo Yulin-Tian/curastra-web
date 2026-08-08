@@ -121,8 +121,8 @@ export const T: Record<string, Entry> = {
   'landing.ctaTitle2': { en: 'See what it becomes.', hi: 'देखिए, वह क्या बन जाता है।' },
   'landing.ctaButton': { en: 'Get started for free', hi: 'मुफ़्त में शुरू करें' },
   'landing.footerNote': {
-    en: 'An academic capstone project (BITS Pilani, Group 97). Not a medical device.',
-    hi: 'एक शैक्षणिक कैपस्टोन प्रोजेक्ट (BITS पिलानी, ग्रुप 97)। यह चिकित्सा उपकरण नहीं है।',
+    en: 'Curastra supports everyday care and never replaces your doctor. Not a medical device.',
+    hi: 'Curastra रोज़मर्रा की देखभाल में साथ देता है, डॉक्टर की जगह कभी नहीं लेता। यह चिकित्सा उपकरण नहीं है।',
   },
   'landing.f1Title': { en: 'Scan any prescription', hi: 'कोई भी प्रिस्क्रिप्शन स्कैन करें' },
   'landing.f1Text': { en: 'Photos, PDFs, or documents. The text is extracted for you in seconds.', hi: 'फ़ोटो, PDF या दस्तावेज़। टेक्स्ट सेकंडों में निकल आता है।' },
