@@ -77,6 +77,10 @@ class CarePlanOut(BaseModel):
     record_id: Optional[int] = None
     source_text: str
     plan: dict[str, Any]
+    duration_days: Optional[int] = None
+    starts_on: Optional[str] = None
+    status: Optional[str] = None
+    outcome: Optional[str] = None
     created_at: datetime
 
     model_config = {"from_attributes": True}

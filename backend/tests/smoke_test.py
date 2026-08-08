@@ -125,6 +125,24 @@ check("adherence month heatmap", r.status_code == 200 and r.json()["days"].get("
 r = client.get(f"/api/care-plans/{plan_id}/adherence/month?month=bad", headers=headers)
 check("adherence month bad format -> 400", r.status_code == 400, r.text)
 
+# Treatment lifecycle: duration parsing, activation, end-of-course outcome
+from app.routers.care_plans import parse_duration_days  # noqa: E402
+
+check("duration parse 5 days", parse_duration_days({"medications": [{"duration": "5 days"}], "tasks": []}) == 5)
+check("duration parse 2 weeks beats 3 days",
+      parse_duration_days({"medications": [{"duration": "3 days"}], "tasks": [{"schedule": "for 2 weeks"}]}) == 14)
+check("duration parse none", parse_duration_days({"medications": [{"duration": None}], "tasks": []}) is None)
+
+r = client.post(f"/api/care-plans/{plan_id}/activate", json={"start_day": "2026-08-01"}, headers=headers)
+check("plan activate", r.status_code == 200 and r.json()["status"] == "active" and r.json()["starts_on"] == "2026-08-01", r.text)
+r = client.post(f"/api/care-plans/{plan_id}/outcome", json={"feeling": "confused"}, headers=headers)
+check("outcome invalid -> 400", r.status_code == 400, r.text)
+r = client.post(f"/api/care-plans/{plan_id}/outcome", json={"feeling": "better"}, headers=headers)
+check("outcome better -> completed", r.status_code == 200 and r.json()["status"] == "completed"
+      and r.json()["outcome"] == "better", r.text)
+r = client.post(f"/api/care-plans/{plan_id}/activate", json={}, headers=headers)
+check("activate completed plan -> 400", r.status_code == 400, r.text)
+
 # Medications CRUD
 r = client.post("/api/medications", json={"name": "Pan 40", "dosage": "40 mg", "frequency": "OD"}, headers=headers)
 check("medication add", r.status_code == 201, r.text)

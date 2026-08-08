@@ -14,6 +14,12 @@ function localDay(): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 
+function addDays(iso: string, n: number): string {
+  const [y, m, d] = iso.split('-').map(Number)
+  const dt = new Date(y, m - 1, d + n)
+  return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`
+}
+
 
 
 export default function CarePlanDetailPage() {
@@ -58,6 +64,22 @@ export default function CarePlanDetailPage() {
     }
   }
 
+  async function onActivate() {
+    try {
+      setPlan(await api.post<CarePlan>(`/api/care-plans/${id}/activate`, { start_day: localDay() }))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not start the plan.')
+    }
+  }
+
+  async function onOutcome(feeling: 'better' | 'not_better') {
+    try {
+      setPlan(await api.post<CarePlan>(`/api/care-plans/${id}/outcome`, { feeling }))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not record your answer.')
+    }
+  }
+
   async function onImportMeds() {
     setImporting(true)
     setError('')
@@ -99,6 +121,63 @@ export default function CarePlanDetailPage() {
         subtitle={t('plans.generatedOn', { date: new Date(plan.created_at).toLocaleString() })}
       />
       <ErrorBanner message={error} />
+
+      {/* Treatment lifecycle: confirm-to-start, the strict course window,
+          the end-of-course check-in, and the recorded outcome. */}
+      {plan.status === 'draft' && (
+        <div className="mb-6 rounded-xl border border-teal-600/30 bg-teal-50 p-4 print:hidden">
+          <div className="font-semibold text-pine-900">{t('plans.startTitle')}</div>
+          <p className="mt-1 text-sm text-pine-900/80">
+            {plan.duration_days
+              ? t('plans.startTextKnown', { n: String(plan.duration_days) })
+              : t('plans.startTextUnknown')}
+          </p>
+          <Button className="mt-3" onClick={onActivate}>
+            {t('plans.startBtn')}
+          </Button>
+        </div>
+      )}
+      {plan.status === 'active' && plan.starts_on && plan.duration_days && (() => {
+        const endDay = addDays(plan.starts_on, plan.duration_days - 1)
+        const dayOf = Math.min(
+          Math.max(1, Math.round((Date.parse(localDay()) - Date.parse(plan.starts_on)) / 86400000) + 1),
+          plan.duration_days,
+        )
+        return localDay() > endDay ? (
+          <div className="mb-6 rounded-xl border border-amber-300 bg-amber-50 p-4 print:hidden">
+            <div className="font-semibold text-amber-900">
+              {t('plans.checkinTitle', { n: String(plan.duration_days) })}
+            </div>
+            <p className="mt-1 text-sm text-amber-900/80">{t('plans.checkinText')}</p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <Button onClick={() => onOutcome('better')}>{t('plans.feelBetter')}</Button>
+              <Button variant="secondary" onClick={() => onOutcome('not_better')}>
+                {t('plans.notBetter')}
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-sage-100 px-4 py-1.5 text-sm text-pine-900 print:hidden">
+            {t('plans.courseChip', {
+              start: plan.starts_on,
+              end: endDay,
+              x: String(dayOf),
+              n: String(plan.duration_days),
+            })}
+          </div>
+        )
+      })()}
+      {plan.status === 'completed' && (
+        <div
+          className={`mb-6 rounded-xl border p-4 text-sm font-medium ${
+            plan.outcome === 'better'
+              ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
+              : 'border-amber-300 bg-amber-50 text-amber-900'
+          }`}
+        >
+          {plan.outcome === 'better' ? t('plans.outcomeBetter') : t('plans.outcomeNotBetter')}
+        </div>
+      )}
 
       {red_flags.length > 0 && (
         <div className="mb-6 rounded-xl border border-red-200 bg-red-50 p-4">

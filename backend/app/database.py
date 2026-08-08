@@ -45,6 +45,12 @@ _COLUMN_MIGRATIONS = [
     ("users", "totp_enabled", "BOOLEAN DEFAULT FALSE", "BOOLEAN DEFAULT 0"),
     ("users", "reset_code_hash", "VARCHAR(255)", "VARCHAR(255)"),
     ("users", "reset_expires", "TIMESTAMPTZ", "TIMESTAMP"),
+    # Care-plan treatment lifecycle (duration from the prescription, an
+    # explicit start, and an end-of-course outcome)
+    ("care_plans", "duration_days", "INTEGER", "INTEGER"),
+    ("care_plans", "starts_on", "VARCHAR(10)", "VARCHAR(10)"),
+    ("care_plans", "status", "VARCHAR(12)", "VARCHAR(12)"),
+    ("care_plans", "outcome", "VARCHAR(12)", "VARCHAR(12)"),
 ]
 
 

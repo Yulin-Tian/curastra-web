@@ -72,6 +72,8 @@ def create_care_plan(
         record_id=payload.record_id,
         source_text=payload.verified_text,
         plan=result,
+        duration_days=parse_duration_days(result),
+        status="draft",  # the user explicitly starts the course
     )
     db.add(plan)
     db.commit()
@@ -142,6 +144,73 @@ def _adherence_state(plan: CarePlan, day: str, db: Session) -> dict:
 
 
 _MONTH_RE = re.compile(r"^\d{4}-\d{2}$")
+
+# "5 days", "2 weeks", "७ दिन" — how long the prescription says the course runs.
+_DURATION_RE = re.compile(r"(\d+)\s*(days?|weeks?|दिन|सप्ताह|हफ़?्ते)", re.IGNORECASE)
+
+
+def parse_duration_days(plan: dict) -> int | None:
+    """Longest course length mentioned across medications and tasks."""
+    texts: list[str] = []
+    for m in plan.get("medications", []):
+        texts.append(str(m.get("duration") or ""))
+    for task in plan.get("tasks", []):
+        texts.append(str(task.get("schedule") or ""))
+        texts.append(str(task.get("instruction") or ""))
+    best: int | None = None
+    for text in texts:
+        for n, unit in _DURATION_RE.findall(text):
+            days = int(n) * (7 if unit.lower().startswith("week") or unit in ("सप्ताह", "हफ्ते", "हफ़्ते") else 1)
+            if 0 < days <= 365:
+                best = max(best or 0, days)
+    return best
+
+
+class ActivateRequest(BaseModel):
+    start_day: Optional[str] = Field(None, description="User's local date, YYYY-MM-DD")
+
+
+@router.post("/{plan_id}/activate", response_model=CarePlanOut)
+def activate_plan(
+    plan_id: int,
+    payload: ActivateRequest,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """The user confirms the plan and the course starts: from here the
+    calendar window runs strictly for the prescription's duration."""
+    plan = _get_owned_plan(plan_id, user, db)
+    if plan.status == "completed":
+        raise HTTPException(status_code=400, detail="This plan is already completed.")
+    plan.starts_on = _validated_day(payload.start_day)
+    plan.status = "active"
+    db.commit()
+    db.refresh(plan)
+    return CarePlanOut.model_validate(plan)
+
+
+class OutcomeRequest(BaseModel):
+    feeling: str  # better | not_better
+
+
+@router.post("/{plan_id}/outcome", response_model=CarePlanOut)
+def record_outcome(
+    plan_id: int,
+    payload: OutcomeRequest,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """End-of-course check-in: the user records how they feel; the plan
+    completes either way (a 'not better' answer prompts a doctor follow-up
+    in the interface, never advice from us)."""
+    if payload.feeling not in ("better", "not_better"):
+        raise HTTPException(status_code=400, detail="feeling must be better or not_better.")
+    plan = _get_owned_plan(plan_id, user, db)
+    plan.status = "completed"
+    plan.outcome = payload.feeling
+    db.commit()
+    db.refresh(plan)
+    return CarePlanOut.model_validate(plan)
 
 
 @router.get("/{plan_id}/adherence/month")

@@ -124,6 +124,13 @@ class CarePlan(Base):
     source_text: Mapped[str] = mapped_column(Text)
     # Full CarePlanOutput JSON from the engine, stored verbatim.
     plan: Mapped[dict] = mapped_column(JSON)
+    # Treatment lifecycle: duration parsed from the prescription; the user
+    # explicitly starts the course; at its end they record how they feel.
+    # NULL status = legacy plan (tracked without a window).
+    duration_days: Mapped[int | None] = mapped_column(nullable=True)
+    starts_on: Mapped[str | None] = mapped_column(String(10), nullable=True)  # YYYY-MM-DD
+    status: Mapped[str | None] = mapped_column(String(12), nullable=True)  # draft|active|completed
+    outcome: Mapped[str | None] = mapped_column(String(12), nullable=True)  # better|not_better
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
 
 

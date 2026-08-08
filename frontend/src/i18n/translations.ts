@@ -164,6 +164,32 @@ export const T: Record<string, Entry> = {
   },
   'plans.backToToday': { en: 'Back to today', hi: 'आज पर वापस' },
   'plans.dayProgress': { en: 'Progress on {date}', hi: '{date} की प्रगति' },
+  'plans.startTitle': { en: 'Start this care plan?', hi: 'यह केयर प्लान शुरू करें?' },
+  'plans.startTextKnown': {
+    en: 'The prescription indicates a {n}-day course. Confirm to start today, and the calendar will track exactly those days.',
+    hi: 'प्रिस्क्रिप्शन में {n} दिन का कोर्स बताया गया है। पुष्टि करें, आज से शुरू होगा और कैलेंडर ठीक उन्हीं दिनों पर नज़र रखेगा।',
+  },
+  'plans.startTextUnknown': {
+    en: 'No fixed duration was found in the prescription; the plan will be tracked as ongoing.',
+    hi: 'प्रिस्क्रिप्शन में कोई निश्चित अवधि नहीं मिली; प्लान चालू रूप से ट्रैक होगा।',
+  },
+  'plans.startBtn': { en: 'Confirm & start', hi: 'पुष्टि कर शुरू करें' },
+  'plans.courseChip': { en: 'Course: {start} to {end} · day {x} of {n}', hi: 'कोर्स: {start} से {end} · दिन {x}/{n}' },
+  'plans.checkinTitle': { en: 'Your {n}-day course has ended', hi: 'आपका {n} दिन का कोर्स पूरा हुआ' },
+  'plans.checkinText': {
+    en: 'How are you feeling now? Your answer completes this plan.',
+    hi: 'अब आप कैसा महसूस कर रहे हैं? आपके जवाब से यह प्लान पूरा होगा।',
+  },
+  'plans.feelBetter': { en: 'Yes, I feel better', hi: 'हाँ, मैं बेहतर हूँ' },
+  'plans.notBetter': { en: 'Not really', hi: 'ख़ास नहीं' },
+  'plans.outcomeBetter': {
+    en: 'Course completed. So glad you are feeling better!',
+    hi: 'कोर्स पूरा हुआ। ख़ुशी है कि आप बेहतर महसूस कर रहे हैं!',
+  },
+  'plans.outcomeNotBetter': {
+    en: 'Course completed, but you are not feeling better. Please follow up with your doctor.',
+    hi: 'कोर्स पूरा हुआ, पर आप बेहतर महसूस नहीं कर रहे। कृपया अपने डॉक्टर से मिलें।',
+  },
   'tour.welcomeTitle': { en: 'Welcome to Curastra', hi: 'Curastra में स्वागत है' },
   'tour.welcomeText': {
     en: 'A quick 30-second tour of the five things this app does for you and your family.',

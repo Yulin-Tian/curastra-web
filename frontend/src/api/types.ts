@@ -89,6 +89,10 @@ export interface CarePlan {
   record_id: number | null
   source_text: string
   plan: CarePlanContent
+  duration_days: number | null
+  starts_on: string | null
+  status: 'draft' | 'active' | 'completed' | null
+  outcome: 'better' | 'not_better' | null
   created_at: string
 }
 
