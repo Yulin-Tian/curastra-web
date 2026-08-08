@@ -17,12 +17,27 @@ from ..config import settings
 
 _TIMEOUT = httpx.Timeout(90.0, connect=30.0)
 
-# When the free-tier engine is asleep, its first request can bounce off the
-# host's edge while the instance boots (~20-30s). One patient retry turns
-# that cold-start error into a slow-but-successful call.
-_COLD_START_RETRY_DELAY = 12.0
+# When the free-tier engine is asleep, requests bounce off the host's edge
+# while the instance boots (measured ~20-30s). Instead of guessing with a
+# fixed delay, we poll /health until the engine is provably awake, then
+# retry the real call once.
+_WAKE_MAX_WAIT = 50.0
+_WAKE_POLL_INTERVAL = 3.0
 
 FALLBACK_MESSAGE = "The AI assistant is temporarily unavailable. Please try again in a minute."
+
+
+def _wait_for_engine() -> None:
+    """Block until the engine's health check answers, or the window closes."""
+    url = f"{settings.ai_engine_url.rstrip('/')}/health"
+    deadline = time.monotonic() + _WAKE_MAX_WAIT
+    while time.monotonic() < deadline:
+        try:
+            if httpx.get(url, timeout=15).status_code == 200:
+                return
+        except httpx.HTTPError:
+            pass
+        time.sleep(_WAKE_POLL_INTERVAL)
 
 
 def _headers() -> dict:
@@ -46,7 +61,7 @@ def _post(path: str, **kwargs) -> dict:
     url = f"{settings.ai_engine_url.rstrip('/')}{path}"
     resp = _try_post(url, **kwargs)
     if resp is None:
-        time.sleep(_COLD_START_RETRY_DELAY)
+        _wait_for_engine()
         resp = _try_post(url, **kwargs)
     if resp is None:
         raise HTTPException(status_code=503, detail=FALLBACK_MESSAGE)
