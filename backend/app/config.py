@@ -53,5 +53,14 @@ class Settings:
         if o.strip()
     )
 
+    # Admin console access: a comma-separated allowlist of account emails.
+    # Config-driven on purpose — there is no API path to admin, so a
+    # compromised account cannot promote itself. Empty = nobody is admin.
+    admin_emails: tuple = tuple(
+        e.strip().lower()
+        for e in os.getenv("ADMIN_EMAILS", "").split(",")
+        if e.strip()
+    )
+
 
 settings = Settings()

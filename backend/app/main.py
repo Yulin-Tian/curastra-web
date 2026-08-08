@@ -17,6 +17,7 @@ from .config import settings
 from .database import Base, apply_column_migrations, engine
 from .routers import (
     abha,
+    admin,
     ai,
     auth_routes,
     care_plans,
@@ -100,3 +101,4 @@ app.include_router(notifications.router)
 app.include_router(health_profile.router)
 app.include_router(profiles.router)
 app.include_router(share.router)
+app.include_router(admin.router)

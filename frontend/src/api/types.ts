@@ -8,6 +8,7 @@ export interface User {
   abha_address: string | null
   abha_linked: boolean
   totp_enabled: boolean
+  is_admin: boolean
 }
 
 export interface TokenResponse {

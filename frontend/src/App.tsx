@@ -19,6 +19,7 @@ import VitalsPage from './pages/VitalsPage'
 import ChatPage from './pages/ChatPage'
 import ProfilePage from './pages/ProfilePage'
 import EmergencyPage from './pages/EmergencyPage'
+import AdminPage from './pages/AdminPage'
 import SharedViewPage from './pages/SharedViewPage'
 
 function Protected({ children }: { children: React.ReactNode }) {
@@ -65,6 +66,7 @@ export default function App() {
             <Route path="/vitals" element={<VitalsPage />} />
             <Route path="/assistant" element={<ChatPage />} />
             <Route path="/emergency" element={<EmergencyPage />} />
+            <Route path="/admin" element={<AdminPage />} />
             <Route path="/profile" element={<ProfilePage />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />

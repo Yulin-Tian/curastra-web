@@ -8,6 +8,7 @@ import os
 import sys
 
 os.environ["DATABASE_URL"] = "sqlite:///./smoke_test.db"
+os.environ["ADMIN_EMAILS"] = "smoke@test.com"  # the suite's admin-console checks
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -341,6 +342,21 @@ r = client.post("/api/auth/register", json={"name": "Reborn", "email": "delacc@t
 check("email free after deletion", r.status_code == 201, r.text)
 r = client.get("/api/medications", headers={"Authorization": f"Bearer {r.json()['token']}"})
 check("deleted data gone on re-register", r.status_code == 200 and r.json() == [], r.text)
+
+# Admin console: config-driven allowlist; metadata only
+r = client.get("/api/admin/overview", headers=other_headers)
+check("admin: non-admin -> 403", r.status_code == 403, r.text)
+r = client.get("/api/auth/me", headers=headers)
+check("admin: me carries is_admin", r.json().get("is_admin") is True, r.text)
+r = client.get("/api/admin/overview", headers=headers)
+ov = r.json() if r.status_code == 200 else {}
+check("admin: overview totals", r.status_code == 200 and ov.get("totals", {}).get("users", 0) >= 2, r.text[:200])
+check("admin: overview trends shape", len(ov.get("trends", {}).get("days", [])) == 14, str(ov.get("trends"))[:120])
+r = client.get("/api/admin/users?query=smoke", headers=headers)
+rows = r.json() if r.status_code == 200 else []
+check("admin: user search", r.status_code == 200 and any(u["email"] == "smoke@test.com" for u in rows), r.text[:200])
+leaky = [k for u in rows for k in u if k in ("extracted_text", "plan", "content", "value")]
+check("admin: no medical content fields", leaky == [], str(leaky))
 
 # Security headers on API responses
 r = client.get("/health")

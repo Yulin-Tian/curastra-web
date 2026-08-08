@@ -4,6 +4,7 @@ import {
   Activity,
   ClipboardList,
   FileText,
+  Gauge,
   HeartHandshake,
   HeartPulse,
   LayoutDashboard,
@@ -34,7 +35,7 @@ const navItems = [
 ]
 
 export default function Layout() {
-  const { logout } = useAuth()
+  const { user, logout } = useAuth()
   const location = useLocation()
   const { t } = useLang()
   const relationshipLabels: Record<string, string> = {
@@ -149,6 +150,21 @@ export default function Layout() {
               {t(label)}
             </NavLink>
           ))}
+          {user?.is_admin && (
+            <NavLink
+              to="/admin"
+              className={({ isActive }) =>
+                `flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-[13.5px] font-medium transition-colors ${
+                  isActive
+                    ? 'bg-white/10 text-white'
+                    : 'text-sage-200/70 hover:bg-white/5 hover:text-white'
+                }`
+              }
+            >
+              <Gauge className="h-[18px] w-[18px]" strokeWidth={1.8} />
+              {t('nav.admin')}
+            </NavLink>
+          )}
           <button
             onClick={logout}
             className="flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-[13.5px] font-medium text-sage-200/70 transition-colors hover:bg-white/5 hover:text-white"

@@ -1,7 +1,9 @@
 from datetime import datetime
 from typing import Any, Optional
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, computed_field
+
+from .config import settings
 
 
 # ---------------------------------------------------------------------------- #
@@ -29,6 +31,11 @@ class UserOut(BaseModel):
     totp_enabled: bool = False
 
     model_config = {"from_attributes": True}
+
+    @computed_field  # config-driven; there is deliberately no API path to admin
+    @property
+    def is_admin(self) -> bool:
+        return self.email.lower() in settings.admin_emails
 
 
 class TokenResponse(BaseModel):
