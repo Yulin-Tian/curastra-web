@@ -147,10 +147,10 @@ export default function Layout() {
             <LogOut className="h-[18px] w-[18px]" strokeWidth={1.8} />
             {t('nav.signout')}
           </button>
+          <div id="tour-lang" className="mt-6 flex justify-start pl-2.5">
+            <LanguageSwitcher tone="dark" />
+          </div>
         </nav>
-        <div id="tour-lang" className="mx-3 mb-4 flex justify-center">
-          <LanguageSwitcher tone="dark" />
-        </div>
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
