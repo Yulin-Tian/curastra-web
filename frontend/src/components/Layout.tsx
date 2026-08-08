@@ -15,6 +15,7 @@ import {
 } from 'lucide-react'
 import { api, getActiveProfileId, switchProfile } from '../api/client'
 import { ChatWidget } from './ChatWidget'
+import { PageScene } from './PageScene'
 import { Tour } from './Tour'
 import { useLang } from '../i18n/LanguageContext'
 import { LanguageSwitcher } from './LanguageSwitcher'
@@ -180,6 +181,7 @@ export default function Layout() {
           </div>
         </main>
 
+        <PageScene />
         <ChatWidget />
 
         {/* Mobile bottom nav */}

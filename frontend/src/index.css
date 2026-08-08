@@ -220,6 +220,17 @@ html[lang="hi"] .font-display {
   transform-origin: center;
 }
 
+/* Page scene: the low sun becomes a kite on the child theme. */
+.scene-kite {
+  display: none;
+}
+[data-theme='child'] .scene-sun {
+  display: none;
+}
+[data-theme='child'] .scene-kite {
+  display: initial;
+}
+
 /* Assistant widget slide-over entrance. */
 @keyframes slide-in {
   from {
