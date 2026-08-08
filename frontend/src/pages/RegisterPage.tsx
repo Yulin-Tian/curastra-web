@@ -13,13 +13,14 @@ export default function RegisterPage() {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [accepted, setAccepted] = useState(false)
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (password.length < 8) {
-      setError('Password must be at least 8 characters.')
+    if (!accepted) {
+      setError(t('auth.consentRequired'))
       return
     }
     setError('')
@@ -100,9 +101,27 @@ export default function RegisterPage() {
                 autoComplete="new-password"
               />
               <p className="mt-1 text-xs text-stone-400">{t('auth.pwHint')}</p>
-              <p className="mt-1.5 text-xs text-stone-400">{t('reg.minChars')}</p>
             </div>
-            <Button type="submit" disabled={busy} className="w-full !py-3">
+            <label className="flex items-start gap-2.5 text-sm text-slate-600">
+              <input
+                type="checkbox"
+                checked={accepted}
+                onChange={(e) => setAccepted(e.target.checked)}
+                className="mt-0.5 h-4 w-4 rounded border-stone-300 accent-teal-600"
+              />
+              <span>
+                {t('auth.consentPrefix')}{' '}
+                <Link to="/terms" target="_blank" className="font-medium text-teal-700 hover:underline">
+                  {t('auth.consentTerms')}
+                </Link>{' '}
+                {t('auth.consentAnd')}{' '}
+                <Link to="/privacy" target="_blank" className="font-medium text-teal-700 hover:underline">
+                  {t('auth.consentPrivacy')}
+                </Link>
+                .
+              </span>
+            </label>
+            <Button type="submit" disabled={busy || !accepted} className="w-full !py-3">
               {busy ? t('reg.creating') : t('reg.createBtn')}
             </Button>
             <p className="pt-1 text-center text-sm text-stone-500">

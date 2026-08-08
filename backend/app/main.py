@@ -19,6 +19,7 @@ from .routers import (
     abha,
     admin,
     ai,
+    export,
     auth_routes,
     care_plans,
     chat,
@@ -30,6 +31,15 @@ from .routers import (
     share,
     vitals,
 )
+
+# Error tracking: enabled the moment SENTRY_DSN is set in the environment;
+# a no-op otherwise, so local development stays untouched.
+import os as _os
+
+if _os.getenv("SENTRY_DSN"):
+    import sentry_sdk
+
+    sentry_sdk.init(dsn=_os.getenv("SENTRY_DSN"), traces_sample_rate=0.1, send_default_pii=False)
 
 app = FastAPI(title="Curastra Backend", version="1.0")
 
@@ -102,3 +112,4 @@ app.include_router(health_profile.router)
 app.include_router(profiles.router)
 app.include_router(share.router)
 app.include_router(admin.router)
+app.include_router(export.router)

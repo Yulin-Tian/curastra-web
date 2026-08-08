@@ -7,7 +7,7 @@ every user whose chosen UTC hour matches the current one.
 """
 
 import json
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, Header, HTTPException
 from pydantic import BaseModel, Field
@@ -214,4 +214,40 @@ def dispatch(x_cron_key: str | None = Header(None), db: Session = Depends(get_db
             continue
         payload = _build_digest(user, db)
         sent += sum(1 for s in subs if _send_to_subscription(s, payload, db))
-    return {"hour_utc": current_hour, "users_due": len(due), "notifications_sent": sent}
+
+    # End-of-course check-ins: event-driven, once per plan. The in-app card
+    # asks when the user visits; this push brings them there.
+    today = datetime.now(timezone.utc).date()
+    ended = db.scalars(
+        select(CarePlan).where(
+            CarePlan.status == "active",
+            CarePlan.end_notified.is_(False),
+            CarePlan.starts_on.isnot(None),
+            CarePlan.duration_days.isnot(None),
+        )
+    ).all()
+    course_sent = 0
+    for plan in ended:
+        try:
+            start = datetime.strptime(plan.starts_on, "%Y-%m-%d").date()
+        except ValueError:
+            continue
+        if today <= start + timedelta(days=plan.duration_days - 1):
+            continue  # course still running
+        subs = db.scalars(
+            select(PushSubscription).where(PushSubscription.user_id == plan.user_id)
+        ).all()
+        payload = {
+            "title": "Your course has ended — how are you feeling?",
+            "body": f"The {plan.duration_days}-day care plan is complete. Take a moment to record how you feel.",
+            "url": f"/care-plans/{plan.id}",
+        }
+        course_sent += sum(1 for s in subs if _send_to_subscription(s, payload, db))
+        plan.end_notified = True  # once per plan, even with no subscribed browser
+    db.commit()
+    return {
+        "hour_utc": current_hour,
+        "users_due": len(due),
+        "notifications_sent": sent,
+        "course_end_notices": course_sent,
+    }

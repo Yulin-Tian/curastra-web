@@ -32,13 +32,13 @@ r = client.get("/health")
 check("health", r.status_code == 200 and r.json()["status"] == "ok", r.text)
 
 # Register
-r = client.post("/api/auth/register", json={"name": "Smoke Tester", "email": "smoke@test.com", "password": "Password123A"})
+r = client.post("/api/auth/register", json={"name": "Smoke Tester", "email": "smoke@test.com", "password": "Password123A", "accepted_terms": True})
 check("register", r.status_code == 201 and "token" in r.json(), r.text)
 token = r.json().get("token", "")
 headers = {"Authorization": f"Bearer {token}"}
 
 # Duplicate register -> 409 with error shape
-r = client.post("/api/auth/register", json={"name": "Dup", "email": "smoke@test.com", "password": "Password123A"})
+r = client.post("/api/auth/register", json={"name": "Dup", "email": "smoke@test.com", "password": "Password123A", "accepted_terms": True})
 check("register duplicate -> 409 {error}", r.status_code == 409 and "error" in r.json(), r.text)
 
 # Login wrong password
@@ -299,7 +299,7 @@ check("share bad token -> 404", r.status_code == 404, r.text)
 
 # Cross-user isolation: second user cannot see first user's record,
 # nor revoke their share link
-r = client.post("/api/auth/register", json={"name": "Other", "email": "other@test.com", "password": "Password123A"})
+r = client.post("/api/auth/register", json={"name": "Other", "email": "other@test.com", "password": "Password123A", "accepted_terms": True})
 other_headers = {"Authorization": f"Bearer {r.json()['token']}"}
 r = client.get(f"/api/records/{rec_id}", headers=other_headers)
 check("cross-user record access -> 404", r.status_code == 404, r.text)
@@ -313,7 +313,7 @@ check("share revoked -> 404", r.status_code == 404, r.text)
 
 # Password policy: enforced where a password is SET (register/change/reset),
 # never at login — existing accounts keep working until they change it.
-r = client.post("/api/auth/register", json={"name": "Weak", "email": "weak@test.com", "password": "simplepass"})
+r = client.post("/api/auth/register", json={"name": "Weak", "email": "weak@test.com", "password": "simplepass", "accepted_terms": True})
 check("policy: weak register -> 400", r.status_code == 400 and "10 characters" in r.json().get("error", ""), r.text)
 r = client.post("/api/auth/change-password", json={"current_password": "Password456B", "new_password": "weakpassword"}, headers=headers)
 check("policy: weak change -> 400", r.status_code == 400, r.text)
@@ -329,7 +329,7 @@ r = client.post("/api/auth/login", json={"email": "smoke@test.com", "password": 
 check("rate limit: other identity unaffected", r.status_code == 200, r.text)
 
 # Account deletion: credentials must be re-proven; every owned row goes
-r = client.post("/api/auth/register", json={"name": "Doomed", "email": "delacc@test.com", "password": "Password789C"})
+r = client.post("/api/auth/register", json={"name": "Doomed", "email": "delacc@test.com", "password": "Password789C", "accepted_terms": True})
 del_headers = {"Authorization": f"Bearer {r.json()['token']}"}
 client.post("/api/medications", json={"name": "Ghost med"}, headers=del_headers)
 r = client.post("/api/auth/delete-account", json={"password": "wrong-password1"}, headers=del_headers)
@@ -338,10 +338,26 @@ r = client.post("/api/auth/delete-account", json={"password": "Password789C"}, h
 check("delete account", r.status_code == 204, r.text)
 r = client.post("/api/auth/login", json={"email": "delacc@test.com", "password": "Password789C"})
 check("deleted account cannot log in", r.status_code == 401, r.text)
-r = client.post("/api/auth/register", json={"name": "Reborn", "email": "delacc@test.com", "password": "Password789C"})
+r = client.post("/api/auth/register", json={"name": "Reborn", "email": "delacc@test.com", "password": "Password789C", "accepted_terms": True})
 check("email free after deletion", r.status_code == 201, r.text)
 r = client.get("/api/medications", headers={"Authorization": f"Bearer {r.json()['token']}"})
 check("deleted data gone on re-register", r.status_code == 200 and r.json() == [], r.text)
+
+# Consent: registration requires accepting the terms; timestamp is stored
+r = client.post("/api/auth/register", json={"name": "NoConsent", "email": "noconsent@test.com", "password": "Password987Z"})
+check("consent: register without terms -> 400", r.status_code == 400 and "accept" in r.json().get("error", "").lower(), r.text)
+from app.models import User as UserModel  # noqa: E402
+s = SessionLocal()
+u = s.query(UserModel).filter_by(email="smoke@test.com").first()
+check("consent: timestamp stored", u is not None and u.consented_at is not None, str(u and u.consented_at))
+s.close()
+
+# Data export: complete, structured, and mentions no file bytes
+r = client.get("/api/export", headers=headers)
+exp = r.json() if r.status_code == 200 else {}
+check("export shape", r.status_code == 200 and exp.get("format") == "curastra-export/1", r.text[:150])
+check("export has domains", all(k in exp for k in ("records", "care_plans", "medications", "vitals", "chat_history", "family_profiles")), str(list(exp.keys())))
+check("export includes confirmed text", any(rec.get("extracted_text") == "Tab Pan 40 OD" for rec in exp.get("records", [])), str(exp.get("records"))[:200])
 
 # Admin console: config-driven allowlist; metadata only
 r = client.get("/api/admin/overview", headers=other_headers)

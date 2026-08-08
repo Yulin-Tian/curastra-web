@@ -54,6 +54,10 @@ _COLUMN_MIGRATIONS = [
     # Emergency card: who to call when things go wrong
     ("health_profiles", "emergency_contact_name", "VARCHAR(120)", "VARCHAR(120)"),
     ("health_profiles", "emergency_contact_phone", "VARCHAR(20)", "VARCHAR(20)"),
+    # End-of-course push: sent once per plan
+    ("care_plans", "end_notified", "BOOLEAN DEFAULT FALSE", "BOOLEAN DEFAULT 0"),
+    # Terms/privacy consent timestamp (DPDP: demonstrable consent)
+    ("users", "consented_at", "TIMESTAMPTZ", "TIMESTAMP"),
 ]
 
 

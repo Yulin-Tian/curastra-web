@@ -393,7 +393,15 @@ export default function LandingPage() {
             <span className="font-display text-sm text-pine-900">Curastra</span>
             <span>· {t('chrome.tagline')}</span>
           </div>
-          <div>{t('landing.footerNote')}</div>
+          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
+            <span>{t('landing.footerNote')}</span>
+            <Link to="/privacy" className="hover:text-teal-700 hover:underline">
+              {t('auth.consentPrivacy')}
+            </Link>
+            <Link to="/terms" className="hover:text-teal-700 hover:underline">
+              {t('auth.consentTerms')}
+            </Link>
+          </div>
         </div>
       </footer>
     </div>

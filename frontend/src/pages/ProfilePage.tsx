@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import QRCode from 'qrcode'
-import { BadgeCheck, BellRing, Camera, Copy, HeartPulse, KeyRound, Link2, Share2, ShieldCheck, Trash2, UserRound, Users } from 'lucide-react'
+import { BadgeCheck, BellRing, Camera, Copy, Download, HeartPulse, KeyRound, Link2, Share2, ShieldCheck, Trash2, UserRound, Users } from 'lucide-react'
 import { useSearchParams } from 'react-router-dom'
 import { api, getActiveProfileId, getToken, switchProfile } from '../api/client'
 import { disablePush, enablePush, pushSupported } from '../api/push'
@@ -948,8 +948,52 @@ export default function ProfilePage() {
         )}
       </Card>
 
+      <ExportCard />
+
       <DeleteAccountCard />
     </div>
+  )
+}
+
+function ExportCard() {
+  const { t } = useLang()
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
+
+  async function onExport() {
+    setBusy(true)
+    setError('')
+    try {
+      const data = await api.get<Record<string, unknown>>('/api/export')
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `curastra-export-${new Date().toISOString().slice(0, 10)}.json`
+      a.click()
+      URL.revokeObjectURL(url)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Export failed.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <Card className="mt-6">
+      <h2 className="flex items-center gap-2 font-semibold text-slate-800">
+        <Download className="h-4 w-4 text-teal-600" /> {t('export.title')}
+      </h2>
+      <p className="mt-1 text-sm text-stone-500">{t('export.desc')}</p>
+      {error && (
+        <div className="mt-3">
+          <ErrorBanner message={error} />
+        </div>
+      )}
+      <Button variant="secondary" className="mt-4" onClick={onExport} disabled={busy}>
+        {busy ? t('export.working') : t('export.btn')}
+      </Button>
+    </Card>
   )
 }
 

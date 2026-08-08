@@ -436,6 +436,22 @@ export const T: Record<string, Entry> = {
   'basics.emName': { en: 'Emergency contact name', hi: 'आपातकालीन संपर्क का नाम' },
   'basics.emPhone': { en: 'Emergency contact phone', hi: 'आपातकालीन संपर्क का फ़ोन' },
   'nav.emergency': { en: 'Emergency', hi: 'आपातकाल' },
+  'legal.back': { en: 'Back to Curastra', hi: 'Curastra पर वापस' },
+  'auth.consentPrefix': { en: 'I have read and accept the', hi: 'मैंने पढ़ लिया है और स्वीकार करता/करती हूँ:' },
+  'auth.consentTerms': { en: 'Terms of Service', hi: 'सेवा की शर्तें' },
+  'auth.consentAnd': { en: 'and the', hi: 'और' },
+  'auth.consentPrivacy': { en: 'Privacy Policy', hi: 'गोपनीयता नीति' },
+  'auth.consentRequired': {
+    en: 'Please accept the Terms and the Privacy Policy to continue.',
+    hi: 'जारी रखने के लिए कृपया शर्तें और गोपनीयता नीति स्वीकार करें।',
+  },
+  'export.title': { en: 'Your data', hi: 'आपका डेटा' },
+  'export.desc': {
+    en: 'Download everything your account holds — records, care plans, medicines, readings, chats, and family profiles — as a single JSON file. Original uploaded files stay downloadable from each record.',
+    hi: 'आपके खाते का सब कुछ — रिकॉर्ड, केयर प्लान, दवाएँ, रीडिंग, चैट और पारिवारिक प्रोफ़ाइल — एक JSON फ़ाइल में डाउनलोड करें। मूल फ़ाइलें हर रिकॉर्ड से अलग डाउनलोड होती हैं।',
+  },
+  'export.btn': { en: 'Download my data', hi: 'मेरा डेटा डाउनलोड करें' },
+  'export.working': { en: 'Preparing…', hi: 'तैयार हो रहा है…' },
   'nav.admin': { en: 'Admin', hi: 'एडमिन' },
   'admin.title': { en: 'Admin Console', hi: 'एडमिन कंसोल' },
   'admin.sub': {

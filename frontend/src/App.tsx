@@ -21,6 +21,7 @@ import ProfilePage from './pages/ProfilePage'
 import EmergencyPage from './pages/EmergencyPage'
 import AdminPage from './pages/AdminPage'
 import SharedViewPage from './pages/SharedViewPage'
+import { PrivacyPage, TermsPage } from './pages/LegalPages'
 
 function Protected({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth()
@@ -50,6 +51,8 @@ export default function App() {
           <Route path="/forgot" element={<ForgotPasswordPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/share/:token" element={<SharedViewPage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
+          <Route path="/terms" element={<TermsPage />} />
           <Route
             element={
               <Protected>

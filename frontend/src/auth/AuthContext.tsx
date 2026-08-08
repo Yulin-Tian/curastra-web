@@ -40,7 +40,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function register(name: string, email: string, password: string) {
-    const res = await api.post<TokenResponse>('/api/auth/register', { name, email, password })
+    // The consent checkbox gates the submit; the backend requires and
+    // timestamps the acceptance.
+    const res = await api.post<TokenResponse>('/api/auth/register', { name, email, password, accepted_terms: true })
     setToken(res.token)
     setUser(res.user)
   }

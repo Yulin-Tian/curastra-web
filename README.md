@@ -1,87 +1,108 @@
-# Curastra Web
+# Curastra — everyday care, continued
 
-The web application for **Curastra** (AI-Augmented Personal Health Assistant,
-BITS Capstone Group 97): a React frontend and a FastAPI main backend that
-delegates all OCR/AI work to the separate, unchanged **Active Care Engine**.
+[![CI](https://github.com/Yulin-Tian/curastra-web/actions/workflows/ci.yml/badge.svg)](https://github.com/Yulin-Tian/curastra-web/actions/workflows/ci.yml)
+
+**Live at [curastra.app](https://curastra.app)** · English / हिन्दी
+
+Curastra is an AI-augmented personal health assistant for the moment care most
+often breaks down: after the consultation. Bring a prescription — a photo, a
+PDF, a document — review the extracted text yourself, and it becomes a
+structured after-care plan that follows the prescription's own course, day by
+day, until the app asks the question that matters: *are you feeling better?*
+
+## What it does
+
+- **Prescription → care plan**: OCR with a mandatory human review step; no AI
+  ever acts on text the patient hasn't confirmed.
+- **Treatment lifecycle**: plans start on explicit confirmation, run a strict
+  course window parsed from the prescription, track daily adherence on an
+  interactive calendar (ticks lock after 5 minutes, for safety), and close
+  with an end-of-course check-in — pushed to your device when the course ends.
+- **Medications** with AI safety alerts (duplicates, interactions), **vitals**
+  with trends and insights, and a **context-grounded assistant** available on
+  every page — with voice input, in English or Hindi.
+- **Family care**: separate, themed profiles for children and parents, each
+  with its own records, plans, medicines, and ABHA linkage (real
+  Aadhaar-initiated enrollment via the ABDM sandbox gateway).
+- **Sharing & emergencies**: revocable read-only links for doctors and family;
+  a printable emergency card with confirmed one-tap calling of 112 or the
+  saved contact.
+- **Data rights**: consent recorded at registration, one-click full data
+  export (JSON), and account deletion behind credential re-proof.
+- **Admin console**: metadata-only platform oversight (totals, user segments,
+  activity trends, service health) gated by server configuration.
+
+## Architecture
 
 ```
-React web app (5173)  ->  this backend (3000)  ->  Active Care Engine (8000)
-      frontend/               backend/               (separate repo)
+React 19 + TypeScript (static site)          FastAPI + PostgreSQL              FastAPI + Docker
+        frontend/                    ──▶          backend/              ──▶    Active Care Engine
+  curastra.app (Render)                    JWT auth, all persistence           OCR + OpenAI (separate repo)
 ```
 
-The engine's HTTP contract (X-Internal-Key auth, 60 s timeout, `{ "error": … }`
-error shape) is consumed exactly as designed — the platform pivot from Android
-to web required **zero engine changes**.
+Deployed on Render from the `render.yaml` blueprint; every push to `main`
+runs CI (the backend smoke suite plus a production frontend build) and
+auto-deploys. The engine keeps its original HTTP contract (X-Internal-Key
+auth, `{ "error": … }` shape) — the platform pivot from Android to web
+required zero engine changes.
 
-## Features
+## Security
 
-- Register / login (JWT), profile, mock ABHA linking
-- Health records: upload photos/PDFs/documents (stored in the database)
-- **OCR with human-in-the-loop review** — extracted text must be read,
-  corrected, and confirmed by the user before any AI feature uses it
-- After-care plan generation (medications, tasks, red flags, clarifications)
-- "Explain in simple words" with read-aloud (browser speech synthesis)
-- Lab report analysis with color-coded out-of-range flags
-- Medication list with cross-medication safety alerts
-- Vitals logging with AI health insights
-- Context-aware AI chatbot (multi-turn, red "seek help" banner on
-  `advised_see_doctor`, persistent history)
-
-Every AI result shows its disclaimer; every AI action has loading, error, and
-empty states.
-
-## Run locally
-
-Three terminals:
-
-```bash
-# 1. Active Care Engine (its own repo)
-cd active_care_engine
-.venv\Scripts\python.exe -m uvicorn app.api_server:app --port 8000
-
-# 2. Backend
-cd backend
-py -3.12 -m venv .venv          # first time
-.venv\Scripts\python.exe -m pip install -r requirements.txt
-copy .env.example .env
-.venv\Scripts\python.exe -m uvicorn app.main:app --port 3000
-
-# 3. Frontend
-cd frontend
-npm install                     # first time
-npm run dev                     # -> http://localhost:5173
-```
-
-The Vite dev server proxies `/api` to port 3000, so no CORS setup is needed in
-development.
-
-## Tests
-
-```bash
-cd backend
-.venv\Scripts\python.exe tests\smoke_test.py    # core API, no engine needed
-.venv\Scripts\python.exe tests\e2e_local.py     # full chain, engine must run
-```
-
-## Deployment (Render)
-
-Three services + one database:
-
-| Service  | Type                  | Notes                                        |
-|----------|-----------------------|----------------------------------------------|
-| engine   | Docker web service    | its own repo's Dockerfile (Tesseract+Poppler)|
-| backend  | Python web service    | build `pip install -r requirements.txt`, start `uvicorn app.main:app --host 0.0.0.0 --port $PORT`, root dir `backend` |
-| frontend | Static site           | build `npm run build`, publish `dist`, root dir `frontend`, rewrite `/*` -> `/index.html` |
-| Postgres | Render free tier      | set its URL as backend `DATABASE_URL`        |
-
-Backend env vars on Render: `DATABASE_URL`, `JWT_SECRET` (long random),
-`AI_ENGINE_URL` (engine's public URL), `INTERNAL_API_KEY` (must match the
-engine's, **non-empty**), `CORS_ORIGINS` (the static site URL).
-Frontend env var at build time: `VITE_API_URL` (the backend's public URL).
+bcrypt password hashing with a strength policy · optional TOTP two-factor ·
+brute-force rate limiting on all auth endpoints · strict security headers and
+CSP on both tiers · single-use hashed recovery codes without account
+enumeration · per-account isolation covered by tests · clean dependency
+audits (npm audit, pip-audit) · error tracking via Sentry when `SENTRY_DSN`
+is set.
 
 ## Safety design
 
-- The app never diagnoses, prescribes, or changes dosages.
+- The app never diagnoses, prescribes, or changes dosages; refusals and
+  emergency escalation are tested behaviours, not prompts alone.
 - OCR text is user-verified before any AI consumes it (human-in-the-loop).
-- AI disclaimers are always visible; emergencies are escalated to a visible
-  "seek medical help" banner.
+- Every AI result carries its disclaimer; possible emergencies raise a
+  visible "seek medical help" banner.
+
+## Running locally
+
+```bash
+# backend (terminal 1)
+cd backend
+py -3.12 -m venv .venv && .venv\Scripts\activate     # first time
+pip install -r requirements.txt
+copy .env.example .env
+uvicorn app.main:app --port 3000
+
+# frontend (terminal 2)
+cd frontend
+npm ci
+npm run dev                                          # -> http://localhost:5173
+
+# tests
+cd backend
+python tests/smoke_test.py        # core API suite, no engine needed
+python tests/e2e_local.py         # full chain, engine must run
+```
+
+The Vite dev server proxies `/api` to port 3000; the AI engine runs
+separately (its own repository) and everything else degrades gracefully
+without it.
+
+## Deployment (Render)
+
+| Service  | Type               | Notes                                              |
+|----------|--------------------|----------------------------------------------------|
+| frontend | Static site        | `npm run build` → `dist`, SPA rewrite, security headers via blueprint |
+| backend  | Python web service | `uvicorn app.main:app`, health check `/health`     |
+| engine   | Docker web service | its own repo (Tesseract + Poppler + OpenAI)        |
+| Postgres | Managed database   | `DATABASE_URL` into the backend                    |
+
+Backend env vars: `DATABASE_URL`, `JWT_SECRET`, `AI_ENGINE_URL`,
+`INTERNAL_API_KEY` (must match the engine's), `CORS_ORIGINS`, plus optional
+`ADMIN_EMAILS`, `SENTRY_DSN`, `RESEND_API_KEY`, VAPID keys for Web Push, and
+`CRON_SECRET` for the hourly reminder dispatcher.
+
+---
+
+Built by Yulin Tian (AI & product) with Anurag Pawar (ABHA gateway service) —
+BITS Pilani BSc CS capstone, 2026. **Not a medical device.**

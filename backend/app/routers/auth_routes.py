@@ -23,6 +23,8 @@ MAX_AVATAR_BYTES = 2 * 1024 * 1024
 @router.post("/register", response_model=TokenResponse, status_code=201)
 def register(payload: RegisterRequest, request: Request, db: Session = Depends(get_db)):
     check_rate(request, "register", limit=20, window_seconds=3600)
+    if not payload.accepted_terms:
+        raise HTTPException(status_code=400, detail="Please accept the Terms and the Privacy Policy.")
     validate_password_strength(payload.password)
     existing = db.scalar(select(User).where(User.email == payload.email.lower()))
     if existing:
@@ -32,6 +34,7 @@ def register(payload: RegisterRequest, request: Request, db: Session = Depends(g
         name=payload.name.strip(),
         email=payload.email.lower(),
         password_hash=hash_password(payload.password),
+        consented_at=datetime.now(timezone.utc),
     )
     db.add(user)
     db.commit()

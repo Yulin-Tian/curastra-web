@@ -39,6 +39,8 @@ class User(Base):
     # Password recovery: bcrypt hash of the emailed 6-digit code + its expiry.
     reset_code_hash: Mapped[str | None] = mapped_column(String(255), nullable=True)
     reset_expires: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    # When the user accepted the Terms and Privacy Policy (registration).
+    consented_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
 
     records: Mapped[list["Record"]] = relationship(back_populates="user", cascade="all, delete-orphan")
@@ -133,6 +135,7 @@ class CarePlan(Base):
     starts_on: Mapped[str | None] = mapped_column(String(10), nullable=True)  # YYYY-MM-DD
     status: Mapped[str | None] = mapped_column(String(12), nullable=True)  # draft|active|completed
     outcome: Mapped[str | None] = mapped_column(String(12), nullable=True)  # better|not_better
+    end_notified: Mapped[bool] = mapped_column(Boolean, default=False)  # course-end push sent
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
 
 
