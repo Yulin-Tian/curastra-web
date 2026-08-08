@@ -426,6 +426,7 @@ export const T: Record<string, Entry> = {
   'basics.emName': { en: 'Emergency contact name', hi: 'आपातकालीन संपर्क का नाम' },
   'basics.emPhone': { en: 'Emergency contact phone', hi: 'आपातकालीन संपर्क का फ़ोन' },
   'nav.emergency': { en: 'Emergency', hi: 'आपातकाल' },
+  'chat.clearBtn': { en: 'Clear chat', hi: 'चैट साफ़ करें' },
   'chat.widgetOpen': { en: 'Ask the assistant', hi: 'सहायक से पूछें' },
   'chat.widgetTitle': { en: 'Ask Curastra', hi: 'Curastra से पूछें' },
   'chat.widgetSub': { en: 'Your care record, in plain words', hi: 'आपका केयर रिकॉर्ड, सरल शब्दों में' },
