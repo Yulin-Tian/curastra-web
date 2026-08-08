@@ -373,6 +373,7 @@ export const T: Record<string, Entry> = {
   'vitals.insightsSpinner': { en: 'Looking for patterns in your readings…', hi: 'आपकी रीडिंग में पैटर्न खोजे जा रहे हैं…' },
   'vitals.insightsTitle': { en: 'Health insights', hi: 'स्वास्थ्य सलाह' },
   'vitals.nothingNotable': { en: 'Nothing notable yet. Keep logging regularly.', hi: 'अभी कुछ ख़ास नहीं। नियमित दर्ज करते रहें।' },
+  'vitals.retryInsights': { en: 'Try again', hi: 'फिर कोशिश करें' },
   'vitals.bp': { en: 'Blood pressure', hi: 'ब्लड प्रेशर' },
   'vitals.glucose': { en: 'Blood glucose', hi: 'ब्लड शुगर' },
   'vitals.weight': { en: 'Weight', hi: 'वज़न' },

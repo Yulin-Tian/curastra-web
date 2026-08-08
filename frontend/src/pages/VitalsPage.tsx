@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Activity, Lightbulb, Plus, TrendingUp, Trash2 } from 'lucide-react'
 import { api } from '../api/client'
 import type { Insight, InsightsResult, Vital } from '../api/types'
@@ -31,7 +31,14 @@ export default function VitalsPage() {
   const [adding, setAdding] = useState(false)
   const [insights, setInsights] = useState<InsightsResult | null>(null)
   const [loadingInsights, setLoadingInsights] = useState(false)
+  const [insightsError, setInsightsError] = useState('')
   const [chartType, setChartType] = useState<string | null>(null)
+  const insightsRef = useRef<HTMLDivElement>(null)
+
+  // The results card renders below the fold; bring it into view.
+  useEffect(() => {
+    if (insights) insightsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+  }, [insights])
 
   // Chart the most-logged type by default; user can switch.
   const chartable = useMemo(() => {
@@ -82,12 +89,14 @@ export default function VitalsPage() {
 
   async function onInsights() {
     setLoadingInsights(true)
-    setError('')
+    setInsightsError('')
     setInsights(null)
     try {
       setInsights(await api.post<InsightsResult>('/api/vitals/insights'))
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not generate insights.')
+      // Shown beside the button, where the user is looking — a top-of-page
+      // banner is invisible when scrolled down to the history list.
+      setInsightsError(err instanceof Error ? err.message : 'Could not generate insights.')
     } finally {
       setLoadingInsights(false)
     }
@@ -166,6 +175,14 @@ export default function VitalsPage() {
               </Button>
             </div>
             {loadingInsights && <Spinner label={t('vitals.insightsSpinner')} />}
+            {insightsError && (
+              <div className="mb-2 flex flex-wrap items-center gap-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+                <span>{insightsError}</span>
+                <button onClick={onInsights} className="font-semibold underline hover:no-underline">
+                  {t('vitals.retryInsights')}
+                </button>
+              </div>
+            )}
             <ul className="divide-y divide-slate-100">
               {vitals.map((v) => (
                 <li key={v.id} className="flex items-center gap-3 py-2.5">
@@ -185,6 +202,7 @@ export default function VitalsPage() {
           </Card>
 
           {insights && (
+            <div ref={insightsRef}>
             <Card className="mt-6">
               <h2 className="mb-3 flex items-center gap-2 font-semibold text-slate-800">
                 <Lightbulb className="h-4 w-4 text-amber-500" /> {t('vitals.insightsTitle')}
@@ -208,6 +226,7 @@ export default function VitalsPage() {
               )}
               <Disclaimer text={insights.disclaimer} />
             </Card>
+            </div>
           )}
         </>
       )}
