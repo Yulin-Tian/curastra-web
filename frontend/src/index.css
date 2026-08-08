@@ -33,9 +33,11 @@ body {
    child or parent re-colors the whole app (sidebar, chips, headings) while
    the teal action color and paper canvas stay constant. ---- */
 [data-theme="child"] {
-  --color-pine-950: #1e2a5e;
-  --color-pine-900: #27367a;
-  --color-pine-800: #33459a;
+  /* Softened one notch (Aug 8 feedback): the saturated indigo sidebar felt
+     too strong next to the pine and plum themes. */
+  --color-pine-950: #27325a;
+  --color-pine-900: #3a4677;
+  --color-pine-800: #4b588e;
   --color-pine-100: #dfe5f5;
   --color-sage-50: #f0f3fb;
   --color-sage-100: #e7ecf8;

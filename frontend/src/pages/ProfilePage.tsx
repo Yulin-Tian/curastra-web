@@ -758,6 +758,8 @@ export default function ProfilePage() {
   const refreshProfiles = useCallback(async () => {
     try {
       setProfiles(await api.get<ProfileInfo[]>('/api/profiles'))
+      // Let the sidebar switcher pick up the change without a reload.
+      window.dispatchEvent(new Event('curastra:profiles-changed'))
     } catch {
       /* non-fatal */
     }

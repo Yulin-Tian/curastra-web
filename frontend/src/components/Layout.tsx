@@ -47,7 +47,12 @@ export default function Layout() {
   const [showTour, setShowTour] = useState(false)
 
   useEffect(() => {
-    api.get<ProfileInfo[]>('/api/profiles').then(setProfiles).catch(() => {})
+    const load = () => api.get<ProfileInfo[]>('/api/profiles').then(setProfiles).catch(() => {})
+    load()
+    // Fired by the Profile page after adding/removing a family member, so the
+    // switcher updates without a reload.
+    window.addEventListener('curastra:profiles-changed', load)
+    return () => window.removeEventListener('curastra:profiles-changed', load)
   }, [])
 
   // First-run guided tour: desktop only, once per browser, from the dashboard.
