@@ -5,7 +5,7 @@ import { api } from '../api/client'
 import type { CarePlan, HealthRecord, Medication, Vital } from '../api/types'
 import { useAuth } from '../auth/AuthContext'
 import { useLang } from '../i18n/LanguageContext'
-import { Card, CountUp } from '../components/ui'
+import { Card, CountUp, Sparkline } from '../components/ui'
 import { SkylineScene } from '../components/illustrations'
 
 interface BasicsProbe {
@@ -31,7 +31,7 @@ export default function DashboardPage() {
       api.get<CarePlan[]>('/api/care-plans').then(setPlans),
     ]).then(() => setLoadedCore(true))
     api.get<Medication[]>('/api/medications').then(setMeds).catch(() => {})
-    api.get<Vital[]>('/api/vitals?limit=1').then(setVitals).catch(() => {})
+    api.get<Vital[]>('/api/vitals?limit=14').then(setVitals).catch(() => {})
     api
       .get<BasicsProbe>('/api/profile/health')
       .then((b) => setHasBasics(Boolean(b.allergies || b.date_of_birth || b.height_cm)))
@@ -48,6 +48,18 @@ export default function DashboardPage() {
 
   const latestVital = vitals[0]
   const latestPlan = plans[0]
+
+  // Trend of the latest vital's type, oldest -> newest (API returns newest first).
+  const trendSeries = latestVital
+    ? vitals
+        .filter((v) => v.type === latestVital.type)
+        .map((v) => parseFloat(v.value))
+        .filter(Number.isFinite)
+        .reverse()
+        .slice(-10)
+    : []
+  const trendDelta =
+    trendSeries.length >= 2 ? trendSeries[trendSeries.length - 1] - trendSeries[trendSeries.length - 2] : null
 
   const stats = [
     { label: t('dash.records'), value: records.length, icon: FileText, to: '/records' },
@@ -113,6 +125,17 @@ export default function DashboardPage() {
                 {typeof value === 'number' ? <CountUp value={value} /> : value}
               </div>
               <div className="mt-0.5 text-[13px] text-stone-500">{label}</div>
+              {label === t('dash.lastReading') && trendSeries.length >= 2 && (
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <Sparkline values={trendSeries} />
+                  {trendDelta !== null && trendDelta !== 0 && (
+                    <span className="rounded-full bg-sage-100 px-2 py-0.5 text-[11px] font-medium text-pine-900">
+                      {trendDelta > 0 ? '\u25b2' : '\u25bc'} {Math.abs(Math.round(trendDelta * 10) / 10)}{' '}
+                      {latestVital?.unit ?? ''} {t('dash.vsPrev')}
+                    </span>
+                  )}
+                </div>
+              )}
             </Card>
           </Link>
         ))}

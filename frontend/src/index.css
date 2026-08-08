@@ -160,6 +160,49 @@ html[lang="hi"] .font-display {
   animation: fade-up 0.3s 1s ease forwards;
 }
 
+/* Skeleton shimmer: "content is coming" placeholders. */
+@keyframes shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+.anim-shimmer {
+  background: linear-gradient(90deg, #e8efe7 25%, #f1f4ee 50%, #e8efe7 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.6s linear infinite;
+}
+
+/* Breathing circle: calm inhale/exhale rhythm for the AI thinking state. */
+@keyframes breathe {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.55;
+  }
+  45% {
+    transform: scale(1.45);
+    opacity: 1;
+  }
+}
+.anim-breathe {
+  animation: breathe 3.6s ease-in-out infinite;
+}
+.anim-breathe-inner {
+  animation: breathe 3.6s ease-in-out -0.4s infinite;
+}
+
+/* ECG marquee: the waveform pattern repeats every 300 units. */
+@keyframes ecg-scroll {
+  to {
+    transform: translateX(-300px);
+  }
+}
+.ecg-track {
+  animation: ecg-scroll 5s linear infinite;
+}
+
 /* The brand heartbeat: a gentle lub-dub on the logo mark. */
 @keyframes heartbeat {
   0%, 28%, 100% {
@@ -202,6 +245,10 @@ html[lang="hi"] .font-display {
   .anim-page > *,
   .anim-pop,
   .anim-heartbeat,
+  .anim-shimmer,
+  .anim-breathe,
+  .anim-breathe-inner,
+  .ecg-track,
   .chart-dot,
   .chart-line {
     animation: none;

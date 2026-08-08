@@ -79,6 +79,73 @@ export function StyledSelect(props: React.SelectHTMLAttributes<HTMLSelectElement
   )
 }
 
+/** Shimmer placeholder block. */
+export function Skeleton({ className = '' }: { className?: string }) {
+  return <div className={`anim-shimmer rounded-xl ${className}`} aria-hidden="true" />
+}
+
+/** A list of card-shaped placeholders while content loads. */
+export function SkeletonList({ rows = 3 }: { rows?: number }) {
+  return (
+    <div className="space-y-2" role="status" aria-label="Loading">
+      {Array.from({ length: rows }, (_, i) => (
+        <div key={i} className="flex items-center gap-3 rounded-xl border border-stone-200/60 bg-white px-4 py-3">
+          <Skeleton className="h-9 w-9 !rounded-full" />
+          <div className="flex-1 space-y-2">
+            <Skeleton className="h-3.5 w-2/5" />
+            <Skeleton className="h-3 w-3/5" />
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+/** Calm breathing circle for AI thinking states. */
+export function BreathingCircle({ label }: { label: string }) {
+  return (
+    <div className="flex items-center gap-3 py-3" role="status">
+      <span className="relative flex h-9 w-9 items-center justify-center">
+        <span className="anim-breathe absolute inset-0 rounded-full bg-teal-200/60" />
+        <span className="anim-breathe-inner absolute inset-1.5 rounded-full bg-teal-400/50" />
+        <span className="relative h-2.5 w-2.5 rounded-full bg-teal-600" />
+      </span>
+      <span className="text-sm text-stone-500">{label}</span>
+    </div>
+  )
+}
+
+/** Tiny inline trend curve (Oura-style). */
+export function Sparkline({ values, width = 96, height = 28 }: { values: number[]; width?: number; height?: number }) {
+  if (values.length < 2) return null
+  const min = Math.min(...values)
+  const max = Math.max(...values)
+  const span = max - min || 1
+  const pts = values
+    .map((v, i) => `${((i / (values.length - 1)) * (width - 4) + 2).toFixed(1)},${(height - 3 - ((v - min) / span) * (height - 6)).toFixed(1)}`)
+    .join(' ')
+  return (
+    <svg width={width} height={height} aria-hidden="true">
+      <polyline points={pts} fill="none" stroke="#0d9488" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" opacity="0.85" />
+    </svg>
+  )
+}
+
+/** Continuously drawing ECG line — decorative medical motion. */
+export function EcgLine({ className = '' }: { className?: string }) {
+  // One heartbeat complex per 100 units; the pattern period is 300.
+  const complex = (x: number) =>
+    `M${x} 20 h18 q3 -5 6 0 h8 l5 -14 l6 26 l5 -12 h10 q5 -8 10 0 h32`
+  const d = [0, 100, 200, 300, 400, 500].map(complex).join(' ')
+  return (
+    <div className={`overflow-hidden ${className}`} aria-hidden="true">
+      <svg viewBox="0 0 300 40" className="ecg-track h-10 w-[200%]" preserveAspectRatio="xMinYMid meet" style={{ minWidth: '600px' }}>
+        <path d={d} fill="none" stroke="#0d9488" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" opacity="0.5" />
+      </svg>
+    </div>
+  )
+}
+
 /** Loading state for AI/OCR calls — these take a few seconds, the UI must never look frozen. */
 export function Spinner({ label = 'Working…' }: { label?: string }) {
   return (

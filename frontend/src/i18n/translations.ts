@@ -156,6 +156,7 @@ export const T: Record<string, Entry> = {
   'dash.check2': { en: 'Upload a prescription', hi: 'प्रिस्क्रिप्शन अपलोड करें' },
   'dash.check3': { en: 'Generate your first care plan', hi: 'पहला केयर प्लान बनाएँ' },
   'dash.check4': { en: 'Ask the assistant anything', hi: 'सहायक से कुछ भी पूछें' },
+  'dash.vsPrev': { en: 'vs previous', hi: 'पिछली बार से' },
   'dash.footer': {
     en: 'Curastra supports your everyday care. It never diagnoses or replaces medical advice.',
     hi: 'Curastra आपकी रोज़मर्रा की देखभाल में सहारा है। यह न निदान करता है, न डॉक्टर की सलाह की जगह लेता है।',

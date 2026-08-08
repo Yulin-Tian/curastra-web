@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Activity, Lightbulb, Plus, TrendingUp, Trash2 } from 'lucide-react'
 import { api } from '../api/client'
 import type { Insight, InsightsResult, Vital } from '../api/types'
-import { Button, Card, Disclaimer, EmptyState, ErrorBanner, PageTitle, Segmented, Spinner, inputClass } from '../components/ui'
+import { Button, Card, Disclaimer, EcgLine, EmptyState, ErrorBanner, PageTitle, Segmented, SkeletonList, Spinner, inputClass } from '../components/ui'
 import { VitalsChart } from '../components/VitalsChart'
 import { useLang } from '../i18n/LanguageContext'
 
@@ -101,6 +101,7 @@ export default function VitalsPage() {
   return (
     <div>
       <PageTitle title={t('vitals.title')} subtitle={t('vitals.sub')} />
+      <EcgLine className="-mt-4 mb-6" />
       <ErrorBanner message={error} />
 
       <Card className="mb-6">
@@ -124,7 +125,7 @@ export default function VitalsPage() {
       </Card>
 
       {vitals === null ? (
-        <Spinner label="Loading vitals…" />
+        <SkeletonList />
       ) : vitals.length === 0 ? (
         <EmptyState title={t('vitals.empty')} hint={t('vitals.emptyHint')} />
       ) : (

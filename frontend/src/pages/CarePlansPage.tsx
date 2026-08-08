@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { ClipboardList } from 'lucide-react'
 import { api } from '../api/client'
 import type { CarePlan } from '../api/types'
-import { EmptyState, ErrorBanner, PageTitle, Spinner } from '../components/ui'
+import { EmptyState, ErrorBanner, PageTitle, SkeletonList } from '../components/ui'
 import { useLang } from '../i18n/LanguageContext'
 
 export default function CarePlansPage() {
@@ -23,7 +23,7 @@ export default function CarePlansPage() {
       <PageTitle title={t('plans.title')} subtitle={t('plans.sub')} />
       <ErrorBanner message={error} />
       {plans === null ? (
-        <Spinner label="Loading care plans…" />
+        <SkeletonList />
       ) : plans.length === 0 ? (
         <EmptyState title={t('plans.empty')} hint={t('plans.emptyHint')} />
       ) : (

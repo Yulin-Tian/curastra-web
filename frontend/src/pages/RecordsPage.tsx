@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { FileText, Upload } from 'lucide-react'
 import { api } from '../api/client'
 import type { HealthRecord, RecordType } from '../api/types'
-import { Button, Card, EmptyState, ErrorBanner, PageTitle, Segmented, Spinner, inputClass } from '../components/ui'
+import { Button, Card, EmptyState, ErrorBanner, PageTitle, Segmented, SkeletonList, inputClass } from '../components/ui'
 import { useLang } from '../i18n/LanguageContext'
 
 const typeLabelKeys: Record<RecordType, string> = {
@@ -98,7 +98,7 @@ export default function RecordsPage() {
       </Card>
 
       {records === null ? (
-        <Spinner label="Loading records…" />
+        <SkeletonList />
       ) : records.length === 0 ? (
         <EmptyState title={t('records.empty')} hint={t('records.emptyHint')} />
       ) : (

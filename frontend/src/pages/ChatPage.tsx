@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { AlertTriangle, MessageCircle, Send, Trash2 } from 'lucide-react'
 import { api } from '../api/client'
 import type { ChatMessage, ChatResult, SafetyFlag } from '../api/types'
-import { Button, ErrorBanner, Spinner, PageTitle } from '../components/ui'
+import { BreathingCircle, Button, ErrorBanner, PageTitle, SkeletonList } from '../components/ui'
 import { useLang } from '../i18n/LanguageContext'
 
 interface DisplayMessage {
@@ -94,7 +94,7 @@ export default function ChatPage() {
 
       <div className="mt-2 flex-1 space-y-3 overflow-y-auto rounded-2xl border border-stone-200/80 bg-white p-5">
         {messages === null ? (
-          <Spinner label={t('common.loading')} />
+          <SkeletonList rows={2} />
         ) : messages.length === 0 ? (
           <div className="flex h-full flex-col items-center justify-center text-center">
             <span className="rounded-2xl bg-sage-100 p-4">
@@ -136,7 +136,7 @@ export default function ChatPage() {
             </div>
           ))
         )}
-        {sending && <Spinner label={t('common.thinking')} />}
+        {sending && <BreathingCircle label={t('common.thinking')} />}
         <div ref={bottomRef} />
       </div>
 

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Pill, Plus, ShieldCheck, Trash2 } from 'lucide-react'
 import { api } from '../api/client'
 import type { MedAlert, Medication, MedSafetyResult } from '../api/types'
-import { Button, Card, Disclaimer, EmptyState, ErrorBanner, PageTitle, Spinner, inputClass } from '../components/ui'
+import { Button, Card, Disclaimer, EmptyState, ErrorBanner, PageTitle, SkeletonList, Spinner, inputClass } from '../components/ui'
 import { useLang } from '../i18n/LanguageContext'
 
 const alertStyles: Record<MedAlert['severity'], string> = {
@@ -105,7 +105,7 @@ export default function MedicationsPage() {
       </Card>
 
       {meds === null ? (
-        <Spinner label="Loading medications…" />
+        <SkeletonList />
       ) : meds.length === 0 ? (
         <EmptyState title={t('meds.empty')} hint={t('meds.emptyHint')} />
       ) : (
