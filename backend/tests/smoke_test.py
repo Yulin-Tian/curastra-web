@@ -343,6 +343,27 @@ check("email free after deletion", r.status_code == 201, r.text)
 r = client.get("/api/medications", headers={"Authorization": f"Bearer {r.json()['token']}"})
 check("deleted data gone on re-register", r.status_code == 200 and r.json() == [], r.text)
 
+# Per-dose reminders: frequency parsing + settings round-trip
+from app.routers.notifications import dose_hours  # noqa: E402
+
+check("dose: twice daily", dose_hours("twice daily") == [9, 21], str(dose_hours("twice daily")))
+check("dose: BD abbreviation", dose_hours("BD after food") == [9, 21], str(dose_hours("BD after food")))
+check("dose: every 6 hours", dose_hours("every 6 hours") == [2, 8, 14, 20], str(dose_hours("every 6 hours")))
+check("dose: TDS", dose_hours("TDS") == [8, 14, 21], str(dose_hours("TDS")))
+check("dose: unparseable -> none", dose_hours("as needed") == [], str(dose_hours("as needed")))
+r = client.put(
+    "/api/notifications/settings",
+    json={"daily_digest": False, "hour_local": 8, "tz_offset_minutes": -330, "med_reminders": True},
+    headers=headers,
+)
+check("dose: settings roundtrip", r.status_code == 200 and r.json()["med_reminders"] is True, r.text)
+
+# Records pagination: limit/offset honoured, limit=0 keeps everything
+r = client.get("/api/records?limit=1", headers=headers)
+check("records: limit honoured", r.status_code == 200 and len(r.json()) == 1, r.text[:150])
+r = client.get("/api/records?limit=1&offset=999", headers=headers)
+check("records: offset past end -> empty", r.status_code == 200 and r.json() == [], r.text[:150])
+
 # Consent: registration requires accepting the terms; timestamp is stored
 r = client.post("/api/auth/register", json={"name": "NoConsent", "email": "noconsent@test.com", "password": "Password987Z"})
 check("consent: register without terms -> 400", r.status_code == 400 and "accept" in r.json().get("error", "").lower(), r.text)

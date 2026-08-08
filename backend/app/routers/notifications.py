@@ -41,12 +41,14 @@ class SettingsRequest(BaseModel):
     daily_digest: bool
     hour_local: int = Field(ge=0, le=23)
     tz_offset_minutes: int = Field(ge=-840, le=720)  # JS getTimezoneOffset() range
+    med_reminders: bool = False
 
 
 class SettingsResponse(BaseModel):
     daily_digest: bool
     hour_local: int
     tz_offset_minutes: int
+    med_reminders: bool = False
     subscribed_devices: int
 
 
@@ -80,6 +82,47 @@ def _send_to_subscription(sub: PushSubscription, payload: dict, db: Session) -> 
             db.delete(sub)
             db.commit()
         return False
+
+
+# --------------------------------------------------------------------------- #
+# Per-dose scheduling: a medication's frequency text maps to sensible local
+# dose hours. Hourly granularity — half-hour timezones round down.
+# --------------------------------------------------------------------------- #
+import re
+
+_EVERY_H_RE = re.compile(r"every\s*(\d+)\s*h", re.IGNORECASE)
+
+
+def dose_hours(frequency: str | None) -> list[int]:
+    """Local hours at which this medicine is due. Empty = not schedulable."""
+    if not frequency:
+        return []
+    f = frequency.lower()
+    m = _EVERY_H_RE.search(f)
+    if m:
+        step = max(1, int(m.group(1)))
+        if step >= 24:
+            return [9]
+        # space doses through waking hours starting at 8
+        return sorted({(8 + i * step) % 24 for i in range((24 // step) or 1)})
+    if any(k in f for k in ("four", "4x", "qid", "चार")):
+        return [8, 12, 16, 20]
+    if any(k in f for k in ("thrice", "three", "3x", "tds", "tid", "तीन")):
+        return [8, 14, 21]
+    if any(k in f for k in ("twice", "two", "2x", "bd", "bid", "दो बार")):
+        return [9, 21]
+    if any(k in f for k in ("once", "daily", "od", "1x", "एक बार", "रोज")):
+        return [9]
+    return []
+
+
+def _local_hour(utc_hour: int, tz_offset_minutes: int) -> int:
+    # JS convention: UTC = local + offset/60, so local = utc - offset/60.
+    return ((utc_hour * 60 - tz_offset_minutes) % 1440) // 60
+
+
+def _local_date(now_utc: datetime, tz_offset_minutes: int):
+    return (now_utc - timedelta(minutes=tz_offset_minutes)).date()
 
 
 def _build_digest(user: User, db: Session) -> dict:
@@ -154,6 +197,7 @@ def get_settings(user: User = Depends(get_current_user), db: Session = Depends(g
         daily_digest=setting.daily_digest,
         hour_local=setting.hour_local,
         tz_offset_minutes=setting.tz_offset_minutes,
+        med_reminders=setting.med_reminders,
         subscribed_devices=devices,
     )
 
@@ -164,6 +208,7 @@ def update_settings(payload: SettingsRequest, user: User = Depends(get_current_u
     setting.daily_digest = payload.daily_digest
     setting.hour_local = payload.hour_local
     setting.tz_offset_minutes = payload.tz_offset_minutes
+    setting.med_reminders = payload.med_reminders
     # JS convention: UTC = local + getTimezoneOffset()/60
     setting.hour_utc = (payload.hour_local + payload.tz_offset_minutes // 60) % 24
     db.commit()
@@ -172,6 +217,7 @@ def update_settings(payload: SettingsRequest, user: User = Depends(get_current_u
         daily_digest=setting.daily_digest,
         hour_local=setting.hour_local,
         tz_offset_minutes=setting.tz_offset_minutes,
+        med_reminders=setting.med_reminders,
         subscribed_devices=devices,
     )
 
@@ -215,9 +261,37 @@ def dispatch(x_cron_key: str | None = Header(None), db: Session = Depends(get_db
         payload = _build_digest(user, db)
         sent += sum(1 for s in subs if _send_to_subscription(s, payload, db))
 
-    # End-of-course check-ins: event-driven, once per plan. The in-app card
-    # asks when the user visits; this push brings them there.
-    today = datetime.now(timezone.utc).date()
+    now_utc = datetime.now(timezone.utc)
+
+    # Per-dose medicine reminders: for opted-in users, push at each local
+    # dose hour derived from their medication frequencies.
+    dose_sent = 0
+    dose_users = db.scalars(
+        select(NotificationSetting).where(NotificationSetting.med_reminders)
+    ).all()
+    for setting in dose_users:
+        local_h = _local_hour(current_hour, setting.tz_offset_minutes)
+        meds = db.scalars(
+            select(Medication).where(Medication.user_id == setting.user_id, Medication.active)
+        ).all()
+        due = [m.name for m in meds if local_h in dose_hours(m.frequency)]
+        if not due:
+            continue
+        subs = db.scalars(
+            select(PushSubscription).where(PushSubscription.user_id == setting.user_id)
+        ).all()
+        if not subs:
+            continue
+        shown = ", ".join(due[:3]) + (f" +{len(due) - 3}" if len(due) > 3 else "")
+        payload = {
+            "title": "Medicine time",
+            "body": f"Due now: {shown}. Tick them off in your care plan.",
+            "url": "/medications",
+        }
+        dose_sent += sum(1 for s in subs if _send_to_subscription(s, payload, db))
+
+    # End-of-course check-ins: event-driven, once per plan, judged against the
+    # OWNER'S local date (their reminder timezone), not the server's.
     ended = db.scalars(
         select(CarePlan).where(
             CarePlan.status == "active",
@@ -227,11 +301,16 @@ def dispatch(x_cron_key: str | None = Header(None), db: Session = Depends(get_db
         )
     ).all()
     course_sent = 0
+    tz_by_user = {
+        s.user_id: s.tz_offset_minutes
+        for s in db.scalars(select(NotificationSetting)).all()
+    }
     for plan in ended:
         try:
             start = datetime.strptime(plan.starts_on, "%Y-%m-%d").date()
         except ValueError:
             continue
+        today = _local_date(now_utc, tz_by_user.get(plan.user_id, -330))
         if today <= start + timedelta(days=plan.duration_days - 1):
             continue  # course still running
         subs = db.scalars(
@@ -249,5 +328,6 @@ def dispatch(x_cron_key: str | None = Header(None), db: Session = Depends(get_db
         "hour_utc": current_hour,
         "users_due": len(due),
         "notifications_sent": sent,
+        "dose_reminders": dose_sent,
         "course_end_notices": course_sent,
     }

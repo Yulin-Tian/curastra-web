@@ -210,6 +210,8 @@ export function ChatConversation({ withClear = false }: { withClear?: boolean })
               type="button"
               onClick={toggleVoice}
               title={listening ? t('chat.voiceStop') : t('chat.voiceStart')}
+              aria-label={listening ? t('chat.voiceStop') : t('chat.voiceStart')}
+              aria-pressed={listening}
               className={`absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-1.5 transition-colors ${
                 listening
                   ? 'animate-pulse bg-red-100 text-red-600'
@@ -220,7 +222,7 @@ export function ChatConversation({ withClear = false }: { withClear?: boolean })
             </button>
           )}
         </div>
-        <Button type="submit" disabled={sending || !input.trim()}>
+        <Button type="submit" disabled={sending || !input.trim()} aria-label={t('chat.sendLabel')}>
           <Send className="h-4 w-4" />
         </Button>
       </form>

@@ -22,11 +22,31 @@ export default function EmergencyPage() {
   const { t } = useLang()
   const [basics, setBasics] = useState<Basics | null>(null)
   const [meds, setMeds] = useState<Medication[]>([])
+  const [offlineFrom, setOfflineFrom] = useState<string | null>(null)
   const [armed, setArmed] = useState<string | null>(null) // which call button awaits confirmation
 
+  // The one page that must work with no signal: every successful load is
+  // cached locally, and a failed load falls back to that copy.
   useEffect(() => {
-    api.get<Basics>('/api/profile/health').then(setBasics).catch(() => {})
-    api.get<Medication[]>('/api/medications').then(setMeds).catch(() => {})
+    const CACHE_KEY = 'curastra_emergency_cache'
+    Promise.all([api.get<Basics>('/api/profile/health'), api.get<Medication[]>('/api/medications')])
+      .then(([b, m]) => {
+        setBasics(b)
+        setMeds(m)
+        localStorage.setItem(CACHE_KEY, JSON.stringify({ basics: b, meds: m, saved_at: new Date().toISOString() }))
+      })
+      .catch(() => {
+        try {
+          const cached = JSON.parse(localStorage.getItem(CACHE_KEY) ?? 'null')
+          if (cached) {
+            setBasics(cached.basics)
+            setMeds(cached.meds ?? [])
+            setOfflineFrom(cached.saved_at)
+          }
+        } catch {
+          /* no cache — the page shows empty fields */
+        }
+      })
   }, [])
 
   function CallButton({ id, number, label }: { id: string; number: string; label: string }) {
@@ -64,6 +84,12 @@ export default function EmergencyPage() {
   return (
     <div>
       <PageTitle title={t('em.title')} subtitle={t('em.sub')} />
+
+      {offlineFrom && (
+        <p className="mb-4 rounded-xl bg-amber-50 px-4 py-2.5 text-sm text-amber-800">
+          {t('em.offlineNote', { date: new Date(offlineFrom).toLocaleString() })}
+        </p>
+      )}
 
       <Card className="!border-red-200">
         <div className="flex items-center gap-3">

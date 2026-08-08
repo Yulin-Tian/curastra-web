@@ -70,16 +70,23 @@ async def upload_record(
 
 @router.get("", response_model=list[RecordOut])
 def list_records(
+    limit: int = 0,
+    offset: int = 0,
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
     active: Profile | None = Depends(get_active_profile),
 ):
-    records = db.scalars(
+    """Newest first. limit=0 keeps the original return-everything behaviour;
+    the web client pages with limit/offset once lists grow."""
+    stmt = (
         select(Record)
         .where(Record.user_id == user.id, scoped(Record.profile_id, active))
         .order_by(Record.uploaded_at.desc())
-    ).all()
-    return [_to_out(r) for r in records]
+        .offset(max(offset, 0))
+    )
+    if limit > 0:
+        stmt = stmt.limit(min(limit, 100))
+    return [_to_out(r) for r in db.scalars(stmt).all()]
 
 
 @router.get("/{record_id}", response_model=RecordDetailOut)

@@ -1,3 +1,4 @@
+import { Suspense, lazy } from 'react'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { applyTheme, getStoredTheme } from './api/client'
 import { AuthProvider, useAuth } from './auth/AuthContext'
@@ -7,21 +8,25 @@ import { ColdStartNotice } from './components/ColdStartNotice'
 import { Spinner } from './components/ui'
 import LandingPage from './pages/LandingPage'
 import LoginPage from './pages/LoginPage'
-import ForgotPasswordPage from './pages/ForgotPasswordPage'
 import RegisterPage from './pages/RegisterPage'
-import DashboardPage from './pages/DashboardPage'
-import RecordsPage from './pages/RecordsPage'
-import RecordDetailPage from './pages/RecordDetailPage'
-import CarePlansPage from './pages/CarePlansPage'
-import CarePlanDetailPage from './pages/CarePlanDetailPage'
-import MedicationsPage from './pages/MedicationsPage'
-import VitalsPage from './pages/VitalsPage'
-import ChatPage from './pages/ChatPage'
-import ProfilePage from './pages/ProfilePage'
-import EmergencyPage from './pages/EmergencyPage'
-import AdminPage from './pages/AdminPage'
-import SharedViewPage from './pages/SharedViewPage'
-import { PrivacyPage, TermsPage } from './pages/LegalPages'
+
+// Everything beyond the entry pages is code-split: each route loads its own
+// chunk on first visit, keeping the initial bundle lean.
+const ForgotPasswordPage = lazy(() => import('./pages/ForgotPasswordPage'))
+const DashboardPage = lazy(() => import('./pages/DashboardPage'))
+const RecordsPage = lazy(() => import('./pages/RecordsPage'))
+const RecordDetailPage = lazy(() => import('./pages/RecordDetailPage'))
+const CarePlansPage = lazy(() => import('./pages/CarePlansPage'))
+const CarePlanDetailPage = lazy(() => import('./pages/CarePlanDetailPage'))
+const MedicationsPage = lazy(() => import('./pages/MedicationsPage'))
+const VitalsPage = lazy(() => import('./pages/VitalsPage'))
+const ChatPage = lazy(() => import('./pages/ChatPage'))
+const ProfilePage = lazy(() => import('./pages/ProfilePage'))
+const EmergencyPage = lazy(() => import('./pages/EmergencyPage'))
+const AdminPage = lazy(() => import('./pages/AdminPage'))
+const SharedViewPage = lazy(() => import('./pages/SharedViewPage'))
+const PrivacyPage = lazy(() => import('./pages/LegalPages').then((m) => ({ default: m.PrivacyPage })))
+const TermsPage = lazy(() => import('./pages/LegalPages').then((m) => ({ default: m.TermsPage })))
 
 function Protected({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth()
@@ -45,6 +50,13 @@ export default function App() {
     <AuthProvider>
       <BrowserRouter>
         <ColdStartNotice />
+        <Suspense
+          fallback={
+            <div className="flex min-h-screen items-center justify-center">
+              <Spinner label="Loading…" />
+            </div>
+          }
+        >
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<LoginPage />} />
@@ -74,6 +86,7 @@ export default function App() {
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+        </Suspense>
       </BrowserRouter>
     </AuthProvider>
     </LanguageProvider>

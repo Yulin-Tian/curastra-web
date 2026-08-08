@@ -58,6 +58,8 @@ _COLUMN_MIGRATIONS = [
     ("care_plans", "end_notified", "BOOLEAN DEFAULT FALSE", "BOOLEAN DEFAULT 0"),
     # Terms/privacy consent timestamp (DPDP: demonstrable consent)
     ("users", "consented_at", "TIMESTAMPTZ", "TIMESTAMP"),
+    # Per-dose medicine reminders (frequency-aware pushes)
+    ("notification_settings", "med_reminders", "BOOLEAN DEFAULT FALSE", "BOOLEAN DEFAULT 0"),
 ]
 
 

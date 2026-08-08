@@ -188,6 +188,8 @@ class NotificationSetting(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), unique=True, index=True)
     daily_digest: Mapped[bool] = mapped_column(Boolean, default=False)
+    # Frequency-aware pushes at each dose time, derived from the medication list.
+    med_reminders: Mapped[bool] = mapped_column(Boolean, default=False)
     # The user picks a local hour; we store the UTC hour the hourly dispatcher
     # compares against, plus the local rendering info for the settings UI.
     hour_local: Mapped[int] = mapped_column(default=8)

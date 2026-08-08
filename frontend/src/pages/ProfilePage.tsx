@@ -516,6 +516,7 @@ interface NotificationSettings {
   daily_digest: boolean
   hour_local: number
   tz_offset_minutes: number
+  med_reminders: boolean
   subscribed_devices: number
 }
 
@@ -534,12 +535,42 @@ function ReminderCard() {
       .catch(() => {})
   }, [])
 
-  async function save(next: { daily_digest: boolean; hour_local: number }) {
+  async function save(next: { daily_digest: boolean; hour_local: number; med_reminders?: boolean }) {
     const updated = await api.put<NotificationSettings>('/api/notifications/settings', {
+      med_reminders: settings?.med_reminders ?? false,
       ...next,
       tz_offset_minutes: new Date().getTimezoneOffset(),
     })
     setSettings(updated)
+  }
+
+  async function onToggleMeds() {
+    if (!settings) return
+    setError('')
+    setInfo('')
+    setBusy(true)
+    try {
+      if (!settings.med_reminders) {
+        await enablePush() // dose pushes need a subscribed browser too
+        await save({
+          daily_digest: settings.daily_digest,
+          hour_local: settings.hour_local,
+          med_reminders: true,
+        })
+        setInfo(t('rem.medOnInfo'))
+      } else {
+        await save({
+          daily_digest: settings.daily_digest,
+          hour_local: settings.hour_local,
+          med_reminders: false,
+        })
+        setInfo(t('rem.medOffInfo'))
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not update dose reminders.')
+    } finally {
+      setBusy(false)
+    }
   }
 
   async function onToggle() {
@@ -630,6 +661,16 @@ function ReminderCard() {
                 {t('rem.sendTest')}
               </Button>
             )}
+          </div>
+          <div className="flex flex-wrap items-center gap-3 border-t border-slate-100 pt-3">
+            <Button
+              onClick={onToggleMeds}
+              disabled={busy}
+              variant={settings.med_reminders ? 'secondary' : 'primary'}
+            >
+              {busy ? t('common.working') : settings.med_reminders ? t('rem.medOff') : t('rem.medOn')}
+            </Button>
+            <span className="text-sm text-slate-600">{t('rem.medDesc')}</span>
           </div>
           <p className="text-xs text-stone-400">
             {settings.subscribed_devices > 0

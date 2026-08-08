@@ -21,11 +21,26 @@ export default function RecordsPage() {
   const [notes, setNotes] = useState('')
   const [filter, setFilter] = useState<'all' | RecordType>('all')
   const [sort, setSort] = useState<'newest' | 'oldest'>('newest')
+  const [hasMore, setHasMore] = useState(false)
   const fileInput = useRef<HTMLInputElement>(null)
+
+  const PAGE = 25
 
   async function load() {
     try {
-      setRecords(await api.get<HealthRecord[]>('/api/records'))
+      const page = await api.get<HealthRecord[]>(`/api/records?limit=${PAGE}`)
+      setRecords(page)
+      setHasMore(page.length === PAGE)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load records.')
+    }
+  }
+
+  async function loadMore() {
+    try {
+      const page = await api.get<HealthRecord[]>(`/api/records?limit=${PAGE}&offset=${records?.length ?? 0}`)
+      setRecords((prev) => [...(prev ?? []), ...page])
+      setHasMore(page.length === PAGE)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load records.')
     }
@@ -164,6 +179,14 @@ export default function RecordsPage() {
         </ul>
         )
       })()}
+
+      {hasMore && (
+        <div className="mt-4 text-center">
+          <Button variant="secondary" onClick={loadMore}>
+            {t('records.loadMore')}
+          </Button>
+        </div>
+      )}
     </div>
   )
 }
