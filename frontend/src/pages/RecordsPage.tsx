@@ -19,6 +19,8 @@ export default function RecordsPage() {
   const [uploading, setUploading] = useState(false)
   const [type, setType] = useState<RecordType>('prescription')
   const [notes, setNotes] = useState('')
+  const [filter, setFilter] = useState<'all' | RecordType>('all')
+  const [sort, setSort] = useState<'newest' | 'oldest'>('newest')
   const fileInput = useRef<HTMLInputElement>(null)
 
   async function load() {
@@ -97,13 +99,47 @@ export default function RecordsPage() {
         </form>
       </Card>
 
+      {records !== null && records.length > 0 && (
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+          <Segmented
+            value={filter}
+            onChange={(v) => setFilter(v as 'all' | RecordType)}
+            options={[
+              { value: 'all', label: t('records.filterAll') },
+              { value: 'prescription', label: t('common.prescription') },
+              { value: 'lab_report', label: t('common.labReport') },
+              { value: 'other', label: t('common.other') },
+            ]}
+          />
+          <Segmented
+            value={sort}
+            onChange={(v) => setSort(v as 'newest' | 'oldest')}
+            options={[
+              { value: 'newest', label: t('records.sortNewest') },
+              { value: 'oldest', label: t('records.sortOldest') },
+            ]}
+          />
+        </div>
+      )}
+
       {records === null ? (
         <SkeletonList />
       ) : records.length === 0 ? (
         <EmptyState title={t('records.empty')} hint={t('records.emptyHint')} />
-      ) : (
+      ) : (() => {
+        const shown = records
+          .filter((r) => filter === 'all' || r.type === filter)
+          .sort((a, b) =>
+            sort === 'newest'
+              ? b.uploaded_at.localeCompare(a.uploaded_at)
+              : a.uploaded_at.localeCompare(b.uploaded_at),
+          )
+        if (shown.length === 0) {
+          return <p className="py-8 text-center text-sm text-stone-400">{t('records.noneOfType')}</p>
+        }
+        return (
         <ul className="space-y-2">
-          {records.map((r) => (
+          {shown.map((r) => (
             <li key={r.id}>
               <Link
                 to={`/records/${r.id}`}
@@ -126,7 +162,8 @@ export default function RecordsPage() {
             </li>
           ))}
         </ul>
-      )}
+        )
+      })()}
     </div>
   )
 }
