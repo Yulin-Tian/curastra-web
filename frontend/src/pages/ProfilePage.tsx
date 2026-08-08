@@ -178,7 +178,8 @@ function AccountCard() {
           </div>
           <div className="flex-1">
             <label className="mb-1 block text-sm font-medium text-slate-700">{t('acct.newPassword')}</label>
-            <input type="password" required minLength={8} className={inputClass} value={newPw} onChange={(e) => setNewPw(e.target.value)} autoComplete="new-password" />
+            <input type="password" required minLength={10} className={inputClass} value={newPw} onChange={(e) => setNewPw(e.target.value)} autoComplete="new-password" />
+            <p className="mt-1 text-xs text-stone-400">{t('auth.pwHint')}</p>
           </div>
           <Button type="submit" disabled={busy}>{busy ? t('common.saving') : t('acct.updatePassword')}</Button>
         </form>

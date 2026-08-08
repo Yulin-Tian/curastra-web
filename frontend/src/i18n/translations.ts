@@ -436,6 +436,10 @@ export const T: Record<string, Entry> = {
   'basics.emName': { en: 'Emergency contact name', hi: 'आपातकालीन संपर्क का नाम' },
   'basics.emPhone': { en: 'Emergency contact phone', hi: 'आपातकालीन संपर्क का फ़ोन' },
   'nav.emergency': { en: 'Emergency', hi: 'आपातकाल' },
+  'auth.pwHint': {
+    en: 'At least 10 characters, with an uppercase letter, a lowercase letter, and a number.',
+    hi: 'कम से कम 10 अक्षर, जिनमें एक बड़ा अक्षर, एक छोटा अक्षर और एक अंक हो।',
+  },
   'chat.clearBtn': { en: 'Clear chat', hi: 'चैट साफ़ करें' },
   'chat.widgetOpen': { en: 'Ask the assistant', hi: 'सहायक से पूछें' },
   'chat.widgetTitle': { en: 'Ask Curastra', hi: 'Curastra से पूछें' },

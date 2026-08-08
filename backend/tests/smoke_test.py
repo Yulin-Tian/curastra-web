@@ -31,13 +31,13 @@ r = client.get("/health")
 check("health", r.status_code == 200 and r.json()["status"] == "ok", r.text)
 
 # Register
-r = client.post("/api/auth/register", json={"name": "Smoke Tester", "email": "smoke@test.com", "password": "password123"})
+r = client.post("/api/auth/register", json={"name": "Smoke Tester", "email": "smoke@test.com", "password": "Password123A"})
 check("register", r.status_code == 201 and "token" in r.json(), r.text)
 token = r.json().get("token", "")
 headers = {"Authorization": f"Bearer {token}"}
 
 # Duplicate register -> 409 with error shape
-r = client.post("/api/auth/register", json={"name": "Dup", "email": "smoke@test.com", "password": "password123"})
+r = client.post("/api/auth/register", json={"name": "Dup", "email": "smoke@test.com", "password": "Password123A"})
 check("register duplicate -> 409 {error}", r.status_code == 409 and "error" in r.json(), r.text)
 
 # Login wrong password
@@ -45,7 +45,7 @@ r = client.post("/api/auth/login", json={"email": "smoke@test.com", "password": 
 check("login wrong password -> 401", r.status_code == 401, r.text)
 
 # Login right
-r = client.post("/api/auth/login", json={"email": "smoke@test.com", "password": "password123"})
+r = client.post("/api/auth/login", json={"email": "smoke@test.com", "password": "Password123A"})
 check("login", r.status_code == 200 and "token" in r.json(), r.text)
 
 # Me (auth) / no auth
@@ -201,23 +201,23 @@ check("forgot unknown email -> generic 200 no code", r.status_code == 200 and "d
 r = client.post("/api/auth/forgot", json={"email": "smoke@test.com"})
 check("forgot known email -> dev code", r.status_code == 200 and len(r.json().get("dev_code", "")) == 6, r.text)
 reset_code = r.json()["dev_code"]
-r = client.post("/api/auth/reset", json={"email": "smoke@test.com", "code": "000000", "new_password": "resetpass123"})
+r = client.post("/api/auth/reset", json={"email": "smoke@test.com", "code": "000000", "new_password": "Resetpass123"})
 check("reset wrong code -> 400", r.status_code == 400, r.text)
-r = client.post("/api/auth/reset", json={"email": "smoke@test.com", "code": reset_code, "new_password": "resetpass123"})
+r = client.post("/api/auth/reset", json={"email": "smoke@test.com", "code": reset_code, "new_password": "Resetpass123"})
 check("reset with code", r.status_code == 200, r.text)
-r = client.post("/api/auth/login", json={"email": "smoke@test.com", "password": "resetpass123"})
+r = client.post("/api/auth/login", json={"email": "smoke@test.com", "password": "Resetpass123"})
 check("login after reset", r.status_code == 200, r.text)
-r = client.post("/api/auth/reset", json={"email": "smoke@test.com", "code": reset_code, "new_password": "again12345"})
+r = client.post("/api/auth/reset", json={"email": "smoke@test.com", "code": reset_code, "new_password": "Again12345X"})
 check("reset code single-use -> 400", r.status_code == 400, r.text)
 # restore original password for the rest of the suite
-client.post("/api/auth/change-password", json={"current_password": "resetpass123", "new_password": "password123"}, headers=headers)
+client.post("/api/auth/change-password", json={"current_password": "Resetpass123", "new_password": "Password123A"}, headers=headers)
 
 # Account security: change password, TOTP 2FA, avatar
-r = client.post("/api/auth/change-password", json={"current_password": "wrong", "new_password": "password456"}, headers=headers)
+r = client.post("/api/auth/change-password", json={"current_password": "wrong", "new_password": "Password456B"}, headers=headers)
 check("change password wrong current -> 400", r.status_code == 400, r.text)
-r = client.post("/api/auth/change-password", json={"current_password": "password123", "new_password": "password456"}, headers=headers)
+r = client.post("/api/auth/change-password", json={"current_password": "Password123A", "new_password": "Password456B"}, headers=headers)
 check("change password", r.status_code == 200, r.text)
-r = client.post("/api/auth/login", json={"email": "smoke@test.com", "password": "password456"})
+r = client.post("/api/auth/login", json={"email": "smoke@test.com", "password": "Password456B"})
 check("login with new password", r.status_code == 200, r.text)
 
 import pyotp  # noqa: E402
@@ -229,11 +229,11 @@ r = client.post("/api/auth/totp/enable", json={"code": "000000"}, headers=header
 check("totp enable bad code -> 400", r.status_code == 400, r.text)
 r = client.post("/api/auth/totp/enable", json={"code": pyotp.TOTP(secret).now()}, headers=headers)
 check("totp enable", r.status_code == 200, r.text)
-r = client.post("/api/auth/login", json={"email": "smoke@test.com", "password": "password456"})
+r = client.post("/api/auth/login", json={"email": "smoke@test.com", "password": "Password456B"})
 check("login without totp -> totp_required", r.status_code == 401 and r.json()["error"] == "totp_required", r.text)
-r = client.post("/api/auth/login", json={"email": "smoke@test.com", "password": "password456", "totp_code": pyotp.TOTP(secret).now()})
+r = client.post("/api/auth/login", json={"email": "smoke@test.com", "password": "Password456B", "totp_code": pyotp.TOTP(secret).now()})
 check("login with totp code", r.status_code == 200, r.text)
-r = client.post("/api/auth/totp/disable", json={"password": "password456"}, headers=headers)
+r = client.post("/api/auth/totp/disable", json={"password": "Password456B"}, headers=headers)
 check("totp disable", r.status_code == 200, r.text)
 
 r = client.post("/api/auth/avatar", files={"file": ("me.png", fake_png, "image/png")}, headers=headers)
@@ -298,7 +298,7 @@ check("share bad token -> 404", r.status_code == 404, r.text)
 
 # Cross-user isolation: second user cannot see first user's record,
 # nor revoke their share link
-r = client.post("/api/auth/register", json={"name": "Other", "email": "other@test.com", "password": "password123"})
+r = client.post("/api/auth/register", json={"name": "Other", "email": "other@test.com", "password": "Password123A"})
 other_headers = {"Authorization": f"Bearer {r.json()['token']}"}
 r = client.get(f"/api/records/{rec_id}", headers=other_headers)
 check("cross-user record access -> 404", r.status_code == 404, r.text)
@@ -309,6 +309,34 @@ r = client.delete(f"/api/share/{share_id}", headers=headers)
 check("share revoke", r.status_code == 204, r.text)
 r = client.get(f"/api/share/public/{share_token}")
 check("share revoked -> 404", r.status_code == 404, r.text)
+
+# Password policy: enforced where a password is SET (register/change/reset),
+# never at login — existing accounts keep working until they change it.
+r = client.post("/api/auth/register", json={"name": "Weak", "email": "weak@test.com", "password": "simplepass"})
+check("policy: weak register -> 400", r.status_code == 400 and "10 characters" in r.json().get("error", ""), r.text)
+r = client.post("/api/auth/change-password", json={"current_password": "Password456B", "new_password": "weakpassword"}, headers=headers)
+check("policy: weak change -> 400", r.status_code == 400, r.text)
+r = client.post("/api/auth/reset", json={"email": "smoke@test.com", "code": "123456", "new_password": "weakpassword"})
+check("policy: weak reset -> 400", r.status_code == 400 and "10 characters" in r.json().get("error", ""), r.text)
+
+# Rate limiting: 15 login attempts per 5 minutes per (ip, email)
+for _ in range(15):
+    client.post("/api/auth/login", json={"email": "hammer@test.com", "password": "wrongpass1"})
+r = client.post("/api/auth/login", json={"email": "hammer@test.com", "password": "wrongpass1"})
+check("rate limit: 16th login -> 429", r.status_code == 429, r.text)
+r = client.post("/api/auth/login", json={"email": "smoke@test.com", "password": "Password456B"})
+check("rate limit: other identity unaffected", r.status_code == 200, r.text)
+
+# Security headers on API responses
+r = client.get("/health")
+check(
+    "security headers present",
+    r.headers.get("x-content-type-options") == "nosniff"
+    and r.headers.get("x-frame-options") == "DENY"
+    and "max-age" in r.headers.get("strict-transport-security", "")
+    and r.headers.get("content-security-policy") == "default-src 'none'; frame-ancestors 'none'",
+    str(dict(r.headers)),
+)
 
 print()
 if failures:

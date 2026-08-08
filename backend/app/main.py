@@ -46,6 +46,21 @@ app.add_middleware(
 )
 
 
+@app.middleware("http")
+async def security_headers(request: Request, call_next):
+    """Baseline hardening on every API response. The interactive docs pages
+    load their assets from a CDN, so they are exempt from the strict CSP."""
+    response = await call_next(request)
+    response.headers.setdefault("X-Content-Type-Options", "nosniff")
+    response.headers.setdefault("X-Frame-Options", "DENY")
+    response.headers.setdefault("Referrer-Policy", "no-referrer")
+    response.headers.setdefault("Strict-Transport-Security", "max-age=15552000; includeSubDomains")
+    response.headers.setdefault("Permissions-Policy", "camera=(), geolocation=()")
+    if not request.url.path.startswith(("/docs", "/redoc", "/openapi.json")):
+        response.headers.setdefault("Content-Security-Policy", "default-src 'none'; frame-ancestors 'none'")
+    return response
+
+
 # --------------------------------------------------------------------------- #
 # Error shape: { "error": "<message>" } — the same convention the engine uses,
 # so the frontend handles failures from either service identically.

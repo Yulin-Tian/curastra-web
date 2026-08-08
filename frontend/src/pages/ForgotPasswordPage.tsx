@@ -108,12 +108,13 @@ export default function ForgotPasswordPage() {
               <input
                 type="password"
                 required
-                minLength={8}
+                minLength={10}
                 className={inputClass}
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 autoComplete="new-password"
               />
+              <p className="mt-1 text-xs text-stone-400">{t('auth.pwHint')}</p>
               <p className="mt-1.5 text-xs text-stone-400">{t('reg.minChars')}</p>
             </div>
             <Button type="submit" disabled={busy || code.length !== 6} className="w-full !py-3">

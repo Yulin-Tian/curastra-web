@@ -2,7 +2,7 @@ import secrets
 from datetime import datetime, timedelta, timezone
 
 import pyotp
-from fastapi import APIRouter, Depends, File, Header, HTTPException, Response, UploadFile
+from fastapi import APIRouter, Depends, File, Header, HTTPException, Request, Response, UploadFile
 from pydantic import BaseModel, EmailStr, Field
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -10,6 +10,8 @@ from sqlalchemy.orm import Session
 from ..auth import create_token, get_current_user, hash_password, verify_password
 from ..database import get_db
 from ..models import User
+from ..password_policy import validate_password_strength
+from ..rate_limit import check_rate
 from ..schemas import LoginRequest, RegisterRequest, TokenResponse, UserOut
 from ..services import mailer
 
@@ -19,7 +21,9 @@ MAX_AVATAR_BYTES = 2 * 1024 * 1024
 
 
 @router.post("/register", response_model=TokenResponse, status_code=201)
-def register(payload: RegisterRequest, db: Session = Depends(get_db)):
+def register(payload: RegisterRequest, request: Request, db: Session = Depends(get_db)):
+    check_rate(request, "register", limit=20, window_seconds=3600)
+    validate_password_strength(payload.password)
     existing = db.scalar(select(User).where(User.email == payload.email.lower()))
     if existing:
         raise HTTPException(status_code=409, detail="An account with this email already exists.")
@@ -36,7 +40,8 @@ def register(payload: RegisterRequest, db: Session = Depends(get_db)):
 
 
 @router.post("/login", response_model=TokenResponse)
-def login(payload: LoginRequest, db: Session = Depends(get_db)):
+def login(payload: LoginRequest, request: Request, db: Session = Depends(get_db)):
+    check_rate(request, "login", limit=15, window_seconds=300, key=payload.email)
     user = db.scalar(select(User).where(User.email == payload.email.lower()))
     if user is None or not verify_password(payload.password, user.password_hash):
         raise HTTPException(status_code=401, detail="Incorrect email or password.")
@@ -74,9 +79,11 @@ class ResetRequest(BaseModel):
 @router.post("/forgot")
 def forgot_password(
     payload: ForgotRequest,
+    request: Request,
     db: Session = Depends(get_db),
     x_language: str = Header("en", alias="X-Language"),
 ):
+    check_rate(request, "forgot", limit=5, window_seconds=900, key=payload.email)
     """Always answers 200 with the same shape (no account enumeration).
     With SMTP configured, the code is emailed; without it (development), the
     code is returned in the response as dev_code."""
@@ -101,7 +108,9 @@ def forgot_password(
 
 
 @router.post("/reset")
-def reset_password(payload: ResetRequest, db: Session = Depends(get_db)):
+def reset_password(payload: ResetRequest, request: Request, db: Session = Depends(get_db)):
+    check_rate(request, "reset", limit=10, window_seconds=900, key=payload.email)
+    validate_password_strength(payload.new_password)
     user = db.scalar(select(User).where(User.email == payload.email.lower()))
     generic = HTTPException(status_code=400, detail="The code is not valid or has expired.")
     if user is None or not user.reset_code_hash or not user.reset_expires:
@@ -133,6 +142,7 @@ class ChangePasswordRequest(BaseModel):
 def change_password(payload: ChangePasswordRequest, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     if not verify_password(payload.current_password, user.password_hash):
         raise HTTPException(status_code=400, detail="Your current password is not correct.")
+    validate_password_strength(payload.new_password)
     user.password_hash = hash_password(payload.new_password)
     db.commit()
     return {"ok": True}

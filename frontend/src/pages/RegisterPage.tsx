@@ -93,12 +93,13 @@ export default function RegisterPage() {
               <input
                 type="password"
                 required
-                minLength={8}
+                minLength={10}
                 className={inputClass}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 autoComplete="new-password"
               />
+              <p className="mt-1 text-xs text-stone-400">{t('auth.pwHint')}</p>
               <p className="mt-1.5 text-xs text-stone-400">{t('reg.minChars')}</p>
             </div>
             <Button type="submit" disabled={busy} className="w-full !py-3">
