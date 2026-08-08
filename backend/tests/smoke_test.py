@@ -252,11 +252,45 @@ check("child profile holds own abha", child_row["abha_linked"] is True, r.text)
 r = client.delete(f"/api/profiles/{child_id}", headers=headers)
 check("profile delete blocked with data", r.status_code == 400, r.text)
 
-# Cross-user isolation: second user cannot see first user's record
+# Emergency contact: saved via health profile, phone format validated
+r = client.put(
+    "/api/profile/health",
+    json={"emergency_contact_name": "Priya", "emergency_contact_phone": "+91 98765 43210"},
+    headers=headers,
+)
+check("emergency contact save", r.status_code == 200 and r.json()["emergency_contact_name"] == "Priya", r.text)
+r = client.put("/api/profile/health", json={"emergency_contact_phone": "call-me-maybe"}, headers=headers)
+check("emergency bad phone -> 422", r.status_code == 422, r.text)
+
+# Share links: create -> public view WITHOUT auth -> revoke -> 404
+r = client.post("/api/medications", json={"name": "Dolo 650", "dosage": "650 mg"}, headers=headers)
+check("share fixture med", r.status_code == 201, r.text)
+r = client.post("/api/share", json={}, headers=headers)
+check("share create", r.status_code == 200 and len(r.json()["token"]) > 15, r.text)
+share_id, share_token = r.json()["id"], r.json()["token"]
+r = client.get(f"/api/share/public/{share_token}")  # no auth header: the token is the credential
+bundle = r.json() if r.status_code == 200 else {}
+check("share public view (no auth)", r.status_code == 200 and bundle.get("name") == "Smoke Tester", r.text[:200])
+check("share bundle has meds", any(m["name"] == "Dolo 650" for m in bundle.get("medications", [])), str(bundle.get("medications"))[:200])
+check("share bundle has vitals", len(bundle.get("vitals", [])) > 0, str(bundle.get("vitals"))[:200])
+r = client.get("/api/share", headers=headers)
+check("share list", r.status_code == 200 and any(l["id"] == share_id for l in r.json()), r.text)
+r = client.get("/api/share/public/not-a-real-token")
+check("share bad token -> 404", r.status_code == 404, r.text)
+
+# Cross-user isolation: second user cannot see first user's record,
+# nor revoke their share link
 r = client.post("/api/auth/register", json={"name": "Other", "email": "other@test.com", "password": "password123"})
 other_headers = {"Authorization": f"Bearer {r.json()['token']}"}
 r = client.get(f"/api/records/{rec_id}", headers=other_headers)
 check("cross-user record access -> 404", r.status_code == 404, r.text)
+r = client.delete(f"/api/share/{share_id}", headers=other_headers)
+check("cross-user share revoke -> 404", r.status_code == 404, r.text)
+
+r = client.delete(f"/api/share/{share_id}", headers=headers)
+check("share revoke", r.status_code == 204, r.text)
+r = client.get(f"/api/share/public/{share_token}")
+check("share revoked -> 404", r.status_code == 404, r.text)
 
 print()
 if failures:

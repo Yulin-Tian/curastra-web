@@ -18,6 +18,8 @@ import MedicationsPage from './pages/MedicationsPage'
 import VitalsPage from './pages/VitalsPage'
 import ChatPage from './pages/ChatPage'
 import ProfilePage from './pages/ProfilePage'
+import EmergencyPage from './pages/EmergencyPage'
+import SharedViewPage from './pages/SharedViewPage'
 
 function Protected({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth()
@@ -46,6 +48,7 @@ export default function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/forgot" element={<ForgotPasswordPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/share/:token" element={<SharedViewPage />} />
           <Route
             element={
               <Protected>
@@ -61,6 +64,7 @@ export default function App() {
             <Route path="/medications" element={<MedicationsPage />} />
             <Route path="/vitals" element={<VitalsPage />} />
             <Route path="/assistant" element={<ChatPage />} />
+            <Route path="/emergency" element={<EmergencyPage />} />
             <Route path="/profile" element={<ProfilePage />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />

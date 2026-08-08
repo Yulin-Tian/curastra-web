@@ -82,6 +82,8 @@ class HealthProfile(Base):
     blood_type: Mapped[str | None] = mapped_column(String(8), nullable=True)  # A+, O-, unknown...
     allergies: Mapped[str | None] = mapped_column(Text, nullable=True)
     conditions: Mapped[str | None] = mapped_column(Text, nullable=True)  # ongoing conditions, free text
+    emergency_contact_name: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    emergency_contact_phone: Mapped[str | None] = mapped_column(String(20), nullable=True)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now, onupdate=_now)
 
 
@@ -202,6 +204,23 @@ class TaskCompletion(Base):
     task_index: Mapped[int] = mapped_column()
     day: Mapped[str] = mapped_column(String(10))  # user's local date, YYYY-MM-DD
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
+
+
+class ShareLink(Base):
+    """A revocable read-only link to one profile's health summary
+    (medications, latest care plan, recent vitals). The unguessable token IS
+    the credential — the public endpoint needs no login, so the link can go
+    to a doctor or relative over WhatsApp."""
+
+    __tablename__ = "share_links"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    profile_id: Mapped[int | None] = mapped_column(nullable=True)  # NULL = primary/self profile
+    token: Mapped[str] = mapped_column(String(43), unique=True, index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    revoked: Mapped[bool] = mapped_column(Boolean, default=False)
 
 
 class ChatMessage(Base):

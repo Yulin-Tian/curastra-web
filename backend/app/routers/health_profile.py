@@ -21,6 +21,8 @@ class HealthProfileIn(BaseModel):
     blood_type: Optional[str] = None
     allergies: Optional[str] = Field(None, max_length=2000)
     conditions: Optional[str] = Field(None, max_length=2000)
+    emergency_contact_name: Optional[str] = Field(None, max_length=120)
+    emergency_contact_phone: Optional[str] = Field(None, max_length=20, pattern=r"^[+\d][\d\s-]*$")
 
 
 class HealthProfileOut(HealthProfileIn):

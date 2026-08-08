@@ -10,6 +10,7 @@ import {
   LogOut,
   MessageCircle,
   Pill,
+  ShieldAlert,
   UserRound,
 } from 'lucide-react'
 import { api, getActiveProfileId, switchProfile } from '../api/client'
@@ -26,6 +27,7 @@ const navItems = [
   { to: '/medications', label: 'nav.medications', icon: Pill },
   { to: '/vitals', label: 'nav.vitals', icon: Activity },
   { to: '/assistant', label: 'nav.assistant', icon: MessageCircle },
+  { to: '/emergency', label: 'nav.emergency', icon: ShieldAlert },
   { to: '/profile', label: 'nav.profile', icon: UserRound },
 ]
 

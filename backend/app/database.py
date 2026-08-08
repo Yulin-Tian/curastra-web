@@ -51,6 +51,9 @@ _COLUMN_MIGRATIONS = [
     ("care_plans", "starts_on", "VARCHAR(10)", "VARCHAR(10)"),
     ("care_plans", "status", "VARCHAR(12)", "VARCHAR(12)"),
     ("care_plans", "outcome", "VARCHAR(12)", "VARCHAR(12)"),
+    # Emergency card: who to call when things go wrong
+    ("health_profiles", "emergency_contact_name", "VARCHAR(120)", "VARCHAR(120)"),
+    ("health_profiles", "emergency_contact_phone", "VARCHAR(20)", "VARCHAR(20)"),
 ]
 
 

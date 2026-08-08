@@ -117,6 +117,29 @@ export interface Vital {
   measured_at: string
 }
 
+export interface ShareLink {
+  id: number
+  token: string
+  created_at: string
+  expires_at: string
+}
+
+export interface SharedSummary {
+  name: string
+  generated_at: string
+  expires_at: string
+  medications: Pick<Medication, 'name' | 'dosage' | 'frequency' | 'timing' | 'duration'>[]
+  care_plan: {
+    created_at: string
+    plan: CarePlanContent
+    duration_days: number | null
+    starts_on: string | null
+    status: 'draft' | 'active' | 'completed' | null
+    outcome: 'better' | 'not_better' | null
+  } | null
+  vitals: Pick<Vital, 'type' | 'value' | 'unit' | 'measured_at'>[]
+}
+
 export interface SimplifyResult {
   simplified: string
   tts_text: string

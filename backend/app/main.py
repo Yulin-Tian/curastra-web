@@ -26,6 +26,7 @@ from .routers import (
     notifications,
     profiles,
     records,
+    share,
     vitals,
 )
 
@@ -83,3 +84,4 @@ app.include_router(ai.router)
 app.include_router(notifications.router)
 app.include_router(health_profile.router)
 app.include_router(profiles.router)
+app.include_router(share.router)

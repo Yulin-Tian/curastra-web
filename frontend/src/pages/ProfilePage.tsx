@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import QRCode from 'qrcode'
-import { BadgeCheck, BellRing, Camera, HeartPulse, KeyRound, Link2, ShieldCheck, Trash2, UserRound, Users } from 'lucide-react'
+import { BadgeCheck, BellRing, Camera, Copy, HeartPulse, KeyRound, Link2, Share2, ShieldCheck, Trash2, UserRound, Users } from 'lucide-react'
 import { useSearchParams } from 'react-router-dom'
 import { api, getActiveProfileId, getToken, switchProfile } from '../api/client'
 import { disablePush, enablePush, pushSupported } from '../api/push'
-import type { ProfileInfo } from '../api/types'
+import type { ProfileInfo, ShareLink } from '../api/types'
 import { useAuth } from '../auth/AuthContext'
 import { Button, Card, ErrorBanner, PageTitle, Segmented, Spinner, StyledSelect, inputClass } from '../components/ui'
 import { useLang } from '../i18n/LanguageContext'
@@ -352,6 +352,8 @@ interface HealthProfileData {
   blood_type: string | null
   allergies: string | null
   conditions: string | null
+  emergency_contact_name: string | null
+  emergency_contact_phone: string | null
 }
 
 const BLOOD_TYPES = ['unknown', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']
@@ -476,6 +478,27 @@ function HealthBasicsCard({ highlight }: { highlight: boolean }) {
                 placeholder="e.g. type 2 diabetes, hypertension"
                 value={form.conditions ?? ''}
                 onChange={(e) => set('conditions', e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div>
+              <label className="mb-1 block text-sm font-medium text-slate-700">{t('basics.emName')}</label>
+              <input
+                className={inputClass}
+                placeholder="e.g. Priya Sharma"
+                value={form.emergency_contact_name ?? ''}
+                onChange={(e) => set('emergency_contact_name', e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium text-slate-700">{t('basics.emPhone')}</label>
+              <input
+                type="tel"
+                className={inputClass}
+                placeholder="e.g. +91 98765 43210"
+                value={form.emergency_contact_phone ?? ''}
+                onChange={(e) => set('emergency_contact_phone', e.target.value)}
               />
             </div>
           </div>
@@ -618,6 +641,106 @@ function ReminderCard() {
   )
 }
 
+function ShareCard() {
+  const { t, lang } = useLang()
+  const [links, setLinks] = useState<ShareLink[]>([])
+  const [error, setError] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [copiedId, setCopiedId] = useState<number | null>(null)
+
+  const load = useCallback(() => {
+    api.get<ShareLink[]>('/api/share').then(setLinks).catch(() => {})
+  }, [])
+
+  useEffect(() => {
+    load()
+  }, [load])
+
+  const urlFor = (token: string) => `${window.location.origin}/share/${token}`
+
+  async function onCreate() {
+    setBusy(true)
+    setError('')
+    try {
+      const link = await api.post<ShareLink>('/api/share', {})
+      setLinks((prev) => [link, ...prev])
+      await copy(link)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not create link.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function copy(link: ShareLink) {
+    try {
+      await navigator.clipboard.writeText(urlFor(link.token))
+      setCopiedId(link.id)
+      setTimeout(() => setCopiedId(null), 2500)
+    } catch {
+      /* clipboard blocked — the URL is still visible to select manually */
+    }
+  }
+
+  async function onRevoke(id: number) {
+    try {
+      await api.delete(`/api/share/${id}`)
+      setLinks((prev) => prev.filter((l) => l.id !== id))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not revoke link.')
+    }
+  }
+
+  const locale = lang === 'hi' ? 'hi-IN' : 'en-GB'
+
+  return (
+    <Card className="mb-6">
+      <h2 className="flex items-center gap-2 font-semibold text-slate-800">
+        <Share2 className="h-4 w-4 text-teal-600" /> {t('share.title')}
+      </h2>
+      <p className="mt-1 text-sm text-stone-500">{t('share.desc')}</p>
+      {error && (
+        <div className="mt-3">
+          <ErrorBanner message={error} />
+        </div>
+      )}
+      <div className="mt-4">
+        <Button onClick={onCreate} disabled={busy}>
+          {busy ? t('common.saving') : t('share.createBtn')}
+        </Button>
+      </div>
+      {links.length > 0 && (
+        <ul className="mt-4 space-y-2">
+          {links.map((link) => (
+            <li
+              key={link.id}
+              className="flex flex-wrap items-center gap-2 rounded-xl border border-stone-200 bg-stone-50 px-3 py-2"
+            >
+              <code className="min-w-0 flex-1 truncate text-xs text-slate-600">{urlFor(link.token)}</code>
+              <span className="text-xs text-stone-400">
+                {t('share.expires')}{' '}
+                {new Date(link.expires_at).toLocaleDateString(locale, { day: 'numeric', month: 'short' })}
+              </span>
+              <button
+                onClick={() => copy(link)}
+                className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-teal-700 hover:bg-teal-50"
+              >
+                <Copy className="h-3.5 w-3.5" /> {copiedId === link.id ? t('share.copied') : t('share.copy')}
+              </button>
+              <button
+                onClick={() => onRevoke(link.id)}
+                className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-50"
+              >
+                <Trash2 className="h-3.5 w-3.5" /> {t('share.revoke')}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </Card>
+  )
+}
+
 export default function ProfilePage() {
   const { user, refreshUser } = useAuth()
   const { t } = useLang()
@@ -719,6 +842,8 @@ export default function ProfilePage() {
       <HealthBasicsCard highlight={isWelcome} />
 
       <ReminderCard />
+
+      <ShareCard />
 
       <Card>
         <h2 className="flex items-center gap-2 font-semibold text-slate-800">
