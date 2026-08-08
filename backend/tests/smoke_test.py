@@ -352,6 +352,11 @@ r = client.get("/api/admin/overview", headers=headers)
 ov = r.json() if r.status_code == 200 else {}
 check("admin: overview totals", r.status_code == 200 and ov.get("totals", {}).get("users", 0) >= 2, r.text[:200])
 check("admin: overview trends shape", len(ov.get("trends", {}).get("days", [])) == 14, str(ov.get("trends"))[:120])
+check("admin: overview segments", "active_7d" in ov.get("segments", {}) and ov["segments"]["with_2fa"] >= 0, str(ov.get("segments")))
+r = client.get("/api/admin/overview?days=30", headers=headers)
+check("admin: 30-day range", r.status_code == 200 and len(r.json()["trends"]["days"]) == 30, r.text[:150])
+r = client.get("/api/admin/overview?days=500", headers=headers)
+check("admin: range clamped to 90", r.status_code == 200 and len(r.json()["trends"]["days"]) == 90, r.text[:150])
 r = client.get("/api/admin/users?query=smoke", headers=headers)
 rows = r.json() if r.status_code == 200 else []
 check("admin: user search", r.status_code == 200 and any(u["email"] == "smoke@test.com" for u in rows), r.text[:200])

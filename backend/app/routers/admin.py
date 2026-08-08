@@ -52,7 +52,13 @@ def _day_series(db: Session, column, days: int) -> dict[str, int]:
 
 
 @router.get("/overview")
-def overview(admin: User = Depends(require_admin), db: Session = Depends(get_db)):
+def overview(
+    days: int = TREND_DAYS,
+    admin: User = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    days = max(7, min(days, 90))
+
     def count(model) -> int:
         return db.scalar(select(func.count()).select_from(model)) or 0
 
@@ -76,11 +82,25 @@ def overview(admin: User = Depends(require_admin), db: Session = Depends(get_db)
     except httpx.HTTPError:
         pass
 
-    days = [(now - timedelta(days=i)).date().isoformat() for i in range(TREND_DAYS - 1, -1, -1)]
-    signups = _day_series(db, User.created_at, TREND_DAYS)
-    uploads = _day_series(db, Record.uploaded_at, TREND_DAYS)
-    readings = _day_series(db, Vital.measured_at, TREND_DAYS)
-    chats = _day_series(db, ChatMessage.created_at, TREND_DAYS)
+    day_axis = [(now - timedelta(days=i)).date().isoformat() for i in range(days - 1, -1, -1)]
+    signups = _day_series(db, User.created_at, days)
+    uploads = _day_series(db, Record.uploaded_at, days)
+    readings = _day_series(db, Vital.measured_at, days)
+    chats = _day_series(db, ChatMessage.created_at, days)
+
+    # User segments: engagement and security posture at a glance.
+    week_ago = now - timedelta(days=7)
+    active_ids = set()
+    for model, column in ((Record, Record.uploaded_at), (Vital, Vital.measured_at), (ChatMessage, ChatMessage.created_at)):
+        active_ids.update(
+            db.scalars(select(model.user_id).where(column >= week_ago).distinct()).all()
+        )
+    segments = {
+        "active_7d": len(active_ids),
+        "with_2fa": db.scalar(select(func.count()).select_from(User).where(User.totp_enabled.is_(True))) or 0,
+        "with_abha": db.scalar(select(func.count()).select_from(User).where(User.abha_linked.is_(True))) or 0,
+        "with_family": db.scalar(select(func.count(func.distinct(Profile.user_id))).where(Profile.is_primary.is_(False))) or 0,
+    }
 
     return {
         "totals": {
@@ -96,12 +116,14 @@ def overview(admin: User = Depends(require_admin), db: Session = Depends(get_db)
             "push_subscriptions": count(PushSubscription),
         },
         "care_plans_by_status": {str(k): v for k, v in plans_by_status.items()},
+        "segments": segments,
         "trends": {
-            "days": days,
-            "signups": [signups.get(d, 0) for d in days],
-            "records": [uploads.get(d, 0) for d in days],
-            "vitals": [readings.get(d, 0) for d in days],
-            "chats": [chats.get(d, 0) for d in days],
+            "window_days": days,
+            "days": day_axis,
+            "signups": [signups.get(d, 0) for d in day_axis],
+            "records": [uploads.get(d, 0) for d in day_axis],
+            "vitals": [readings.get(d, 0) for d in day_axis],
+            "chats": [chats.get(d, 0) for d in day_axis],
         },
         "services": {
             "backend": {"status": "ok"},
