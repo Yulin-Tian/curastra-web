@@ -4,6 +4,7 @@ import { AlertOctagon, ArrowLeft, Check, HelpCircle, Pill, Plus, Printer, Trash2
 import { api } from '../api/client'
 import type { AdherenceState, CarePlan, Medication } from '../api/types'
 import { Button, Card, Disclaimer, ErrorBanner, PageTitle, Spinner } from '../components/ui'
+import { AdherenceHeatmap } from '../components/AdherenceHeatmap'
 import { ProgressRing } from '../components/ProgressRing'
 import { SimplifyButton } from '../components/SimplifyButton'
 import { useLang } from '../i18n/LanguageContext'
@@ -170,6 +171,7 @@ export default function CarePlanDetailPage() {
           {adherence && tasks.length > 0 && (
             <div className="mb-4 rounded-xl bg-sage-50/70 p-3 print:hidden">
               <ProgressRing done={adherence.completed.length} total={adherence.total_tasks} />
+              {id && <AdherenceHeatmap planId={id} />}
             </div>
           )}
           {tasks.length === 0 ? (

@@ -4,7 +4,7 @@ from typing import Optional
 
 from fastapi import Header, APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from ..auth import get_current_user
@@ -138,6 +138,34 @@ def _adherence_state(plan: CarePlan, day: str, db: Session) -> dict:
         "completed": sorted(completed),
         "total_tasks": len(plan.plan.get("tasks", [])),
         "has_history": any_ever is not None,
+    }
+
+
+_MONTH_RE = re.compile(r"^\d{4}-\d{2}$")
+
+
+@router.get("/{plan_id}/adherence/month")
+def adherence_month(
+    plan_id: int,
+    month: str | None = None,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Per-day completion counts for one calendar month (heatmap data)."""
+    plan = _get_owned_plan(plan_id, user, db)
+    if month is None:
+        month = datetime.now(timezone.utc).strftime("%Y-%m")
+    if not _MONTH_RE.match(month):
+        raise HTTPException(status_code=400, detail="month must be YYYY-MM.")
+    rows = db.execute(
+        select(TaskCompletion.day, func.count())
+        .where(TaskCompletion.plan_id == plan.id, TaskCompletion.day.like(f"{month}-%"))
+        .group_by(TaskCompletion.day)
+    ).all()
+    return {
+        "month": month,
+        "total_tasks": len(plan.plan.get("tasks", [])),
+        "days": {day: count for day, count in rows},
     }
 
 

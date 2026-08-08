@@ -118,6 +118,12 @@ r = client.post(f"/api/care-plans/{plan_id}/tasks/9/toggle", json={"day": "2026-
 check("adherence bad index -> 400", r.status_code == 400, r.text)
 r = client.post(f"/api/care-plans/{plan_id}/tasks/1/toggle", json={"day": "bad-date"}, headers=headers)
 check("adherence bad day -> 400", r.status_code == 400, r.text)
+client.post(f"/api/care-plans/{plan_id}/tasks/1/toggle", json={"day": "2026-08-01"}, headers=headers)
+r = client.get(f"/api/care-plans/{plan_id}/adherence/month?month=2026-08", headers=headers)
+check("adherence month heatmap", r.status_code == 200 and r.json()["days"].get("2026-08-01") == 1
+      and r.json()["total_tasks"] == 2, r.text)
+r = client.get(f"/api/care-plans/{plan_id}/adherence/month?month=bad", headers=headers)
+check("adherence month bad format -> 400", r.status_code == 400, r.text)
 
 # Medications CRUD
 r = client.post("/api/medications", json={"name": "Pan 40", "dosage": "40 mg", "frequency": "OD"}, headers=headers)
