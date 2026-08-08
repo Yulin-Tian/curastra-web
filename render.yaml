@@ -6,7 +6,7 @@
 
 databases:
   - name: curastra-db
-    plan: free
+    plan: basic-256mb  # upgraded 7 Aug 2026 (free tier expires after 90 days)
 
 services:
   - type: web
