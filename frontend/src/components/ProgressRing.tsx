@@ -1,7 +1,7 @@
 import { useLang } from '../i18n/LanguageContext'
 
 /** Animated circular progress indicator for daily adherence. */
-export function ProgressRing({ done, total }: { done: number; total: number }) {
+export function ProgressRing({ done, total, title }: { done: number; total: number; title?: string }) {
   const { t } = useLang()
   const R = 26
   const C = 2 * Math.PI * R
@@ -29,7 +29,7 @@ export function ProgressRing({ done, total }: { done: number; total: number }) {
         </text>
       </svg>
       <div className="text-sm text-stone-500">
-        <div className="font-medium text-pine-900">{t('plans.progress')}</div>
+        <div className="font-medium text-pine-900">{title ?? t('plans.progress')}</div>
         {done === total && total > 0 ? t('plans.allDone') : t('plans.progressHint')}
       </div>
     </div>

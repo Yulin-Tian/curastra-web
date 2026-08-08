@@ -158,6 +158,12 @@ export const T: Record<string, Entry> = {
   'dash.check4': { en: 'Ask the assistant anything', hi: 'सहायक से कुछ भी पूछें' },
   'dash.vsPrev': { en: 'vs previous', hi: 'पिछली बार से' },
   'plans.monthTitle': { en: 'Adherence this month', hi: 'इस महीने की नियमितता' },
+  'plans.viewingDay': {
+    en: 'Viewing {date}. Ticks below edit that day.',
+    hi: 'आप {date} देख रहे हैं। नीचे के टिक उसी दिन के लिए दर्ज होंगे।',
+  },
+  'plans.backToToday': { en: 'Back to today', hi: 'आज पर वापस' },
+  'plans.dayProgress': { en: 'Progress on {date}', hi: '{date} की प्रगति' },
   'tour.welcomeTitle': { en: 'Welcome to Curastra', hi: 'Curastra में स्वागत है' },
   'tour.welcomeText': {
     en: 'A quick 30-second tour of the five things this app does for you and your family.',

@@ -26,25 +26,33 @@ export default function CarePlanDetailPage() {
   const [imported, setImported] = useState<Medication[] | null>(null)
   const [adherence, setAdherence] = useState<AdherenceState | null>(null)
   const [justChecked, setJustChecked] = useState<number | null>(null)
+  // The day whose ticks are shown/edited; past days are picked via the heatmap.
+  const [selectedDay, setSelectedDay] = useState(localDay())
+  const [heatmapVersion, setHeatmapVersion] = useState(0)
+  const viewingToday = selectedDay === localDay()
 
   useEffect(() => {
     api
       .get<CarePlan>(`/api/care-plans/${id}`)
       .then(setPlan)
       .catch((err) => setError(err instanceof Error ? err.message : 'Failed to load the plan.'))
+  }, [id])
+
+  useEffect(() => {
     api
-      .get<AdherenceState>(`/api/care-plans/${id}/adherence?day=${localDay()}`)
+      .get<AdherenceState>(`/api/care-plans/${id}/adherence?day=${selectedDay}`)
       .then(setAdherence)
       .catch(() => {})
-  }, [id])
+  }, [id, selectedDay])
 
   async function onToggleTask(index: number) {
     try {
       const next = await api.post<AdherenceState>(`/api/care-plans/${id}/tasks/${index}/toggle`, {
-        day: localDay(),
+        day: selectedDay,
       })
       if (next.completed.includes(index)) setJustChecked(index)
       setAdherence(next)
+      setHeatmapVersion((v) => v + 1) // keep the calendar in step
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not update the task.')
     }
@@ -170,8 +178,30 @@ export default function CarePlanDetailPage() {
           </div>
           {adherence && tasks.length > 0 && (
             <div className="mb-4 rounded-xl bg-sage-50/70 p-3 print:hidden">
-              <ProgressRing done={adherence.completed.length} total={adherence.total_tasks} />
-              {id && <AdherenceHeatmap planId={id} />}
+              <ProgressRing
+                done={adherence.completed.length}
+                total={adherence.total_tasks}
+                title={viewingToday ? undefined : t('plans.dayProgress', { date: selectedDay })}
+              />
+              {!viewingToday && (
+                <div className="mt-2 flex flex-wrap items-center gap-2 rounded-lg bg-white/70 px-3 py-2">
+                  <span className="text-xs text-pine-900">{t('plans.viewingDay', { date: selectedDay })}</span>
+                  <button
+                    onClick={() => setSelectedDay(localDay())}
+                    className="text-xs font-semibold text-teal-700 hover:underline"
+                  >
+                    {t('plans.backToToday')}
+                  </button>
+                </div>
+              )}
+              {id && (
+                <AdherenceHeatmap
+                  planId={id}
+                  selectedDay={selectedDay}
+                  onSelectDay={setSelectedDay}
+                  version={heatmapVersion}
+                />
+              )}
             </div>
           )}
           {tasks.length === 0 ? (

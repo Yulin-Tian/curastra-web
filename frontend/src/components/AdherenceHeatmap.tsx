@@ -8,14 +8,25 @@ interface MonthData {
   days: Record<string, number>
 }
 
-/** GitHub-style month grid: each day's task completion in teal intensity. */
-export function AdherenceHeatmap({ planId }: { planId: string }) {
+/** GitHub-style month grid of task completion. Past days (and today) are
+ * clickable so users can review — and fix — earlier days' ticks. */
+export function AdherenceHeatmap({
+  planId,
+  selectedDay,
+  onSelectDay,
+  version = 0,
+}: {
+  planId: string
+  selectedDay?: string
+  onSelectDay?: (day: string) => void
+  version?: number
+}) {
   const { t, lang } = useLang()
   const [data, setData] = useState<MonthData | null>(null)
 
   useEffect(() => {
     api.get<MonthData>(`/api/care-plans/${planId}/adherence/month`).then(setData).catch(() => {})
-  }, [planId])
+  }, [planId, version])
 
   if (!data || data.total_tasks === 0) return null
 
@@ -30,18 +41,30 @@ export function AdherenceHeatmap({ planId }: { planId: string }) {
     const done = data.days[key] ?? 0
     const frac = Math.min(done / data.total_tasks, 1)
     const future = isThisMonth && day > today.getDate()
+    const isToday = isThisMonth && day === today.getDate()
+    const isSelected = selectedDay === key
     const bg =
       frac >= 1 ? 'bg-teal-600' : frac >= 0.67 ? 'bg-teal-500/80' : frac >= 0.34 ? 'bg-teal-400/60' : frac > 0 ? 'bg-teal-300/50' : 'bg-sage-100'
+
+    if (future) {
+      return (
+        <div key={day} className="flex h-7 w-7 items-center justify-center rounded-md text-[10px] text-stone-300">
+          {day}
+        </div>
+      )
+    }
     return (
-      <div
+      <button
         key={day}
+        type="button"
+        onClick={() => onSelectDay?.(key)}
         title={`${key}: ${done}/${data.total_tasks}`}
-        className={`flex h-7 w-7 items-center justify-center rounded-md text-[10px] ${
-          future ? 'bg-transparent text-stone-300' : `${bg} ${frac > 0.5 ? 'text-white' : 'text-pine-900/60'}`
-        } ${isThisMonth && day === today.getDate() ? 'ring-2 ring-pine-800/60' : ''}`}
+        className={`flex h-7 w-7 items-center justify-center rounded-md text-[10px] transition-transform hover:scale-110 active:scale-95 ${bg} ${
+          frac > 0.5 ? 'text-white' : 'text-pine-900/60'
+        } ${isSelected ? 'ring-2 ring-teal-600' : isToday ? 'ring-2 ring-pine-800/50' : ''}`}
       >
         {day}
-      </div>
+      </button>
     )
   }
 
