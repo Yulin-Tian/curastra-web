@@ -4,7 +4,7 @@ from datetime import datetime, timedelta, timezone
 import pyotp
 from fastapi import APIRouter, Depends, File, Header, HTTPException, Request, Response, UploadFile
 from pydantic import BaseModel, EmailStr, Field
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
 from ..auth import create_token, get_current_user, hash_password, verify_password
@@ -146,6 +146,64 @@ def change_password(payload: ChangePasswordRequest, user: User = Depends(get_cur
     user.password_hash = hash_password(payload.new_password)
     db.commit()
     return {"ok": True}
+
+
+class DeleteAccountRequest(BaseModel):
+    password: str
+    totp_code: str | None = None
+
+
+@router.post("/delete-account", status_code=204)
+def delete_account(
+    payload: DeleteAccountRequest,
+    request: Request,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Right to erasure. The password (and the authenticator code when 2FA is
+    on) must be re-proven — a stolen session token alone cannot erase an
+    account. Removes every row the user owns, then the account itself."""
+    check_rate(request, "delete-account", limit=5, window_seconds=900, key=user.email)
+    if not verify_password(payload.password, user.password_hash):
+        raise HTTPException(status_code=400, detail="Your password is not correct.")
+    if user.totp_enabled:
+        if not payload.totp_code:
+            raise HTTPException(status_code=400, detail="totp_required")
+        if not pyotp.TOTP(user.totp_secret).verify(payload.totp_code, valid_window=1):
+            raise HTTPException(status_code=400, detail="That authenticator code is not valid.")
+
+    from ..models import (
+        CarePlan,
+        ChatMessage,
+        HealthProfile,
+        Medication,
+        NotificationSetting,
+        Profile,
+        PushSubscription,
+        Record,
+        ShareLink,
+        TaskCompletion,
+        Vital,
+    )
+
+    uid = user.id
+    # Children before parents (task completions reference care plans).
+    for model in (
+        TaskCompletion,
+        CarePlan,
+        Record,
+        Medication,
+        Vital,
+        ChatMessage,
+        ShareLink,
+        PushSubscription,
+        NotificationSetting,
+        HealthProfile,
+        Profile,
+    ):
+        db.execute(delete(model).where(model.user_id == uid))
+    db.delete(user)
+    db.commit()
 
 
 class TotpCodeRequest(BaseModel):

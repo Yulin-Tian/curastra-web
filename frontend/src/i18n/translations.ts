@@ -436,6 +436,19 @@ export const T: Record<string, Entry> = {
   'basics.emName': { en: 'Emergency contact name', hi: 'आपातकालीन संपर्क का नाम' },
   'basics.emPhone': { en: 'Emergency contact phone', hi: 'आपातकालीन संपर्क का फ़ोन' },
   'nav.emergency': { en: 'Emergency', hi: 'आपातकाल' },
+  'del.title': { en: 'Delete account', hi: 'खाता हटाएँ' },
+  'del.desc': {
+    en: 'Permanently removes your account with all records, care plans, medicines, readings, chats, share links, and family profiles. This cannot be undone.',
+    hi: 'आपका खाता और सभी रिकॉर्ड, केयर प्लान, दवाएँ, रीडिंग, चैट, साझा लिंक व पारिवारिक प्रोफ़ाइल हमेशा के लिए हट जाएँगे। इसे पूर्ववत नहीं किया जा सकता।',
+  },
+  'del.open': { en: 'Delete my account', hi: 'मेरा खाता हटाएँ' },
+  'del.totp': { en: 'Authenticator code', hi: 'ऑथेंटिकेटर कोड' },
+  'del.confirm': {
+    en: 'Last check: this permanently deletes your account and every record in it. Continue?',
+    hi: 'अंतिम पुष्टि: आपका खाता और उसका सारा डेटा हमेशा के लिए हट जाएगा। जारी रखें?',
+  },
+  'del.finalBtn': { en: 'Permanently delete', hi: 'हमेशा के लिए हटाएँ' },
+  'del.cancel': { en: 'Cancel', hi: 'रद्द करें' },
   'auth.pwHint': {
     en: 'At least 10 characters, with an uppercase letter, a lowercase letter, and a number.',
     hi: 'कम से कम 10 अक्षर, जिनमें एक बड़ा अक्षर, एक छोटा अक्षर और एक अंक हो।',

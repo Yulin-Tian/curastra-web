@@ -947,6 +947,94 @@ export default function ProfilePage() {
           </form>
         )}
       </Card>
+
+      <DeleteAccountCard />
     </div>
+  )
+}
+
+function DeleteAccountCard() {
+  const { user, logout } = useAuth()
+  const { t } = useLang()
+  const [open, setOpen] = useState(false)
+  const [password, setPassword] = useState('')
+  const [totp, setTotp] = useState('')
+  const [error, setError] = useState('')
+  const [busy, setBusy] = useState(false)
+
+  async function onDelete(e: React.FormEvent) {
+    e.preventDefault()
+    // Final confirmation on top of the credential re-proof.
+    if (!window.confirm(t('del.confirm'))) return
+    setError('')
+    setBusy(true)
+    try {
+      await api.post('/api/auth/delete-account', {
+        password,
+        totp_code: totp || null,
+      })
+      logout()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not delete the account.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <Card className="mt-6 !border-red-200">
+      <h2 className="flex items-center gap-2 font-semibold text-red-700">
+        <Trash2 className="h-4 w-4" /> {t('del.title')}
+      </h2>
+      <p className="mt-1 text-sm text-stone-500">{t('del.desc')}</p>
+      {!open ? (
+        <Button variant="danger" className="mt-4" onClick={() => setOpen(true)}>
+          {t('del.open')}
+        </Button>
+      ) : (
+        <form onSubmit={onDelete} className="mt-4 flex flex-col gap-3 border-t border-red-100 pt-4 sm:flex-row sm:items-end">
+          {error && (
+            <div className="w-full sm:hidden">
+              <ErrorBanner message={error} />
+            </div>
+          )}
+          <div className="flex-1">
+            <label className="mb-1 block text-sm font-medium text-slate-700">{t('acct.currentPassword')}</label>
+            <input
+              type="password"
+              required
+              className={inputClass}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              autoComplete="current-password"
+            />
+          </div>
+          {user?.totp_enabled && (
+            <div className="flex-1">
+              <label className="mb-1 block text-sm font-medium text-slate-700">{t('del.totp')}</label>
+              <input
+                required
+                inputMode="numeric"
+                maxLength={8}
+                className={inputClass}
+                value={totp}
+                onChange={(e) => setTotp(e.target.value.replace(/\D/g, ''))}
+              />
+            </div>
+          )}
+          <Button variant="danger" type="submit" disabled={busy || !password}>
+            {busy ? t('common.saving') : t('del.finalBtn')}
+          </Button>
+          <Button type="button" variant="secondary" onClick={() => { setOpen(false); setPassword(''); setTotp(''); setError('') }}>
+            {t('del.cancel')}
+          </Button>
+        </form>
+      )}
+      {error && (
+        <div className="mt-3 hidden sm:block">
+          <ErrorBanner message={error} />
+        </div>
+      )}
+    </Card>
   )
 }

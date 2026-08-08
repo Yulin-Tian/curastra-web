@@ -327,6 +327,21 @@ check("rate limit: 16th login -> 429", r.status_code == 429, r.text)
 r = client.post("/api/auth/login", json={"email": "smoke@test.com", "password": "Password456B"})
 check("rate limit: other identity unaffected", r.status_code == 200, r.text)
 
+# Account deletion: credentials must be re-proven; every owned row goes
+r = client.post("/api/auth/register", json={"name": "Doomed", "email": "delacc@test.com", "password": "Password789C"})
+del_headers = {"Authorization": f"Bearer {r.json()['token']}"}
+client.post("/api/medications", json={"name": "Ghost med"}, headers=del_headers)
+r = client.post("/api/auth/delete-account", json={"password": "wrong-password1"}, headers=del_headers)
+check("delete wrong password -> 400", r.status_code == 400, r.text)
+r = client.post("/api/auth/delete-account", json={"password": "Password789C"}, headers=del_headers)
+check("delete account", r.status_code == 204, r.text)
+r = client.post("/api/auth/login", json={"email": "delacc@test.com", "password": "Password789C"})
+check("deleted account cannot log in", r.status_code == 401, r.text)
+r = client.post("/api/auth/register", json={"name": "Reborn", "email": "delacc@test.com", "password": "Password789C"})
+check("email free after deletion", r.status_code == 201, r.text)
+r = client.get("/api/medications", headers={"Authorization": f"Bearer {r.json()['token']}"})
+check("deleted data gone on re-register", r.status_code == 200 and r.json() == [], r.text)
+
 # Security headers on API responses
 r = client.get("/health")
 check(
