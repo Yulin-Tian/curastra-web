@@ -14,6 +14,7 @@ import {
   UserRound,
 } from 'lucide-react'
 import { api, getActiveProfileId, switchProfile } from '../api/client'
+import { ChatWidget } from './ChatWidget'
 import { Tour } from './Tour'
 import { useLang } from '../i18n/LanguageContext'
 import { LanguageSwitcher } from './LanguageSwitcher'
@@ -178,6 +179,8 @@ export default function Layout() {
             <Outlet />
           </div>
         </main>
+
+        <ChatWidget />
 
         {/* Mobile bottom nav */}
         <nav className="sticky bottom-0 flex justify-around border-t border-pine-800 bg-pine-900 py-1.5 print:hidden sm:hidden">

@@ -220,6 +220,16 @@ html[lang="hi"] .font-display {
   transform-origin: center;
 }
 
+/* Assistant widget slide-over entrance. */
+@keyframes slide-in {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
 /* Checkbox / completion pop, Stripe-style micro-interaction. */
 @keyframes pop {
   0% {

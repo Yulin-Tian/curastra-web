@@ -14,6 +14,25 @@ router = APIRouter(prefix="/api/chat", tags=["chat"])
 
 HISTORY_TURNS = 10
 
+# The assistant can also answer "how do I…?" questions about Curastra itself.
+# This guide rides along in the chat context; the engine's prompt only allows
+# facts from context, so this is the single source of app knowledge.
+APP_GUIDE = {
+    "what_this_is": "Curastra app features and where to find them, for how-to questions.",
+    "records": "Health Records page: upload prescriptions or lab reports (photo, PDF, DOCX). The extracted text must be reviewed and confirmed by the user before it is used. Records can be filtered by type and sorted by date.",
+    "care_plans": "Care Plans page: generated from a confirmed prescription. New plans wait as drafts until the user confirms the start; the plan then follows the prescription's course (e.g. 5 days) day by day. A calendar tracks daily task check-offs, past days can be reviewed and corrected, and when the course ends the app asks whether the user feels better.",
+    "medications": "Medications page: the medicine list, importable from a care plan in one tap, with AI safety alerts for duplicates and interactions.",
+    "vitals": "Vitals page: log blood pressure, glucose, weight, heart rate, temperature; see trend charts and ask for AI insights.",
+    "assistant": "This chat, available on every page via the floating button. It is grounded in the user's own record and supports voice input.",
+    "family_profiles": "Profile page: add family members (child, parent). Switch the active person in the sidebar; each has their own records, plans, medicines, theme, and ABHA.",
+    "abha": "Profile page: Aadhaar-based ABHA enrollment with OTP verification.",
+    "sharing": "Profile page, 'Share with doctor or family': creates a revocable, read-only link (valid 30 days) to medications, the latest care plan, and recent vitals. No account is needed to view it.",
+    "emergency": "Emergency page (red icon in the menu): a printable card with blood type, allergies, conditions, and medicines, plus confirmed one-tap calling of 112 or the saved emergency contact. The contact is saved in Profile, Health basics.",
+    "reminders": "Profile page: a daily care reminder delivered as a browser push notification at the user's chosen hour.",
+    "security": "Profile page: change password, enable two-factor authentication with an authenticator app, set a profile photo. Forgotten passwords are recovered by an emailed six-digit code.",
+    "language_and_install": "The English/Hindi switcher sits in the sidebar under Sign out; the whole app including AI answers follows it. The app can be installed to the home screen from the browser menu (it is a PWA).",
+}
+
 
 def _build_context(user: User, db: Session, active: Profile | None) -> dict:
     """Assemble the health context the engine's chatbot grounds its answers in:
@@ -59,6 +78,7 @@ def _build_context(user: User, db: Session, active: Profile | None) -> dict:
             "red_flags": latest_plan.plan.get("red_flags", []),
             "tasks": [t.get("instruction") for t in latest_plan.plan.get("tasks", [])][:8],
         }
+    context["app_guide"] = APP_GUIDE
     return context
 
 
