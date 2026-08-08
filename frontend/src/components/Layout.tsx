@@ -13,6 +13,7 @@ import {
   UserRound,
 } from 'lucide-react'
 import { api, getActiveProfileId, switchProfile } from '../api/client'
+import { Tour } from './Tour'
 import { useLang } from '../i18n/LanguageContext'
 import { LanguageSwitcher } from './LanguageSwitcher'
 import type { ProfileInfo } from '../api/types'
@@ -39,10 +40,23 @@ export default function Layout() {
     other: t('chrome.other'),
   }
   const [profiles, setProfiles] = useState<ProfileInfo[]>([])
+  const [showTour, setShowTour] = useState(false)
 
   useEffect(() => {
     api.get<ProfileInfo[]>('/api/profiles').then(setProfiles).catch(() => {})
   }, [])
+
+  // First-run guided tour: desktop only, once per browser, from the dashboard.
+  useEffect(() => {
+    if (
+      location.pathname === '/dashboard' &&
+      !localStorage.getItem('curastra_tour_done') &&
+      window.innerWidth >= 640
+    ) {
+      const timer = setTimeout(() => setShowTour(true), 900)
+      return () => clearTimeout(timer)
+    }
+  }, [location.pathname])
 
   const activeId = getActiveProfileId()
   const active =
@@ -95,6 +109,7 @@ export default function Layout() {
 
   return (
     <div className="flex min-h-screen">
+      {showTour && <Tour onClose={() => setShowTour(false)} />}
       <aside className="hidden w-64 shrink-0 flex-col bg-pine-900 text-sage-100 print:hidden sm:flex">
         <div className="flex items-center gap-2.5 px-6 pb-8 pt-7">
           <HeartPulse className="anim-heartbeat h-7 w-7 text-teal-400" strokeWidth={1.8} />
@@ -110,6 +125,7 @@ export default function Layout() {
           {navItems.map(({ to, label, icon: Icon, end }) => (
             <NavLink
               key={to}
+              id={'tour' + to.replace('/', '-')}
               to={to}
               end={end}
               className={({ isActive }) =>
@@ -132,7 +148,7 @@ export default function Layout() {
             {t('nav.signout')}
           </button>
         </nav>
-        <div className="mx-3 mb-4 flex justify-center">
+        <div id="tour-lang" className="mx-3 mb-4 flex justify-center">
           <LanguageSwitcher tone="dark" />
         </div>
       </aside>

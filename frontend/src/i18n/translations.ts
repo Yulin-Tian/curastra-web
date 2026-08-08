@@ -158,6 +158,36 @@ export const T: Record<string, Entry> = {
   'dash.check4': { en: 'Ask the assistant anything', hi: 'सहायक से कुछ भी पूछें' },
   'dash.vsPrev': { en: 'vs previous', hi: 'पिछली बार से' },
   'plans.monthTitle': { en: 'Adherence this month', hi: 'इस महीने की नियमितता' },
+  'tour.welcomeTitle': { en: 'Welcome to Curastra', hi: 'Curastra में स्वागत है' },
+  'tour.welcomeText': {
+    en: 'A quick 30-second tour of the five things this app does for you and your family.',
+    hi: 'सिर्फ़ 30 सेकंड में जानिए, यह ऐप आपके और आपके परिवार के लिए क्या-क्या करता है।',
+  },
+  'tour.recordsText': {
+    en: 'Upload prescriptions and lab reports. You review and confirm every extracted word before any AI uses it.',
+    hi: 'प्रिस्क्रिप्शन और लैब रिपोर्ट अपलोड करें। AI के इस्तेमाल से पहले हर शब्द की जाँच और पुष्टि आप करते हैं।',
+  },
+  'tour.plansText': {
+    en: 'Clear after-care plans: medicines, daily tasks you tick off, and warning signs that name the medicine.',
+    hi: 'साफ़ केयर प्लान: दवाइयाँ, रोज़ के काम जिन्हें आप टिक करते हैं, और दवा का नाम लेती चेतावनियाँ।',
+  },
+  'tour.assistantText': {
+    en: 'Ask anything about your medicines, plan, or readings. Real emergencies are escalated to a doctor.',
+    hi: 'दवाओं, प्लान या रीडिंग के बारे में कुछ भी पूछें। असली आपात स्थिति में डॉक्टर के पास भेजा जाता है।',
+  },
+  'tour.vitalsText': {
+    en: 'Log blood pressure, glucose, or weight, and watch the trends instead of guessing.',
+    hi: 'ब्लड प्रेशर, शुगर या वज़न दर्ज करें और अंदाज़े की जगह रुझान देखें।',
+  },
+  'tour.langTitle': { en: 'Two languages', hi: 'दो भाषाएँ' },
+  'tour.langText': {
+    en: 'Curastra speaks English and Hindi, including every AI answer. Switch anytime.',
+    hi: 'Curastra अंग्रेज़ी और हिंदी दोनों बोलता है, हर AI जवाब समेत। कभी भी बदलें।',
+  },
+  'tour.next': { en: 'Next', hi: 'आगे' },
+  'tour.back': { en: 'Back', hi: 'पीछे' },
+  'tour.skip': { en: 'Skip', hi: 'छोड़ें' },
+  'tour.done': { en: 'Start caring', hi: 'शुरू करें' },
   'dash.footer': {
     en: 'Curastra supports your everyday care. It never diagnoses or replaces medical advice.',
     hi: 'Curastra आपकी रोज़मर्रा की देखभाल में सहारा है। यह न निदान करता है, न डॉक्टर की सलाह की जगह लेता है।',

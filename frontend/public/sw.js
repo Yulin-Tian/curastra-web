@@ -1,4 +1,7 @@
-/* Curastra service worker — receives Web Push and shows the notification. */
+/* Curastra service worker — receives Web Push and shows the notification.
+   The pass-through fetch handler exists to satisfy PWA installability. */
+
+self.addEventListener('fetch', () => {})
 
 self.addEventListener('push', (event) => {
   let data = { title: 'Curastra', body: 'Your care check-in is ready.', url: '/dashboard' }

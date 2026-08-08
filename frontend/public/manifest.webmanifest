@@ -1,0 +1,18 @@
+{
+  "name": "Curastra - Everyday Care",
+  "short_name": "Curastra",
+  "description": "Prescriptions, care plans, medicines, and readings for the whole family, with an assistant that understands them.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f7f6f1",
+  "theme_color": "#16342d",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
