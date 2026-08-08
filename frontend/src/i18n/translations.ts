@@ -374,6 +374,15 @@ export const T: Record<string, Entry> = {
   'vitals.insightsTitle': { en: 'Health insights', hi: 'स्वास्थ्य सलाह' },
   'vitals.nothingNotable': { en: 'Nothing notable yet. Keep logging regularly.', hi: 'अभी कुछ ख़ास नहीं। नियमित दर्ज करते रहें।' },
   'vitals.retryInsights': { en: 'Try again', hi: 'फिर कोशिश करें' },
+  'vitals.entryCount': { en: '{n} readings', hi: '{n} रीडिंग' },
+  'plans.lockNote': {
+    en: 'Check-offs can be undone for 5 minutes, then they lock for safety.',
+    hi: 'टिक 5 मिनट तक हटाए जा सकते हैं, फिर सुरक्षा के लिए लॉक हो जाते हैं।',
+  },
+  'plans.lockedTip': {
+    en: 'Locked — this check-off is more than 5 minutes old.',
+    hi: 'लॉक — यह टिक 5 मिनट से पुराना है।',
+  },
   'vitals.bp': { en: 'Blood pressure', hi: 'ब्लड प्रेशर' },
   'vitals.glucose': { en: 'Blood glucose', hi: 'ब्लड शुगर' },
   'vitals.weight': { en: 'Weight', hi: 'वज़न' },

@@ -1,5 +1,5 @@
 import re
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 from fastapi import Header, APIRouter, Depends, HTTPException
@@ -126,9 +126,23 @@ def _validated_day(day: Optional[str]) -> str:
     return day
 
 
+# A checked task can be un-checked for this long; then it locks, so a slip
+# of the finger can't erase an adherence record hours later (safety).
+UNDO_WINDOW_MINUTES = 5
+
+
+def _aware(dt: datetime) -> datetime:
+    return dt if dt.tzinfo else dt.replace(tzinfo=timezone.utc)
+
+
+def _is_locked(completion: TaskCompletion) -> bool:
+    age = datetime.now(timezone.utc) - _aware(completion.created_at)
+    return age > timedelta(minutes=UNDO_WINDOW_MINUTES)
+
+
 def _adherence_state(plan: CarePlan, day: str, db: Session) -> dict:
-    completed = db.scalars(
-        select(TaskCompletion.task_index).where(
+    rows = db.scalars(
+        select(TaskCompletion).where(
             TaskCompletion.plan_id == plan.id, TaskCompletion.day == day
         )
     ).all()
@@ -137,7 +151,8 @@ def _adherence_state(plan: CarePlan, day: str, db: Session) -> dict:
     )
     return {
         "day": day,
-        "completed": sorted(completed),
+        "completed": sorted(r.task_index for r in rows),
+        "locked": sorted(r.task_index for r in rows if _is_locked(r)),
         "total_tasks": len(plan.plan.get("tasks", [])),
         "has_history": any_ever is not None,
     }
@@ -271,6 +286,11 @@ def toggle_task(
         )
     )
     if existing:
+        if _is_locked(existing):
+            raise HTTPException(
+                status_code=409,
+                detail="This check-off locked 5 minutes after ticking and can no longer be undone.",
+            )
         db.delete(existing)
     else:
         db.add(TaskCompletion(user_id=user.id, plan_id=plan.id, task_index=task_index, day=day))

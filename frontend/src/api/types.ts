@@ -44,6 +44,7 @@ export interface ProfileInfo {
 export interface AdherenceState {
   day: string
   completed: number[]
+  locked: number[] // check-offs older than the 5-minute undo window
   total_tasks: number
   has_history: boolean
 }

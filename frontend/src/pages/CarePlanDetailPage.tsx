@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { AlertOctagon, ArrowLeft, Check, HelpCircle, Pill, Plus, Printer, Trash2 } from 'lucide-react'
+import { AlertOctagon, ArrowLeft, Check, HelpCircle, Lock, Pill, Plus, Printer, Trash2 } from 'lucide-react'
 import { api } from '../api/client'
 import type { AdherenceState, CarePlan, Medication } from '../api/types'
 import { Button, Card, Disclaimer, ErrorBanner, PageTitle, Spinner } from '../components/ui'
@@ -283,24 +283,37 @@ export default function CarePlanDetailPage() {
               )}
             </div>
           )}
+          {adherence && adherence.completed.length > 0 && (
+            <p className="mb-3 flex items-center gap-1.5 text-xs text-stone-400 print:hidden">
+              <Lock className="h-3 w-3 shrink-0" /> {t('plans.lockNote')}
+            </p>
+          )}
           {tasks.length === 0 ? (
             <p className="text-sm text-slate-500">{t('plans.noTasks')}</p>
           ) : (
             <ul className="space-y-3">
               {tasks.map((task, i) => {
                 const done = adherence?.completed.includes(i) ?? false
+                const locked = done && (adherence?.locked.includes(i) ?? false)
                 return (
                   <li key={i} className={`flex gap-3 rounded-lg p-3 transition-colors ${done ? 'bg-teal-50/70' : 'bg-slate-50'}`}>
                     <button
                       onClick={() => onToggleTask(i)}
-                      title={done ? 'Mark as not done today' : 'Mark as done today'}
+                      disabled={locked}
+                      title={locked ? t('plans.lockedTip') : done ? 'Mark as not done today' : 'Mark as done today'}
                       className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 transition-colors print:hidden ${
-                        done
-                          ? 'border-teal-600 bg-teal-600 text-white'
-                          : 'border-stone-300 bg-white text-transparent hover:border-teal-500'
+                        locked
+                          ? 'cursor-default border-teal-600/60 bg-teal-600/60 text-white'
+                          : done
+                            ? 'border-teal-600 bg-teal-600 text-white'
+                            : 'border-stone-300 bg-white text-transparent hover:border-teal-500'
                       }`}
                     >
-                      <Check className={`h-3.5 w-3.5 ${done && justChecked === i ? 'anim-pop' : ''}`} strokeWidth={3} />
+                      {locked ? (
+                        <Lock className="h-3 w-3" strokeWidth={2.5} />
+                      ) : (
+                        <Check className={`h-3.5 w-3.5 ${done && justChecked === i ? 'anim-pop' : ''}`} strokeWidth={3} />
+                      )}
                     </button>
                     <div className="min-w-0 flex-1">
                       <span className="mr-2 rounded-full bg-white px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-slate-500">

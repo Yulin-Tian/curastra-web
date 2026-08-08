@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Activity, Lightbulb, Plus, TrendingUp, Trash2 } from 'lucide-react'
+import { Activity, ChevronDown, Lightbulb, Plus, TrendingUp, Trash2 } from 'lucide-react'
 import { api } from '../api/client'
 import type { Insight, InsightsResult, Vital } from '../api/types'
 import { Button, Card, Disclaimer, EcgLine, EmptyState, ErrorBanner, PageTitle, Segmented, SkeletonList, Spinner, inputClass } from '../components/ui'
@@ -33,6 +33,8 @@ export default function VitalsPage() {
   const [loadingInsights, setLoadingInsights] = useState(false)
   const [insightsError, setInsightsError] = useState('')
   const [chartType, setChartType] = useState<string | null>(null)
+  // Which history categories are expanded (collapsed by default keeps it short).
+  const [openTypes, setOpenTypes] = useState<Set<string>>(new Set())
   const insightsRef = useRef<HTMLDivElement>(null)
 
   // The results card renders below the fold; bring it into view.
@@ -183,22 +185,58 @@ export default function VitalsPage() {
                 </button>
               </div>
             )}
-            <ul className="divide-y divide-slate-100">
-              {vitals.map((v) => (
-                <li key={v.id} className="flex items-center gap-3 py-2.5">
-                  <div className="min-w-0 flex-1">
-                    <span className="font-medium text-slate-800">{typeLabel(v.type)}</span>
-                    <span className="ml-2 text-slate-600">
-                      {v.value} {v.unit}
-                    </span>
-                  </div>
-                  <span className="text-xs text-slate-400">{new Date(v.measured_at).toLocaleString()}</span>
-                  <button onClick={() => onRemove(v.id)} title="Delete" className="rounded p-1 text-slate-300 hover:bg-red-50 hover:text-red-600">
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </button>
-                </li>
-              ))}
-            </ul>
+            <div className="space-y-2">
+              {vitalTypes
+                .map((vt) => ({ vt, entries: vitals.filter((v) => v.type === vt.value) }))
+                .filter(({ entries }) => entries.length > 0)
+                .map(({ vt, entries }) => {
+                  const open = openTypes.has(vt.value)
+                  return (
+                    <div key={vt.value} className="overflow-hidden rounded-xl border border-stone-200/80">
+                      <button
+                        onClick={() =>
+                          setOpenTypes((prev) => {
+                            const next = new Set(prev)
+                            if (next.has(vt.value)) next.delete(vt.value)
+                            else next.add(vt.value)
+                            return next
+                          })
+                        }
+                        className="flex w-full items-center gap-3 bg-stone-50/70 px-4 py-3 text-left transition-colors hover:bg-stone-50"
+                      >
+                        <ChevronDown
+                          className={`h-4 w-4 shrink-0 text-stone-400 transition-transform ${open ? '' : '-rotate-90'}`}
+                        />
+                        <span className="font-medium text-slate-800">{t(vt.labelKey)}</span>
+                        <span className="text-sm text-slate-500">
+                          {entries[0].value} {entries[0].unit ?? ''}
+                        </span>
+                        <span className="ml-auto text-xs text-stone-400">
+                          {t('vitals.entryCount', { n: String(entries.length) })} ·{' '}
+                          {new Date(entries[0].measured_at).toLocaleDateString()}
+                        </span>
+                      </button>
+                      {open && (
+                        <ul className="divide-y divide-slate-100 px-4">
+                          {entries.map((v) => (
+                            <li key={v.id} className="flex items-center gap-3 py-2.5">
+                              <div className="min-w-0 flex-1">
+                                <span className="text-slate-600">
+                                  {v.value} {v.unit}
+                                </span>
+                              </div>
+                              <span className="text-xs text-slate-400">{new Date(v.measured_at).toLocaleString()}</span>
+                              <button onClick={() => onRemove(v.id)} title="Delete" className="rounded p-1 text-slate-300 hover:bg-red-50 hover:text-red-600">
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  )
+                })}
+            </div>
           </Card>
 
           {insights && (

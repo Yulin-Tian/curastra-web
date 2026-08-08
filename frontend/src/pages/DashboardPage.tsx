@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Activity, ArrowRight, CheckCircle2, Circle, ClipboardList, FileText, MessageCircle, Pill, Upload } from 'lucide-react'
-import { api } from '../api/client'
-import type { CarePlan, HealthRecord, Medication, Vital } from '../api/types'
+import { api, getActiveProfileId } from '../api/client'
+import type { CarePlan, HealthRecord, Medication, ProfileInfo, Vital } from '../api/types'
 import { useAuth } from '../auth/AuthContext'
 import { useLang } from '../i18n/LanguageContext'
 import { Card, CountUp, Sparkline } from '../components/ui'
@@ -23,6 +23,15 @@ export default function DashboardPage() {
   const [vitals, setVitals] = useState<Vital[]>([])
   const [hasBasics, setHasBasics] = useState<boolean | null>(null)
   const [loadedCore, setLoadedCore] = useState(false)
+  const [profiles, setProfiles] = useState<ProfileInfo[]>([])
+
+  // Greet the person being cared for, not the account owner.
+  const activeId = getActiveProfileId()
+  const activeProfile = activeId ? profiles.find((p) => String(p.id) === activeId) : null
+  const greetName =
+    activeProfile && !activeProfile.is_primary
+      ? activeProfile.name.split(' ')[0]
+      : user?.name.split(' ')[0] ?? ''
 
   useEffect(() => {
     // Best-effort loads; the dashboard should render even if one call fails.
@@ -32,6 +41,7 @@ export default function DashboardPage() {
     ]).then(() => setLoadedCore(true))
     api.get<Medication[]>('/api/medications').then(setMeds).catch(() => {})
     api.get<Vital[]>('/api/vitals?limit=14').then(setVitals).catch(() => {})
+    api.get<ProfileInfo[]>('/api/profiles').then(setProfiles).catch(() => {})
     api
       .get<BasicsProbe>('/api/profile/health')
       .then((b) => setHasBasics(Boolean(b.allergies || b.date_of_birth || b.height_cm)))
@@ -77,7 +87,7 @@ export default function DashboardPage() {
     <div>
       <div className="mb-10">
         <h1 className="font-display text-4xl font-medium leading-tight text-pine-900">
-          {t('dash.hello', { name: user?.name.split(' ')[0] ?? '' })}
+          {t('dash.hello', { name: greetName })}
         </h1>
         <p className="mt-2 text-[15px] text-stone-500">{t('dash.sub')}</p>
       </div>

@@ -125,6 +125,24 @@ check("adherence month heatmap", r.status_code == 200 and r.json()["days"].get("
 r = client.get(f"/api/care-plans/{plan_id}/adherence/month?month=bad", headers=headers)
 check("adherence month bad format -> 400", r.status_code == 400, r.text)
 
+# 5-minute undo lock: a fresh tick can be reverted (proved by toggle-off above);
+# once older than the window it is reported locked and cannot be undone.
+from datetime import datetime, timedelta, timezone  # noqa: E402
+
+from app.models import TaskCompletion  # noqa: E402
+
+r = client.get(f"/api/care-plans/{plan_id}/adherence?day=2026-08-01", headers=headers)
+check("lock: fresh tick not locked", r.json()["completed"] == [1] and r.json()["locked"] == [], r.text)
+s = SessionLocal()
+row = s.query(TaskCompletion).filter_by(plan_id=plan_id, task_index=1, day="2026-08-01").first()
+row.created_at = datetime.now(timezone.utc) - timedelta(minutes=6)
+s.commit()
+s.close()
+r = client.get(f"/api/care-plans/{plan_id}/adherence?day=2026-08-01", headers=headers)
+check("lock: reported after 5 min", r.json()["locked"] == [1], r.text)
+r = client.post(f"/api/care-plans/{plan_id}/tasks/1/toggle", json={"day": "2026-08-01"}, headers=headers)
+check("lock: untick locked -> 409", r.status_code == 409, r.text)
+
 # Treatment lifecycle: duration parsing, activation, end-of-course outcome
 from app.routers.care_plans import parse_duration_days  # noqa: E402
 
