@@ -120,7 +120,9 @@ export default function Layout() {
   return (
     <div className="flex min-h-screen">
       {showTour && <Tour onClose={() => setShowTour(false)} />}
-      <aside className="hidden w-64 shrink-0 flex-col bg-pine-900 text-sage-100 print:hidden sm:flex">
+      {/* sticky+h-screen keeps the nav pinned while the page scrolls; the panel
+          scrolls internally instead when the viewport is shorter than the nav. */}
+      <aside className="sidebar-scroll sticky top-0 hidden h-screen w-64 shrink-0 flex-col overflow-y-auto overscroll-contain bg-pine-900 text-sage-100 print:hidden sm:flex">
         <div className="flex items-center gap-2.5 px-6 pb-8 pt-7">
           <HeartPulse className="anim-heartbeat h-7 w-7 text-teal-400" strokeWidth={1.8} />
           <div>
