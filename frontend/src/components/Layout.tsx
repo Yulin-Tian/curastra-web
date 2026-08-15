@@ -241,25 +241,8 @@ export default function Layout() {
 
         <PageScene />
         <ChatWidget />
-
-        {/* Mobile bottom nav */}
-        <nav className="sticky bottom-0 flex justify-around border-t border-pine-800 bg-pine-900 py-1.5 print:hidden sm:hidden">
-          {navItems.slice(0, 5).map(({ to, label, icon: Icon, end }) => (
-            <NavLink
-              key={to}
-              to={to}
-              end={end}
-              className={({ isActive }) =>
-                `flex flex-col items-center gap-0.5 px-2 py-1 text-[10px] ${
-                  isActive ? 'text-teal-300' : 'text-sage-200/60'
-                }`
-              }
-            >
-              <Icon className="h-5 w-5" strokeWidth={1.8} />
-              {t(label).split(' ')[0]}
-            </NavLink>
-          ))}
-        </nav>
+        {/* No bottom bar on mobile: it could only fit five destinations, so the
+            hamburger menu is the single, complete navigation (supervisor-agreed). */}
       </div>
     </div>
   )

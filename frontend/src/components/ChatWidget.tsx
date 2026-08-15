@@ -34,7 +34,7 @@ export function ChatWidget() {
           onClick={() => setOpen(true)}
           title={t('chat.widgetOpen')}
           aria-label={t('chat.widgetOpen')}
-          className="group fixed bottom-20 right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-pine-900 text-white shadow-lg shadow-pine-900/25 transition-transform hover:scale-105 active:scale-95 sm:bottom-6 sm:right-6 motion-safe:hover:-translate-y-0.5"
+          className="group fixed bottom-5 right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-pine-900 text-white shadow-lg shadow-pine-900/25 transition-transform hover:scale-105 active:scale-95 sm:bottom-6 sm:right-6 motion-safe:hover:-translate-y-0.5"
         >
           <span className="absolute inset-0 rounded-full ring-4 ring-teal-600/15 transition-all group-hover:ring-8 group-hover:ring-teal-600/10" />
           <MessageCircle className="h-6 w-6" strokeWidth={1.8} />
