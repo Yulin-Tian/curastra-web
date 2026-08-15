@@ -20,6 +20,8 @@ export const T: Record<string, Entry> = {
   'nav.getStarted': { en: 'Get started', hi: 'शुरू करें' },
   'nav.openApp': { en: 'Open the app', hi: 'ऐप खोलें' },
   'chrome.caringFor': { en: 'Caring for', hi: 'देखभाल: किसके लिए' },
+  'chrome.menu': { en: 'Menu', hi: 'मेनू' },
+  'chrome.close': { en: 'Close', hi: 'बंद करें' },
   'chrome.me': { en: 'Me', hi: 'मैं' },
   'chrome.child': { en: 'Child', hi: 'बच्चा' },
   'chrome.parent': { en: 'Parent', hi: 'माता-पिता' },

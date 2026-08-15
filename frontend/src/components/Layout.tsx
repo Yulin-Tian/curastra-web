@@ -9,10 +9,12 @@ import {
   HeartPulse,
   LayoutDashboard,
   LogOut,
+  Menu,
   MessageCircle,
   Pill,
   ShieldAlert,
   UserRound,
+  X,
 } from 'lucide-react'
 import { api, getActiveProfileId, switchProfile } from '../api/client'
 import { ChatWidget } from './ChatWidget'
@@ -46,6 +48,12 @@ export default function Layout() {
   }
   const [profiles, setProfiles] = useState<ProfileInfo[]>([])
   const [showTour, setShowTour] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
+
+  // Close the mobile menu whenever navigation happens.
+  useEffect(() => {
+    setMenuOpen(false)
+  }, [location.pathname])
 
   useEffect(() => {
     const load = () => api.get<ProfileInfo[]>('/api/profiles').then(setProfiles).catch(() => {})
@@ -117,6 +125,52 @@ export default function Layout() {
     </div>
   )
 
+  // Shared nav content for the desktop sidebar and the mobile menu overlay.
+  // Tour spotlight ids only exist once, on the sidebar copy.
+  const navLinks = (withTourIds: boolean) => (
+    <>
+      {navItems.map(({ to, label, icon: Icon, end }) => (
+        <NavLink
+          key={to}
+          id={withTourIds ? 'tour' + to.replace('/', '-') : undefined}
+          to={to}
+          end={end}
+          className={({ isActive }) =>
+            `flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-[13.5px] font-medium transition-colors ${
+              isActive ? 'bg-white/10 text-white' : 'text-sage-200/70 hover:bg-white/5 hover:text-white'
+            }`
+          }
+        >
+          <Icon className="h-[18px] w-[18px]" strokeWidth={1.8} />
+          {t(label)}
+        </NavLink>
+      ))}
+      {user?.is_admin && (
+        <NavLink
+          to="/admin"
+          className={({ isActive }) =>
+            `flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-[13.5px] font-medium transition-colors ${
+              isActive ? 'bg-white/10 text-white' : 'text-sage-200/70 hover:bg-white/5 hover:text-white'
+            }`
+          }
+        >
+          <Gauge className="h-[18px] w-[18px]" strokeWidth={1.8} />
+          {t('nav.admin')}
+        </NavLink>
+      )}
+      <button
+        onClick={logout}
+        className="flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-[13.5px] font-medium text-sage-200/70 transition-colors hover:bg-white/5 hover:text-white"
+      >
+        <LogOut className="h-[18px] w-[18px]" strokeWidth={1.8} />
+        {t('nav.signout')}
+      </button>
+      <div id={withTourIds ? 'tour-lang' : undefined} className="mt-6 flex justify-start pl-2.5">
+        <LanguageSwitcher tone="dark" />
+      </div>
+    </>
+  )
+
   return (
     <div className="flex min-h-screen">
       {showTour && <Tour onClose={() => setShowTour(false)} />}
@@ -133,51 +187,7 @@ export default function Layout() {
           </div>
         </div>
         {switcher}
-        <nav className="flex-1 space-y-0.5 px-3">
-          {navItems.map(({ to, label, icon: Icon, end }) => (
-            <NavLink
-              key={to}
-              id={'tour' + to.replace('/', '-')}
-              to={to}
-              end={end}
-              className={({ isActive }) =>
-                `flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-[13.5px] font-medium transition-colors ${
-                  isActive
-                    ? 'bg-white/10 text-white'
-                    : 'text-sage-200/70 hover:bg-white/5 hover:text-white'
-                }`
-              }
-            >
-              <Icon className="h-[18px] w-[18px]" strokeWidth={1.8} />
-              {t(label)}
-            </NavLink>
-          ))}
-          {user?.is_admin && (
-            <NavLink
-              to="/admin"
-              className={({ isActive }) =>
-                `flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-[13.5px] font-medium transition-colors ${
-                  isActive
-                    ? 'bg-white/10 text-white'
-                    : 'text-sage-200/70 hover:bg-white/5 hover:text-white'
-                }`
-              }
-            >
-              <Gauge className="h-[18px] w-[18px]" strokeWidth={1.8} />
-              {t('nav.admin')}
-            </NavLink>
-          )}
-          <button
-            onClick={logout}
-            className="flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-[13.5px] font-medium text-sage-200/70 transition-colors hover:bg-white/5 hover:text-white"
-          >
-            <LogOut className="h-[18px] w-[18px]" strokeWidth={1.8} />
-            {t('nav.signout')}
-          </button>
-          <div id="tour-lang" className="mt-6 flex justify-start pl-2.5">
-            <LanguageSwitcher tone="dark" />
-          </div>
-        </nav>
+        <nav className="flex-1 space-y-0.5 px-3">{navLinks(true)}</nav>
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
@@ -187,10 +197,35 @@ export default function Layout() {
             <HeartPulse className="anim-heartbeat h-6 w-6 text-teal-400" strokeWidth={1.8} />
             <span className="font-display text-lg font-medium">Curastra</span>
           </div>
-          <button onClick={logout} className="text-sm text-sage-200/70">
-            {t('nav.signout')}
+          <button
+            onClick={() => setMenuOpen(true)}
+            aria-label={t('chrome.menu')}
+            className="rounded-lg p-1.5 text-sage-200/80 hover:bg-white/10 hover:text-white"
+          >
+            <Menu className="h-6 w-6" strokeWidth={1.8} />
           </button>
         </header>
+
+        {/* Mobile full-screen menu: the only route to Profile, Emergency, and Admin on phones */}
+        {menuOpen && (
+          <div className="fixed inset-0 z-50 flex flex-col overflow-y-auto bg-pine-900 text-sage-100 print:hidden sm:hidden">
+            <div className="flex items-center justify-between px-4 py-3">
+              <div className="flex items-center gap-2">
+                <HeartPulse className="anim-heartbeat h-6 w-6 text-teal-400" strokeWidth={1.8} />
+                <span className="font-display text-lg font-medium text-white">Curastra</span>
+              </div>
+              <button
+                onClick={() => setMenuOpen(false)}
+                aria-label={t('chrome.close')}
+                className="rounded-lg p-1.5 text-sage-200/80 hover:bg-white/10 hover:text-white"
+              >
+                <X className="h-6 w-6" strokeWidth={1.8} />
+              </button>
+            </div>
+            {switcher}
+            <nav className="space-y-0.5 px-3 pb-10">{navLinks(false)}</nav>
+          </div>
+        )}
 
         <main className="mx-auto w-full max-w-5xl flex-1 px-5 py-10 print:max-w-none print:px-0 print:py-0 sm:px-10">
           {caringForOther && active && (
