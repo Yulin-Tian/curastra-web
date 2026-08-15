@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { AlertOctagon, ArrowLeft, Check, HelpCircle, Lock, Pencil, Pill, Plus, Printer, Trash2 } from 'lucide-react'
+import { AlertOctagon, ArrowLeft, Check, HelpCircle, Lock, Pencil, Pill, Plus, Printer, Sparkles, Trash2 } from 'lucide-react'
+import { suggestPlanName } from '../utils/planName'
 import { api } from '../api/client'
 import type { AdherenceState, CarePlan, Medication } from '../api/types'
 import { Button, Card, Disclaimer, ErrorBanner, PageTitle, Spinner } from '../components/ui'
@@ -38,6 +39,7 @@ export default function CarePlanDetailPage() {
   const [editingName, setEditingName] = useState(false)
   const [nameDraft, setNameDraft] = useState('')
   const viewingToday = selectedDay === localDay()
+  const suggestedName = plan ? suggestPlanName(plan) : null
 
   async function onSaveName() {
     const title = nameDraft.trim()
@@ -130,37 +132,48 @@ export default function CarePlanDetailPage() {
         <ArrowLeft className="h-4 w-4" /> {t('plans.backToPlans')}
       </button>
       {editingName ? (
-        <div className="mb-8 flex flex-wrap items-center gap-2 print:hidden">
-          <input
-            value={nameDraft}
-            onChange={(e) => setNameDraft(e.target.value)}
-            maxLength={80}
-            autoFocus
-            onKeyDown={(e) => e.key === 'Enter' && onSaveName()}
-            className="w-full max-w-md rounded-xl border border-slate-300 bg-white px-3 py-2 font-display text-xl text-slate-800 focus:border-teal-500 focus:outline-none"
-          />
-          <Button onClick={onSaveName}>{t('plans.nameSave')}</Button>
-          <button
-            onClick={() => setEditingName(false)}
-            className="text-sm text-slate-500 hover:text-slate-800"
-          >
-            {t('plans.nameCancel')}
-          </button>
+        <div className="mb-8 print:hidden">
+          <div className="flex flex-wrap items-center gap-2">
+            <input
+              value={nameDraft}
+              onChange={(e) => setNameDraft(e.target.value)}
+              maxLength={80}
+              autoFocus
+              onKeyDown={(e) => e.key === 'Enter' && onSaveName()}
+              className="w-full max-w-md rounded-xl border border-slate-300 bg-white px-3 py-2 font-display text-xl text-slate-800 focus:border-teal-500 focus:outline-none"
+            />
+            <Button onClick={onSaveName}>{t('plans.nameSave')}</Button>
+            <button
+              onClick={() => setEditingName(false)}
+              className="text-sm text-slate-500 hover:text-slate-800"
+            >
+              {t('plans.nameCancel')}
+            </button>
+          </div>
+          {suggestedName && suggestedName !== nameDraft.trim() && (
+            <button
+              onClick={() => setNameDraft(suggestedName)}
+              className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-sage-100 px-3 py-1.5 text-sm text-pine-900 transition-colors hover:bg-sage-200"
+            >
+              <Sparkles className="h-4 w-4 text-teal-600" strokeWidth={1.8} />
+              {t('plans.nameSuggestion')}: {suggestedName}
+            </button>
+          )}
         </div>
       ) : (
         <>
           <PageTitle
-            title={plan.title ?? t('plans.yourPlan')}
+            title={plan.title ?? suggestedName ?? t('plans.yourPlan')}
             subtitle={t('plans.generatedOn', { date: new Date(plan.created_at).toLocaleString() })}
           />
           <button
             onClick={() => {
-              setNameDraft(plan.title ?? '')
+              setNameDraft(plan.title ?? suggestedName ?? '')
               setEditingName(true)
             }}
-            className="-mt-6 mb-6 flex items-center gap-1 text-xs text-slate-400 transition-colors hover:text-teal-700 print:hidden"
+            className="-mt-4 mb-8 inline-flex items-center gap-1.5 rounded-full border border-slate-300 bg-white px-3.5 py-1.5 text-sm font-medium text-slate-600 shadow-sm transition-colors hover:border-teal-400 hover:text-teal-700 print:hidden"
           >
-            <Pencil className="h-3.5 w-3.5" strokeWidth={1.8} /> {t('plans.editName')}
+            <Pencil className="h-4 w-4" strokeWidth={1.8} /> {t('plans.editName')}
           </button>
         </>
       )}

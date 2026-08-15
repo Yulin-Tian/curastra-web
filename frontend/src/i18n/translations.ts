@@ -24,6 +24,7 @@ export const T: Record<string, Entry> = {
   'plans.editName': { en: 'Edit name', hi: 'नाम बदलें' },
   'plans.nameSave': { en: 'Save name', hi: 'नाम सेव करें' },
   'plans.nameCancel': { en: 'Cancel', hi: 'रद्द करें' },
+  'plans.nameSuggestion': { en: 'Suggested name', hi: 'सुझाया गया नाम' },
   'chrome.close': { en: 'Close', hi: 'बंद करें' },
   'chrome.me': { en: 'Me', hi: 'मैं' },
   'chrome.child': { en: 'Child', hi: 'बच्चा' },
