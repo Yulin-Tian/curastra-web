@@ -35,6 +35,7 @@ _COLUMN_MIGRATIONS = [
     # Multi-profile scoping: NULL means the account's primary ('self') profile.
     ("records", "profile_id", "INTEGER", "INTEGER"),
     ("care_plans", "profile_id", "INTEGER", "INTEGER"),
+    ("care_plans", "title", "TEXT", "TEXT"),
     ("medications", "profile_id", "INTEGER", "INTEGER"),
     ("vitals", "profile_id", "INTEGER", "INTEGER"),
     ("chat_history", "profile_id", "INTEGER", "INTEGER"),

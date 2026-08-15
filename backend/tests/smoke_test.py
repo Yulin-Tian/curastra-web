@@ -109,6 +109,24 @@ s.commit()
 plan_id = plan_row.id
 s.close()
 
+# Editable plan names: rename works, junk is rejected, suggestions derive from content.
+r = client.patch(f"/api/care-plans/{plan_id}", json={"title": "  Skin recovery plan  "}, headers=headers)
+check("plan rename ok + trimmed", r.status_code == 200 and r.json()["title"] == "Skin recovery plan", r.text)
+r = client.patch(f"/api/care-plans/{plan_id}", json={"title": "   "}, headers=headers)
+check("plan rename blank -> 4xx", r.status_code in (400, 422), r.text)
+r = client.patch(f"/api/care-plans/{plan_id}", json={"title": "x" * 81}, headers=headers)
+check("plan rename too long -> 422", r.status_code == 422, r.text)
+
+from app.routers.care_plans import suggest_title  # noqa: E402
+
+check(
+    "suggested titles",
+    suggest_title({"medications": [{"name": "Dolo 650"}], "tasks": []}) == "Dolo 650"
+    and suggest_title({"medications": [], "tasks": [{"instruction": "Use lukewarm showers; pat dry; moisturise within 3 minutes after bathing."}]})
+    == "Use lukewarm showers; pat dry; moisturise…"
+    and suggest_title({"medications": [], "tasks": [{"instruction": "Maintain hydration."}]}) == "Maintain hydration",
+)
+
 r = client.get(f"/api/care-plans/{plan_id}/adherence?day=2026-08-01", headers=headers)
 check("adherence empty", r.status_code == 200 and r.json()["completed"] == [] and r.json()["total_tasks"] == 2, r.text)
 r = client.post(f"/api/care-plans/{plan_id}/tasks/0/toggle", json={"day": "2026-08-01"}, headers=headers)

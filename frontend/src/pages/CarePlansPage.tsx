@@ -104,7 +104,7 @@ export default function CarePlansPage() {
       ) : (
         <ul className="space-y-2">
           {plans.map((p) => {
-            const title = planTitle(p)
+            const title = p.title ?? planTitle(p)
             return (
               <li key={p.id}>
                 <Link

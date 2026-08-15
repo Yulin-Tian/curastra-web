@@ -128,6 +128,8 @@ class CarePlan(Base):
     source_text: Mapped[str] = mapped_column(Text)
     # Full CarePlanOutput JSON from the engine, stored verbatim.
     plan: Mapped[dict] = mapped_column(JSON)
+    # User-editable display name; auto-suggested from the plan at creation.
+    title: Mapped[str | None] = mapped_column(Text, nullable=True)
     # Treatment lifecycle: duration parsed from the prescription; the user
     # explicitly starts the course; at its end they record how they feel.
     # NULL status = legacy plan (tracked without a window).

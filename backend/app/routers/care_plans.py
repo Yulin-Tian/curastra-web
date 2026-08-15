@@ -18,6 +18,37 @@ from .health_profile import profile_context
 router = APIRouter(prefix="/api/care-plans", tags=["care-plans"])
 
 
+_TITLE_SUMMARY_KEYS = ("condition", "diagnosis", "chief_complaint", "reason", "summary")
+
+
+def suggest_title(result: dict) -> Optional[str]:
+    """A short display name for a new plan: medications, else a condition from
+    the structured summary, else the first task trimmed to a title-sized phrase."""
+    meds = [m.get("name") for m in result.get("medications", []) if m.get("name")]
+    if meds:
+        shown = " + ".join(meds[:2])
+        return f"{shown} +{len(meds) - 2}" if len(meds) > 2 else shown
+    summary = result.get("structured_summary") or {}
+    for key in _TITLE_SUMMARY_KEYS:
+        value = summary.get(key)
+        if isinstance(value, str) and value.strip() and len(value.strip()) <= 60:
+            return value.strip()
+    tasks = result.get("tasks") or []
+    first = (tasks[0].get("instruction") or "").strip() if tasks else ""
+    if not first:
+        return None
+    if len(first) <= 44:
+        return first.rstrip(".;, ")
+    cut = first[:44]
+    if " " in cut:
+        cut = cut[: cut.rfind(" ")]
+    return cut.rstrip(".;, ") + "…"
+
+
+class RenameRequest(BaseModel):
+    title: str = Field(min_length=1, max_length=80)
+
+
 def _get_owned_plan(plan_id: int, user: User, db: Session) -> CarePlan:
     plan = db.get(CarePlan, plan_id)
     if plan is None or plan.user_id != user.id:
@@ -72,6 +103,7 @@ def create_care_plan(
         record_id=payload.record_id,
         source_text=payload.verified_text,
         plan=result,
+        title=suggest_title(result),
         duration_days=parse_duration_days(result),
         status="draft",  # the user explicitly starts the course
     )
@@ -98,6 +130,23 @@ def list_care_plans(
 @router.get("/{plan_id}", response_model=CarePlanOut)
 def get_care_plan(plan_id: int, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     return CarePlanOut.model_validate(_get_owned_plan(plan_id, user, db))
+
+
+@router.patch("/{plan_id}", response_model=CarePlanOut)
+def rename_care_plan(
+    plan_id: int,
+    payload: RenameRequest,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    plan = _get_owned_plan(plan_id, user, db)
+    title = payload.title.strip()
+    if not title:
+        raise HTTPException(status_code=400, detail="The name cannot be empty.")
+    plan.title = title
+    db.commit()
+    db.refresh(plan)
+    return CarePlanOut.model_validate(plan)
 
 
 @router.delete("/{plan_id}", status_code=204)

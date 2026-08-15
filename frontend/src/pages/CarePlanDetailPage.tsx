@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { AlertOctagon, ArrowLeft, Check, HelpCircle, Lock, Pill, Plus, Printer, Trash2 } from 'lucide-react'
+import { AlertOctagon, ArrowLeft, Check, HelpCircle, Lock, Pencil, Pill, Plus, Printer, Trash2 } from 'lucide-react'
 import { api } from '../api/client'
 import type { AdherenceState, CarePlan, Medication } from '../api/types'
 import { Button, Card, Disclaimer, ErrorBanner, PageTitle, Spinner } from '../components/ui'
@@ -35,7 +35,20 @@ export default function CarePlanDetailPage() {
   // The day whose ticks are shown/edited; past days are picked via the heatmap.
   const [selectedDay, setSelectedDay] = useState(localDay())
   const [heatmapVersion, setHeatmapVersion] = useState(0)
+  const [editingName, setEditingName] = useState(false)
+  const [nameDraft, setNameDraft] = useState('')
   const viewingToday = selectedDay === localDay()
+
+  async function onSaveName() {
+    const title = nameDraft.trim()
+    if (!title) return
+    try {
+      setPlan(await api.patch<CarePlan>(`/api/care-plans/${id}`, { title }))
+      setEditingName(false)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not rename the plan.')
+    }
+  }
 
   useEffect(() => {
     api
@@ -116,10 +129,41 @@ export default function CarePlanDetailPage() {
       >
         <ArrowLeft className="h-4 w-4" /> {t('plans.backToPlans')}
       </button>
-      <PageTitle
-        title={t('plans.yourPlan')}
-        subtitle={t('plans.generatedOn', { date: new Date(plan.created_at).toLocaleString() })}
-      />
+      {editingName ? (
+        <div className="mb-8 flex flex-wrap items-center gap-2 print:hidden">
+          <input
+            value={nameDraft}
+            onChange={(e) => setNameDraft(e.target.value)}
+            maxLength={80}
+            autoFocus
+            onKeyDown={(e) => e.key === 'Enter' && onSaveName()}
+            className="w-full max-w-md rounded-xl border border-slate-300 bg-white px-3 py-2 font-display text-xl text-slate-800 focus:border-teal-500 focus:outline-none"
+          />
+          <Button onClick={onSaveName}>{t('plans.nameSave')}</Button>
+          <button
+            onClick={() => setEditingName(false)}
+            className="text-sm text-slate-500 hover:text-slate-800"
+          >
+            {t('plans.nameCancel')}
+          </button>
+        </div>
+      ) : (
+        <>
+          <PageTitle
+            title={plan.title ?? t('plans.yourPlan')}
+            subtitle={t('plans.generatedOn', { date: new Date(plan.created_at).toLocaleString() })}
+          />
+          <button
+            onClick={() => {
+              setNameDraft(plan.title ?? '')
+              setEditingName(true)
+            }}
+            className="-mt-6 mb-6 flex items-center gap-1 text-xs text-slate-400 transition-colors hover:text-teal-700 print:hidden"
+          >
+            <Pencil className="h-3.5 w-3.5" strokeWidth={1.8} /> {t('plans.editName')}
+          </button>
+        </>
+      )}
       <ErrorBanner message={error} />
 
       {/* Treatment lifecycle: confirm-to-start, the strict course window,

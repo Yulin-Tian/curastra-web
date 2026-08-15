@@ -83,6 +83,7 @@ class CarePlanCreateRequest(BaseModel):
 class CarePlanOut(BaseModel):
     id: int
     record_id: Optional[int] = None
+    title: Optional[str] = None
     source_text: str
     plan: dict[str, Any]
     duration_days: Optional[int] = None
