@@ -4,9 +4,9 @@
 # Dashboard: New -> Blueprint -> select this repo. Render will prompt for the
 # one secret it cannot generate: INTERNAL_API_KEY (must equal the engine's).
 
-databases:
-  - name: curastra-db
-    plan: basic-256mb  # upgraded 7 Aug 2026 (free tier expires after 90 days)
+# Database: hosted on Neon (free, persistent) since 12 Oct 2026. The Render
+# Postgres (curastra-db, paid) was retired after the capstone was graded.
+# DATABASE_URL is set by hand in the backend's Environment tab (sync: false).
 
 services:
   - type: web
@@ -21,9 +21,7 @@ services:
       - key: PYTHON_VERSION
         value: 3.12.10
       - key: DATABASE_URL
-        fromDatabase:
-          name: curastra-db
-          property: connectionString
+        sync: false  # Neon pooled connection string, set in the dashboard
       - key: JWT_SECRET
         generateValue: true
       - key: AI_ENGINE_URL

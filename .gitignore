@@ -17,3 +17,6 @@ dist/
 .vscode/
 .DS_Store
 Thumbs.db
+
+# local DB backups (never commit)
+backups/

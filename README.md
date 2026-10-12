@@ -95,7 +95,7 @@ without it.
 | frontend | Static site        | `npm run build` → `dist`, SPA rewrite, security headers via blueprint |
 | backend  | Python web service | `uvicorn app.main:app`, health check `/health`     |
 | engine   | Docker web service | its own repo (Tesseract + Poppler + OpenAI)        |
-| Postgres | Managed database   | `DATABASE_URL` into the backend                    |
+| Postgres | Neon (free tier)   | pooled `DATABASE_URL` set by hand in the backend env (Render DB retired Oct 2026) |
 
 Backend env vars: `DATABASE_URL`, `JWT_SECRET`, `AI_ENGINE_URL`,
 `INTERNAL_API_KEY` (must match the engine's), `CORS_ORIGINS`, plus optional
