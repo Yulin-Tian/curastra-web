@@ -1,6 +1,6 @@
 fastapi>=0.110.0
 uvicorn>=0.27.0
-sqlalchemy>=2.0.0
+sqlalchemy>=2.0.0,<2.1  # 2.1 defaults to psycopg v3; we use psycopg2
 pydantic>=2.0.0
 python-dotenv>=1.0.0
 PyJWT>=2.8.0

@@ -3,11 +3,14 @@ from sqlalchemy.orm import DeclarativeBase, sessionmaker
 
 from .config import settings
 
-# Render's Postgres URLs start with postgres:// but SQLAlchemy 2 requires
-# postgresql://.
+# Normalise the Postgres URL: hosted providers hand out postgres:// or
+# postgresql://, and SQLAlchemy 2.1 made psycopg (v3) the default driver for
+# the bare scheme. We ship psycopg2-binary, so name the driver explicitly.
 _url = settings.database_url
 if _url.startswith("postgres://"):
     _url = _url.replace("postgres://", "postgresql://", 1)
+if _url.startswith("postgresql://"):
+    _url = _url.replace("postgresql://", "postgresql+psycopg2://", 1)
 
 _connect_args = {"check_same_thread": False} if _url.startswith("sqlite") else {}
 
