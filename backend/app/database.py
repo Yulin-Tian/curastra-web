@@ -12,9 +12,16 @@ if _url.startswith("postgres://"):
 if _url.startswith("postgresql://"):
     _url = _url.replace("postgresql://", "postgresql+psycopg2://", 1)
 
-_connect_args = {"check_same_thread": False} if _url.startswith("sqlite") else {}
+_is_sqlite = _url.startswith("sqlite")
+_connect_args = {"check_same_thread": False} if _is_sqlite else {}
+# Serverless Postgres (Neon) suspends its compute after a few idle minutes
+# and closes every open connection; without these two options the first
+# request afterwards fails with "SSL connection has been closed unexpectedly".
+# pre_ping re-validates a pooled connection before use, recycle retires
+# connections older than 5 minutes.
+_pool_args = {} if _is_sqlite else {"pool_pre_ping": True, "pool_recycle": 300}
 
-engine = create_engine(_url, connect_args=_connect_args)
+engine = create_engine(_url, connect_args=_connect_args, **_pool_args)
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
 
 
